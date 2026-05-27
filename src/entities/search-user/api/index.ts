@@ -1,0 +1,1 @@
+export { useSearchUsersQuery } from "./searchApi"

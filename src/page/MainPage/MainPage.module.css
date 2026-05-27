@@ -1,0 +1,50 @@
+/* Base container — terminal feed */
+.feedContainer {
+  max-width: 700px;
+  margin: 0 auto;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Empty state — terminal message */
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #555;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 0;
+}
+
+.emptyIcon {
+  font-size: 24px;
+  font-weight: bold;
+  color: #444;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.empty p {
+  font-size: 12px;
+  color: #666;
+  margin: 0 0 8px 0;
+}
+
+.emptyHint {
+  font-size: 10px;
+  color: #444;
+  font-style: italic;
+  max-width: 400px;
+  margin: 8px auto 0;
+  line-height: 1.5;
+}
+
+/* Focus for a11y */
+.feedContainer:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .feedContainer { transition: none !important; }
+}

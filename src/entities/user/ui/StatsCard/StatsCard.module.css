@@ -1,0 +1,55 @@
+/* Terminal card base */
+.card {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 0;
+  padding: 20px;
+  transition: border-color 0.2s ease;
+}
+
+.card:hover {
+  border-color: #444;
+}
+
+/* Stats card layout */
+.cardStats {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 16px 8px;
+}
+
+.statItem {
+  cursor: default;
+  text-align: center;
+  padding: 8px;
+}
+
+.statItem.clickable {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.statItem.clickable:hover {
+  color: #22c55e;
+}
+
+.statItem.clickable:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
+}
+
+.statValue {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: #888;
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+
+.statLabel {
+  font-size: 16px;
+  font-weight: 400;
+  color: #e5e5e5;
+}

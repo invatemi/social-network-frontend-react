@@ -1,0 +1,219 @@
+/* Base styles */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #0a0a0a;
+  color: #e5e5e5;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.layout {
+  display: flex;
+  flex: 1;
+  width: 100%;
+}
+
+.main {
+  flex: 1;
+  padding: 32px 24px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Terminal box */
+.terminalBox {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(0, 255, 0, 0.05);
+}
+
+.terminalHeader {
+  background: #1a1a1a;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #333;
+}
+
+.terminalDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.terminalTitle {
+  margin-left: 12px;
+  font-size: 12px;
+  color: #666;
+  text-transform: lowercase;
+}
+
+.terminalContent {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Loading states */
+.centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.loadingText {
+  color: #22c55e;
+  font-size: 14px;
+  margin: 0;
+  animation: blink 1s infinite;
+}
+
+.loadingSubtext {
+  color: #666;
+  font-size: 12px;
+  margin: 0;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Error states */
+.errorBox {
+  text-align: center;
+  padding: 32px;
+}
+
+.errorAscii {
+  color: #ef4444;
+  font-size: 10px;
+  line-height: 1.2;
+  margin: 0 0 24px 0;
+  white-space: pre;
+}
+
+.errorMessage {
+  color: #fca5a5;
+  margin: 0 0 24px 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.retryButton {
+  background: transparent;
+  border: 1px solid #22c55e;
+  color: #22c55e;
+  padding: 12px 24px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+  background: #22c55e;
+  color: #000;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+}
+
+/* Page header */
+.pageHeader {
+  max-width: 900px;
+  margin: 0 auto 32px;
+  padding: 0 8px;
+}
+
+.titleBlock {
+  margin-bottom: 8px;
+}
+
+.titleAscii {
+  color: #333;
+  font-size: 10px;
+  line-height: 1;
+  margin: 0;
+  overflow: hidden;
+}
+
+.pageTitle {
+  font-size: 24px;
+  font-weight: 400;
+  color: #fff;
+  margin: 0;
+  padding: 4px 12px;
+  letter-spacing: -0.5px;
+}
+
+.pageSubtitle {
+  font-size: 13px;
+  color: #666;
+  margin: 12px 0 0 0;
+  font-style: italic;
+}
+
+.headerSeparator {
+  color: #222;
+  font-size: 10px;
+  margin-top: 16px;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Content wrapper */
+.contentWrapper {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.centeredMain {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 120px);
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+  
+  .main {
+    padding: 24px 16px;
+  }
+  
+  .pageTitle {
+    font-size: 18px;
+  }
+  
+  .terminalContent {
+    padding: 24px;
+  }
+}
+
+@media (min-width: 768px) {
+  .main { 
+    padding: 40px 32px; 
+  }
+  
+  .pageTitle { 
+    font-size: 28px; 
+  }
+  
+  .centeredMain {
+    min-height: calc(100vh - 100px);
+    padding: 16px 0;
+  }
+}

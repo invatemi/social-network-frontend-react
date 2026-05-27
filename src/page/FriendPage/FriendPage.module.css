@@ -1,0 +1,18 @@
+/* Base wrapper — terminal friends page */
+.contentWrapper {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Focus for a11y */
+.contentWrapper:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .contentWrapper { transition: none !important; }
+}

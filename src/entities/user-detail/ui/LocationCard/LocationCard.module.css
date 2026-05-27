@@ -1,0 +1,16 @@
+/* Terminal card base */
+.card {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 0;
+  padding: 20px;
+  transition: border-color 0.2s ease;
+}
+
+.cardTitle {
+  font-size: 11px;
+  font-weight: 400;
+  color: #22c55e;
+  margin: 0 0 16px 0;
+  letter-spacing: 1px;
+}

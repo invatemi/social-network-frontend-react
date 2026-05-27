@@ -1,0 +1,121 @@
+/* Base container — terminal comment section */
+.commentList {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 0;
+  overflow: hidden;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Header with prompt */
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 16px 12px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: #e5e5e5;
+  border-bottom: 1px solid #222;
+}
+
+.prompt {
+  color: #22c55e;
+  font-weight: bold;
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.count {
+  margin-left: auto;
+  font-size: 11px;
+  color: #555;
+}
+
+/* Comments list */
+.list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Empty state */
+.empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: #555;
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* Loading state — ASCII style */
+.loading {
+  padding: 24px 16px;
+  text-align: center;
+  color: #555;
+}
+
+.spinnerAscii {
+  font-size: 11px;
+  color: #22c55e;
+  animation: blink 0.4s infinite;
+}
+
+/* Error state */
+.error {
+  padding: 24px 16px;
+  text-align: center;
+  color: #ef4444;
+  font-size: 11px;
+}
+
+.retryBtn {
+  margin-top: 12px;
+  padding: 6px 16px;
+  background: transparent;
+  border: 1px solid #ef4444;
+  border-radius: 0;
+  color: #ef4444;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retryBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Scrollbar — terminal style */
+.list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.list::-webkit-scrollbar-track {
+  background: #111;
+}
+
+.list::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 0;
+}
+
+.list::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* Focus for a11y */
+.retryBtn:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .prompt, .spinnerAscii { animation: none !important; }
+  .retryBtn { transition: none !important; }
+}

@@ -1,0 +1,116 @@
+/* Base item — terminal list row */
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 12px;
+  border-bottom: 1px solid #222;
+  font-family: 'Courier New', Courier, monospace;
+  transition: background 0.2s ease;
+}
+
+.item:last-child { border-bottom: none; }
+.item:hover { background: rgba(34, 197, 94, 0.05); }
+
+/* Sender link */
+.sender {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: #e5e5e5;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Avatar with fallback */
+.avatarWrapper {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #333;
+  object-fit: cover;
+  display: block;
+}
+
+.avatarFallback {
+  position: absolute;
+  inset: 0;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: #666;
+}
+
+.avatar:not([src]) + .avatarFallback,
+.avatar[src=""] + .avatarFallback {
+  display: flex;
+}
+
+.avatar[src]:not([src=""]) + .avatarFallback {
+  display: none;
+}
+
+/* Info block */
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.username {
+  font-weight: 400;
+  font-size: 14px;
+  color: #fff;
+}
+
+.bio {
+  font-size: 11px;
+  color: #666;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: italic;
+}
+
+.time {
+  font-size: 10px;
+  color: #444;
+}
+
+/* Action buttons */
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.actionBtn {
+  font-family: inherit !important;
+  font-size: 11px !important;
+  padding: 6px 12px !important;
+  min-width: 48px !important;
+  border-radius: 0 !important;
+}
+
+/* Variants for buttons handled in Button.module.css */
+/* Success: green border/text, Danger: red border/text */
+
+/* Focus for a11y */
+.sender:focus-visible,
+.actionBtn:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
+}

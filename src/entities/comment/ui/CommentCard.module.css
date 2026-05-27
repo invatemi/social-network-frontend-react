@@ -1,0 +1,103 @@
+/* Base card — terminal comment block */
+.commentCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: #111;
+  border-bottom: 1px solid #222;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Header with avatar and author info */
+.commentHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatarWrapper {
+  flex-shrink: 0;
+}
+
+.avatar,
+.avatarPlaceholder {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #333;
+  object-fit: cover;
+  display: block;
+  border-radius: 0;
+}
+
+.avatarPlaceholder {
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: #666;
+}
+
+/* Author info */
+.authorInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.username {
+  font-weight: 400;
+  color: #e5e5e5;
+  font-size: 13px;
+}
+
+.date {
+  font-size: 10px;
+  color: #555;
+}
+
+/* Comment body */
+.commentBody p {
+  color: #999;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 12px;
+}
+
+/* Hover effect for interactivity */
+.commentCard:hover {
+  background: rgba(34, 197, 94, 0.05);
+}
+
+/* Focus for a11y */
+.commentCard:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: -2px;
+}
+
+/* Обёртка для действий в хедере */
+.actionWrapper {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+/* ASCII-разделитель */
+.divider {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  color: var(--color-border, #4a4a6a);
+  text-align: center;
+  margin: 0.75rem 0 0;
+  line-height: 1;
+  opacity: 0.6;
+  letter-spacing: 1px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .commentCard { transition: none !important; }
+}

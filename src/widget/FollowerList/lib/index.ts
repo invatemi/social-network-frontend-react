@@ -1,0 +1,1 @@
+export type { FollowerListProps } from "./type"

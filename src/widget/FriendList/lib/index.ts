@@ -1,0 +1,1 @@
+export { FriendItem, FriendListProps } from "./type"

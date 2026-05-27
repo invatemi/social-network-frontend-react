@@ -1,0 +1,1 @@
+export { default as CreateFriend } from "./ui/CreateFriend";

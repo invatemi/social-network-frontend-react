@@ -1,0 +1,218 @@
+/* Base layout */
+.main {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  display: flex;
+  justify-content: center;
+  background: #0a0a0a;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.contentWrapper {
+  width: 100%;
+  max-width: 900px;
+}
+
+/* Back button */
+.backButton {
+  padding: 8px 0 !important;
+  justify-content: flex-start !important;
+  color: #666 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  margin-bottom: 24px;
+  font-family: inherit !important;
+  font-size: 12px !important;
+}
+
+.backButton:hover {
+  color: #22c55e !important;
+}
+
+/* Grid system */
+.bentoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto auto;
+  gap: 16px;
+}
+
+/* Terminal card base */
+.card {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 0;
+  padding: 20px;
+  transition: border-color 0.2s ease;
+}
+
+.card:hover {
+  border-color: #444;
+}
+
+.cardTitle {
+  font-size: 11px;
+  font-weight: 400;
+  color: #22c55e;
+  margin: 0 0 16px 0;
+  letter-spacing: 1px;
+}
+
+/* Avatar card */
+.cardAvatar {
+  grid-column: span 1;
+}
+
+.avatarSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatarContainer {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  cursor: pointer;
+  border: 1px solid #333;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: bold;
+  color: #666;
+  border-radius: 0;
+}
+
+.avatarOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.avatarContainer:hover .avatarOverlay {
+  opacity: 1;
+}
+
+.avatarOverlay span {
+  color: #e5e5e5;
+  font-size: 11px;
+}
+
+.fileInput { display: none; }
+
+.avatarHint {
+  font-size: 10px;
+  color: #555;
+  text-align: center;
+  margin: 0;
+}
+
+.hint {
+  font-size: 10px;
+  color: #555;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Actions card */
+.cardActions {
+  grid-column: span 2;
+  padding: 24px 20px;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.actionButton {
+  min-width: 140px;
+  width: auto !important;
+  font-size: 12px !important;
+  padding: 10px 20px !important;
+  border-radius: 0 !important;
+}
+
+/* Notifications */
+.saveSuccess {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid #22c55e;
+  color: #22c55e;
+  padding: 12px 16px;
+  border-radius: 0;
+  margin-bottom: 24px;
+  font-size: 11px;
+  text-align: center;
+}
+
+.saveError {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 12px 16px;
+  border-radius: 0;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.errorCloseBtn {
+  color: inherit !important;
+  padding: 4px !important;
+  min-width: auto !important;
+  width: auto !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  opacity: 0.7;
+  font-family: inherit !important;
+  font-size: 10px !important;
+}
+
+.errorCloseBtn:hover {
+  opacity: 1 !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Focus for a11y */
+.card:focus-within,
+.backButton:focus-visible,
+.actionButton:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .card, .avatarOverlay, .actionButton {
+    transition: none !important;
+  }
+}

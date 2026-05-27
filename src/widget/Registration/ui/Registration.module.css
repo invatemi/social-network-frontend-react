@@ -1,0 +1,163 @@
+/* Base wrapper — terminal registration screen */
+.authWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 64px);
+  padding: 2rem 1rem;
+  background: #0a0a0a;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Terminal card frame */
+.authCard {
+  width: 100%;
+  max-width: 420px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 0;
+  padding: 32px 24px;
+  box-shadow: 0 0 40px rgba(34, 197, 94, 0.05);
+  animation: cardEntry 0.3s ease-out;
+}
+
+@keyframes cardEntry {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header with prompt */
+.authHeader {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.authTitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 400;
+  color: #e5e5e5;
+  margin: 0 0 8px 0;
+  letter-spacing: 0;
+}
+
+.prompt {
+  color: #22c55e;
+  font-weight: bold;
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.authSubtitle {
+  font-size: 11px;
+  color: #555;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Form layout */
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 400;
+  color: #22c55e;
+  letter-spacing: 0.5px;
+}
+
+/* Error states */
+.errorGlobal {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 10px 12px;
+  border-radius: 0;
+  font-size: 11px;
+  text-align: center;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.errorText {
+  font-size: 10px;
+  color: #ef4444;
+  margin-top: 4px;
+}
+
+/* Submit button */
+.submitBtn {
+  margin-top: 8px !important;
+  font-size: 12px !important;
+  padding: 10px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: 1px solid #22c55e !important;
+  color: #22c55e !important;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.1) !important;
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.3) !important;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* Footer */
+.authFooter {
+  text-align: center;
+  font-size: 10px;
+  color: #555;
+  margin: 8px 0 0 0;
+}
+
+.linkLogin {
+  color: #666;
+  text-decoration: none;
+  font-weight: 400;
+  transition: color 0.2s ease;
+}
+
+.linkLogin:hover {
+  color: #22c55e;
+}
+
+/* Input overrides — delegated to Input component */
+/* Focus states handled by Input.module.css */
+
+/* Focus for a11y */
+.authCard:focus-within,
+.linkLogin:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .authCard, .errorGlobal, .prompt { animation: none !important; }
+  .linkLogin, .submitBtn { transition: none !important; }
+}

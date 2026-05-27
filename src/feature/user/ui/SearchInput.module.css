@@ -1,0 +1,83 @@
+/* Base container — terminal input box */
+.searchContainer {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* ASCII icons */
+.iconAscii {
+  font-size: 12px;
+  color: #666;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+.spinnerAscii {
+  font-size: 11px;
+  color: #22c55e;
+  animation: blink 0.4s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Dropdown — terminal results panel */
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: #0f0f0f;
+  border: 1px solid #333;
+  border-radius: 0;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.dropdownHeader {
+  padding: 8px 12px;
+  font-size: 10px;
+  color: #444;
+  border-bottom: 1px solid #222;
+  background: #111;
+}
+
+.empty {
+  padding: 16px 12px;
+  text-align: center;
+  color: #666;
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* Scrollbar — terminal style */
+.dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown::-webkit-scrollbar-track {
+  background: #111;
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 0;
+}
+
+.dropdown::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* Focus for a11y — handled by Input component */
+.searchContainer:focus-within {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
+}

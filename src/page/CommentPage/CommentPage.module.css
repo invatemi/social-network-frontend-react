@@ -1,0 +1,62 @@
+/* Base wrapper — terminal comments page */
+.contentWrapper {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Back button — terminal style */
+.backButton {
+  padding: 8px 16px !important;
+  border: 1px solid #444 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  color: #666 !important;
+  justify-content: flex-start !important;
+  margin-bottom: 24px;
+  margin-left: 4px;
+  font-family: inherit !important;
+  font-size: 11px !important;
+  border-radius: 0 !important;
+  transition: all 0.2s ease !important;
+}
+
+.backButton:hover {
+  border-color: #22c55e !important;
+  color: #22c55e !important;
+  background: rgba(34, 197, 94, 0.08) !important;
+}
+
+/* Error state inside card */
+.error {
+  text-align: center;
+  padding: 48px 24px;
+  color: #555;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 0;
+}
+
+.errorButton {
+  font-size: 12px !important;
+  padding: 10px 20px !important;
+  border-radius: 0 !important;
+}
+
+/* Focus for a11y */
+.backButton:focus-visible,
+.errorButton:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .backButton, .errorButton { transition: none !important; }
+}

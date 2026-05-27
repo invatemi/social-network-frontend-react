@@ -1,0 +1,45 @@
+/* Base form — terminal input box */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 0;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Footer with submit button */
+.footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Submit button overrides */
+.submitBtn {
+  font-family: inherit !important;
+  font-size: 12px !important;
+  padding: 8px 20px !important;
+  border-radius: 0 !important;
+}
+
+/* Input overrides for terminal style — handled in Input.module.css */
+/* Error states also handled in Input component */
+
+/* Focus for a11y */
+.form:focus-within {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .footer {
+    justify-content: stretch;
+  }
+  
+  .submitBtn {
+    width: 100% !important;
+  }
+}

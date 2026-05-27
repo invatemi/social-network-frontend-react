@@ -1,0 +1,1 @@
+export { default as FollowerPage } from "./FollowerPage"

@@ -1,0 +1,56 @@
+/* Base button — terminal style */
+.button {
+  position: relative;
+  background: #111;
+  border: 1px solid #333;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.button:hover {
+  border-color: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.2);
+}
+
+/* Icon text style */
+.icon {
+  font-size: 14px;
+  font-weight: bold;
+  color: #888;
+  letter-spacing: 2px;
+  transition: color 0.2s ease;
+}
+
+.button:hover .icon {
+  color: #fff;
+}
+
+/* Badge — terminal indicator style */
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #000;
+  color: #ef4444;
+  font-size: 10px;
+  font-weight: bold;
+  height: 16px;
+  min-width: 16px;
+  border: 1px solid #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2px;
+  border-radius: 0; /* Square corners */
+}
+
+/* Active/Focus states */
+.button:focus-visible {
+  outline: none;
+  border-color: #22c55e;
+}

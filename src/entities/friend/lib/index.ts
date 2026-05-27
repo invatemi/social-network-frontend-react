@@ -1,0 +1,1 @@
+export type { FriendCardProps } from "./type"

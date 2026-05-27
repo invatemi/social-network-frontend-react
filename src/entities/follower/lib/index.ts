@@ -1,0 +1,1 @@
+export { FollowerCardProps } from "./type"

@@ -1,0 +1,169 @@
+/* Base container — terminal sidebar */
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #0a0a0a;
+  border-right: 1px solid #333;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Header with prompt */
+.header {
+  padding: 16px;
+  border-bottom: 1px solid #222;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 400;
+  color: #e5e5e5;
+  margin-bottom: 16px;
+}
+
+.prompt {
+  color: #22c55e;
+  font-weight: bold;
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Search wrapper */
+.searchWrapper {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: #555;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 12px 10px 32px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 0;
+  color: #e5e5e5;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.searchInput:focus {
+  border-color: #22c55e;
+}
+
+.searchInput::placeholder {
+  color: #555;
+  font-style: italic;
+}
+
+/* Chats list */
+.chatsList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+/* Section headers */
+.section {
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-size: 10px;
+  font-weight: 400;
+  color: #444;
+  padding: 8px;
+  margin-bottom: 8px;
+  border-left: 2px solid #333;
+}
+
+/* Empty state */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #555;
+  text-align: center;
+}
+
+.iconLarge {
+  font-size: 32px;
+  font-weight: bold;
+  color: #444;
+  margin-bottom: 12px;
+}
+
+.emptyText {
+  font-size: 11px;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* Loading state — ASCII style */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.spinnerAscii {
+  font-size: 11px;
+  color: #22c55e;
+  animation: blink 0.4s infinite;
+}
+
+/* ASCII icons */
+.iconAscii {
+  font-size: 10px;
+  color: #555;
+  font-weight: bold;
+}
+
+/* Scrollbar — terminal style */
+.chatsList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chatsList::-webkit-scrollbar-track {
+  background: #111;
+}
+
+.chatsList::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 0;
+}
+
+.chatsList::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* Focus for a11y */
+.searchInput:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .prompt, .spinnerAscii { animation: none !important; }
+  .searchInput { transition: none !important; }
+}

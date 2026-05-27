@@ -1,0 +1,1 @@
+export { default as FollowerCard } from "./ui/FollowerCard"
