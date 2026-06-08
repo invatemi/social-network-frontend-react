@@ -1,6 +1,7 @@
 import { UserProfile } from "../lib";
 import { baseApi } from "@/app/store/api/baseApi";
 import type { RootState } from "@/app/store/types";
+import type { AppDispatch } from "@/app/store/types";
 import { updateUser } from "@/app/store/slices/authSlice";
 
 type UserDto = {
@@ -240,3 +241,32 @@ export const {
   useGetUserPublicProfileQuery,
   useGetUserOnlineStatusQuery
 } = userApi;
+
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Загружает профиль текущего пользователя с повторными попытками
+ * (eventual consistency после регистрации через RabbitMQ).
+ */
+export const fetchUserProfileWithRetry = async (
+  dispatch: AppDispatch,
+  maxAttempts = 3,
+  delayMs = 400
+): Promise<UserProfile | null> => {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await dispatch(
+        userApi.endpoints.getUserProfile.initiate(undefined, { forceRefetch: true })
+      ).unwrap();
+    } catch {
+      if (attempt === maxAttempts) {
+        return null;
+      }
+
+      await sleep(delayMs);
+    }
+  }
+
+  return null;
+};

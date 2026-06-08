@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch } from "@/app/store/hooks";
 import { setAuth } from "@/app/store/slices/authSlice";
 import { useRegisterMutation } from "@/app/store/api/authApi";
+import { fetchUserProfileWithRetry } from "@/entities/user/api";
 import { Input, Button } from "@/shared";
 import { registrationSchema, RegistrationFormData } from "../lib";
 import style from "./Registration.module.css";
@@ -55,6 +56,7 @@ const Registration = (): ReactElement => {
         refreshToken: result.refreshToken,
         user: result.user,
       }));
+      await fetchUserProfileWithRetry(dispatch);
       navigate("/");
     } catch (err: any) {
       if (err?.data?.errors) {

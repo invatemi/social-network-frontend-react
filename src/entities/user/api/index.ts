@@ -5,7 +5,8 @@ export {
   useConfirmPasswordMutation,
   useNotifyEmailChangedMutation,
   useGetUserPublicProfileQuery,
-  useGetUserOnlineStatusQuery
+  useGetUserOnlineStatusQuery,
+  fetchUserProfileWithRetry,
 } from "./userApi.ts";
 
 export { userApi } from "./userApi.ts"
