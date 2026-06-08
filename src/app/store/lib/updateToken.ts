@@ -17,7 +17,7 @@ import { RootState } from "../types";
  * - Предупреждает в консоль при отсутствии токена (для отладки)
  */
 const baseQuery = fetchBaseQuery({
-  baseUrl: import.meta.env.VITE_API_URL || "http://localhost:3000",
+  baseUrl: import.meta.env.VITE_API_URL || "http://localhost:8080",
   prepareHeaders: (headers, { getState, endpoint }) => {
     if (endpoint === "searchUsers") {
       return headers;
@@ -59,7 +59,7 @@ export const customBaseQuery: BaseQueryFn<
     if (refreshToken) {
       try {
         const refreshResult = await fetchBaseQuery({
-          baseUrl: import.meta.env.VITE_API_URL || "http://localhost:3000",
+          baseUrl: import.meta.env.VITE_API_URL || "http://localhost:8080",
         })(
           { 
             url: "/api/auth/refresh", 

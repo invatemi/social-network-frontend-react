@@ -1,6 +1,6 @@
 import { UserProfile } from "../lib";
 import { baseApi } from "@/app/store/api/baseApi";
-import { RootState } from "@/app/store/index";
+import type { RootState } from "@/app/store/types";
 import { updateUser } from "@/app/store/slices/authSlice";
 
 /**

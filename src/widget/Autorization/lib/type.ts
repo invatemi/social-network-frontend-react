@@ -1,8 +1,12 @@
 import { z } from "zod"
 
 export const authSchema = z.object({
-    username: z.string().min(1, "Юзернейм обязателен").trim(),
-    password : z.string().min(6, "Пароль должен содержать минимум 6 символов"),
+    email: z.string()
+        .min(1, "Почта обязательна")
+        .email("Некорректный формат почты")
+        .trim()
+        .toLowerCase(),
+    password : z.string().min(8, "Пароль должен содержать минимум 8 символов"),
 })
 
 export type AuthFormData = z.infer<typeof authSchema>

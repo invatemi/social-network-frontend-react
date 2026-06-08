@@ -138,14 +138,16 @@ export const useMessagePage = (currentUserId?: number): UseMessagePageReturn => 
     if (before) params.append('before', before);
     
     try {
-      // Получаем токен из Redux (адаптируйте под вашу структуру)
-      const token = (window as any).authToken || localStorage.getItem('token');
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+      const tokens = JSON.parse(localStorage.getItem('auth_tokens') || '{}') as {
+        accessToken?: string;
+      };
       
       const response = await fetch(
-        `http://localhost:3000/api/messages/${activeChatId}?${params}`,
+        `${apiUrl}/api/messages/${activeChatId}?${params}`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            ...(tokens.accessToken ? { Authorization: `Bearer ${tokens.accessToken}` } : {}),
             'Content-Type': 'application/json',
           },
         }

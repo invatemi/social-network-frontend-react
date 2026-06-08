@@ -16,7 +16,7 @@ export const authApi = baseApi.injectEndpoints({
      */
     login: builder.mutation<
       { accessToken: string; refreshToken: string; user: UserProfile }, 
-      { username: string; password: string }
+      { email: string; password: string }
     >({
       query: (body) => ({ 
         url: "/api/auth/login",
@@ -32,17 +32,29 @@ export const authApi = baseApi.injectEndpoints({
      * @param credentials.username - Имя пользователя
      * @param credentials.email - Email пользователя
      * @param credentials.password - Пароль
-     * @param credentials.confirmPassword - Подтверждение пароля
      * @returns Объект с токенами доступа и данными профиля
      */
     register: builder.mutation<
       { accessToken: string; refreshToken: string; user: UserProfile }, 
-      { username: string; email: string; password: string; confirmPassword: string }
+      { username: string; email: string; password: string }
     >({
       query: (body) => ({ 
         url: "/api/auth/register",
         method: "POST", 
         body 
+      }),
+      invalidatesTags: ["User", "Auth"],
+    }),
+    
+    /**
+     * Выход из системы.
+     * @returns Объект с сообщением об успехе
+     */
+    logout: builder.mutation<{ message: string }, { refreshToken: string }>({
+      query: (body) => ({
+        url: "/api/auth/logout",
+        method: "POST",
+        body,
       }),
       invalidatesTags: ["User", "Auth"],
     }),
@@ -72,4 +84,5 @@ export const {
   useLoginMutation,
   useRegisterMutation,
   useRefreshTokensMutation,
+  useLogoutMutation,
 } = authApi;

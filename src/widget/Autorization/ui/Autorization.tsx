@@ -15,7 +15,7 @@ const Autorization = () => {
   const dispatch = useAppDispatch();
   
   const [login, { isLoading }] = useLoginMutation();
-  const [formData, setFormData] = useState<AuthFormData>({ username: "", password: "" });
+  const [formData, setFormData] = useState<AuthFormData>({ email: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -84,16 +84,17 @@ const Autorization = () => {
           )}
 
           <div className={style.fieldGroup}>
-            <label className={style.label} htmlFor="username">{`> USERNAME`}</label>
+            <label className={style.label} htmlFor="email">{`> EMAIL`}</label>
             <Input
-              id="username"
-              name="username"
-              value={formData.username}
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
               onChange={handleChange}
-              error={errors.username ? `! ${errors.username}` : undefined}
-              placeholder={"> enter_username"}
+              error={errors.email ? `! ${errors.email}` : undefined}
+              placeholder={"> you@example.com"}
               disabled={isLoading}
-              autoComplete="username"
+              autoComplete="email"
               fullWidth
             />
           </div>

@@ -11,6 +11,11 @@ import type { AppDispatch } from '@/app/store/types';
 let socket: Socket | null = null;
 let isInitialized = false;
 
+const SOCKET_URL =
+  import.meta.env.VITE_WS_URL ||
+  import.meta.env.VITE_API_URL ||
+  'http://localhost:3004';
+
 // ==================== TYPES ====================
 
 export type SocketMessage = {
@@ -54,11 +59,11 @@ export type SocketUserLeft = {
 const registerSocketHandlers = (socket: Socket, dispatch: AppDispatch): void => {
   console.log('[Socket] Registering event handlers');
 
-  socket.on('post:created', (newPost: FeedPost) => {
+  socket.on('post:created', (_newPost: FeedPost) => {
     dispatch(postApi.util.invalidateTags(['Posts', 'Feed', { type: 'Posts', id: 'LIST' }]));
   });
 
-  socket.on('post:liked', (data: { postId: number; likesCount: number; liked: boolean; userId: number }) => {
+  socket.on('post:liked', (_data: { postId: number; likesCount: number; liked: boolean; userId: number }) => {
     dispatch(postApi.util.invalidateTags(['Posts']));
   });
 
@@ -148,7 +153,7 @@ const registerSocketHandlers = (socket: Socket, dispatch: AppDispatch): void => 
     ]));
   });
 
-  socket.on('chat:created', (data: { chatId: number; participantIds: number[] }) => {
+  socket.on('chat:created', (_data: { chatId: number; participantIds: number[] }) => {
     dispatch(messagesApi.util.invalidateTags([{ type: 'Chats', id: 'LIST' }]));
   });
 };
@@ -175,8 +180,8 @@ export const initSocket = (token: string, dispatch: AppDispatch): Socket | null 
     return socket;
   }
 
-  console.log('[Socket] Establishing new connection');
-  socket = io('http://localhost:3000', {
+  console.log(`[Socket] Establishing new connection: ${SOCKET_URL}`);
+  socket = io(SOCKET_URL, {
     auth: { token },
     transports: ['websocket', 'polling'],
     reconnection: true,
