@@ -1,4 +1,4 @@
-import { ReactElement, useState, useEffect } from "react";
+import { ReactElement, useEffect } from "react";
 import { PageLayout, Button } from "@/shared";
 
 import { 
@@ -12,7 +12,6 @@ import {
 import { 
   UsernameCard,
   EmailCard, 
-  PasswordConfirmCard, 
   ChangePasswordCard,
   DescriptionCard,
   LocationCard
@@ -54,8 +53,6 @@ const UserDetailPage = (): ReactElement => {
   
   const { goToPasswordChange, goBack } = usePasswordNavigation();
 
-  const [confirmPassword, setConfirmPassword] = useState("");
-
   useEffect(() => {
     if (saveSuccess || saveError) {
       const timer = setTimeout(clearMessages, env.ui.profileMessageTimeoutMs);
@@ -64,20 +61,18 @@ const UserDetailPage = (): ReactElement => {
   }, [saveSuccess, saveError, clearMessages]);
 
   const handleSave = async () => {
-    await saveProfile({
+    const saved = await saveProfile({
       username,
       email,
       bio,
       location, 
       avatarFile,
-      confirmPassword,
       isProfileChanged,
       currentUser: user,
     });
 
-    if (!saveError) {
+    if (saved) {
       reset();
-      setConfirmPassword("");
       setTimeout(() => goBack(), env.ui.profileRedirectDelayMs);
     }
   };
@@ -146,13 +141,6 @@ const UserDetailPage = (): ReactElement => {
         <DescriptionCard value={bio} onChange={setBio} />
         <LocationCard value={location} onChange={setLocation} />
 
-        {isProfileChanged && (
-          <PasswordConfirmCard 
-            value={confirmPassword} 
-            onChange={setConfirmPassword} 
-          />
-        )}
-
         <ChangePasswordCard 
           onClick={goToPasswordChange} 
           disabled={isSaving} 
@@ -174,7 +162,7 @@ const UserDetailPage = (): ReactElement => {
               size="lg"
               loading={isSaving}
               onClick={handleSave}
-              disabled={isSaving || (isProfileChanged && !confirmPassword)}
+              disabled={isSaving || (!isProfileChanged && !avatarFile)}
               className={style.actionButton}
             >
               {isSaving ? `[saving...]` : `[save]`}

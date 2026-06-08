@@ -1,4 +1,8 @@
+import { useCallback, useEffect, useState } from "react";
 import { useGetMyFriendsQuery, useGetUserFriendsQuery } from "@/entities/friend/api";
+import type { FriendEntity } from "@/entities/friend/api/friendApi";
+
+const DEFAULT_LIMIT = 20;
 
 /**
  * Хук для получения списка друзей
@@ -11,19 +15,51 @@ import { useGetMyFriendsQuery, useGetUserFriendsQuery } from "@/entities/friend/
  * @returns Объект со списком друзей, общим количеством, статусом загрузки, ошибкой и refetch
  */
 export const useGetFriends = (userId?: number) => {
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [friends, setFriends] = useState<FriendEntity[]>([]);
   const isPublic = !!userId;
-  
-  // Выбор RTK Query хука в зависимости от контекста (свой профиль или чужой)
-  const query = isPublic 
-    ? useGetUserFriendsQuery({ userId }) 
-    : useGetMyFriendsQuery();
+  const myFriendsQuery = useGetMyFriendsQuery(
+    { limit: DEFAULT_LIMIT, cursor },
+    { skip: isPublic }
+  );
+  const userFriendsQuery = useGetUserFriendsQuery(
+    { userId: userId ?? 0, limit: DEFAULT_LIMIT, cursor },
+    { skip: !isPublic }
+  );
 
-  const { data, isLoading, error, refetch } = query;
+  const query = isPublic ? userFriendsQuery : myFriendsQuery;
+  const { data, isLoading, isFetching, error, refetch } = query;
+
+  useEffect(() => {
+    setCursor(null);
+    setFriends([]);
+  }, [userId]);
+
+  useEffect(() => {
+    if (!data?.friends) return;
+
+    setFriends((current) => {
+      if (!cursor) return data.friends;
+
+      const knownIds = new Set(current.map((friend) => friend.id));
+      const nextItems = data.friends.filter((friend) => !knownIds.has(friend.id));
+      return [...current, ...nextItems];
+    });
+  }, [cursor, data?.friends]);
+
+  const loadMore = useCallback(() => {
+    if (data?.nextCursor) {
+      setCursor(data.nextCursor);
+    }
+  }, [data?.nextCursor]);
 
   return {
-    friends: data?.friends || [],
+    friends,
     total: data?.total || 0,
+    hasMore: data?.hasMore || false,
+    loadMore,
     isLoading,
+    isFetching,
     error: error ? "Не удалось загрузить список друзей" : null,
     refetch,
   };

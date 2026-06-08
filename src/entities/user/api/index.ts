@@ -4,7 +4,8 @@ export {
   useUploadAvatarMutation,
   useConfirmPasswordMutation,
   useNotifyEmailChangedMutation,
-  useGetUserPublicProfileQuery
+  useGetUserPublicProfileQuery,
+  useGetUserOnlineStatusQuery
 } from "./userApi.ts";
 
 export { userApi } from "./userApi.ts"

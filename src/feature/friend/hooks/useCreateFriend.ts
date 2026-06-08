@@ -2,11 +2,16 @@ import { useState, useCallback, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { 
   FriendStatus, 
+  FriendActionResponse,
   UseCreateFriendReturn 
 } from "../lib";
 import { 
-  useFriendActionMutation, 
+  useAcceptFriendRequestMutation,
+  useFollowUserMutation,
   useGetFriendStatusQuery,
+  useRemoveFriendMutation,
+  useSendFriendRequestMutation,
+  useUnfollowUserMutation,
   friendApi
 } from "@/entities/friend/api";
 import { userApi } from "@/entities/user/api";
@@ -69,10 +74,20 @@ export const useCreateFriend = (
     refetchOnMountOrArgChange: true,
   });
 
-  const [friendAction, { isLoading: isActionLoading }] = useFriendActionMutation();
+  const [sendFriendRequest, sendFriendRequestState] = useSendFriendRequestMutation();
+  const [acceptFriendRequest, acceptFriendRequestState] = useAcceptFriendRequestMutation();
+  const [removeFriend, removeFriendState] = useRemoveFriendMutation();
+  const [followUser, followUserState] = useFollowUserMutation();
+  const [unfollowUser, unfollowUserState] = useUnfollowUserMutation();
   
   const [error, setError] = useState<string | null>(null);
   const status = statusData?.status || initialStatus;
+  const isActionLoading =
+    sendFriendRequestState.isLoading ||
+    acceptFriendRequestState.isLoading ||
+    removeFriendState.isLoading ||
+    followUserState.isLoading ||
+    unfollowUserState.isLoading;
 
   useEffect(() => {
     if (statusData?.status && onStatusChange) {
@@ -99,56 +114,100 @@ export const useCreateFriend = (
     };
   }, [targetUserId, refetchStatus]);
 
+  const syncFriendStatus = useCallback((result: FriendActionResponse) => {
+    dispatch(
+      friendApi.util.updateQueryData(
+        "getFriendStatus",
+        { userId: targetUserId },
+        (draft) => {
+          draft.status = result.newStatus;
+          draft.friendRequestFrom = result.friendRequestFrom ?? null;
+          draft.isFollowing = result.isFollowing ?? false;
+          draft.incomingRequestId = null;
+          draft.outgoingRequestId = null;
+        }
+      )
+    );
+  }, [dispatch, targetUserId]);
+
+  const invalidateUserCaches = useCallback(() => {
+    if (targetUserId) {
+      dispatch(userApi.util.invalidateTags([{ type: "User", id: targetUserId }]));
+      dispatch(userApi.util.invalidateTags(["User"]));
+      dispatch(userApi.util.invalidateTags(["UserMe"]));
+    }
+    
+    if (currentUserId) {
+      dispatch(userApi.util.invalidateTags([{ type: "User", id: currentUserId }]));
+      dispatch(userApi.util.invalidateTags(["User"]));
+      dispatch(userApi.util.invalidateTags(["UserMe"]));
+    }
+  }, [currentUserId, dispatch, targetUserId]);
+
+  const finishAction = useCallback((result: FriendActionResponse) => {
+    if (result.success) {
+      syncFriendStatus(result);
+      invalidateUserCaches();
+
+      setTimeout(() => {
+        refetchStatus();
+      }, env.ui.friendStatusRefetchDelayMs);
+      
+      return result;
+    }
+
+    throw new Error(result.message);
+  }, [invalidateUserCaches, refetchStatus, syncFriendStatus]);
+
   const executeAction = useCallback(async (
     action: 'add' | 'cancel' | 'accept' | 'decline' | 'remove' | 'unfollow'
-  ) => {
+  ): Promise<FriendActionResponse> => {
     setError(null);
 
     try {
-      const result = await friendAction({ 
-        targetUserId, 
-        action 
-      }).unwrap();
-
-      if (result.success) {
-        dispatch(
-          friendApi.util.updateQueryData(
-            "getFriendStatus",
-            { userId: targetUserId },
-            (draft) => {
-              draft.status = result.newStatus;
-              draft.friendRequestFrom = result.friendRequestFrom ?? null;
-              draft.isFollowing = result.isFollowing ?? false;
-            }
-          )
-        );
-        
-        if (targetUserId) {
-          dispatch(userApi.util.invalidateTags([{ type: "User", id: targetUserId }]));
-          dispatch(userApi.util.invalidateTags(["User"]));
-          dispatch(userApi.util.invalidateTags(["UserMe"]));
-        }
-        
-        if (currentUserId) {
-          dispatch(userApi.util.invalidateTags([{ type: "User", id: currentUserId }]));
-          dispatch(userApi.util.invalidateTags(["User"]));
-          dispatch(userApi.util.invalidateTags(["UserMe"]));
-        }
-        
-        setTimeout(() => {
-          refetchStatus();
-        }, env.ui.friendStatusRefetchDelayMs);
-        
-        return result;
-      } else {
-        throw new Error(result.message);
+      if (action === 'add') {
+        return finishAction(await sendFriendRequest({ targetUserId }).unwrap());
       }
 
+      if (action === 'accept') {
+        const requestId = statusData?.incomingRequestId ?? statusData?.friendRequestFrom;
+        if (!requestId) {
+          throw new Error("Не найдена входящая заявка в друзья");
+        }
+
+        return finishAction(
+          await acceptFriendRequest({ requestId, targetUserId }).unwrap()
+        );
+      }
+
+      if (action === 'remove') {
+        return finishAction(await removeFriend({ targetUserId }).unwrap());
+      }
+
+      if (action === 'unfollow') {
+        return finishAction(await unfollowUser({ targetUserId }).unwrap());
+      }
+
+      if (action === 'cancel' || action === 'decline') {
+        throw new Error("Backend endpoint для отмены или отклонения заявки пока не реализован");
+      }
+
+      return finishAction(await followUser({ targetUserId }).unwrap());
     } catch (err: any) {
       setError(err?.data?.message || err.message || "Произошла ошибка");
       throw err;
     }
-  }, [targetUserId, friendAction, refetchStatus, statusData, dispatch, currentUserId]);
+  }, [
+    acceptFriendRequest,
+    finishAction,
+    followUser,
+    removeFriend,
+    sendFriendRequest,
+    statusData?.friendRequestFrom,
+    statusData?.incomingRequestId,
+    targetUserId,
+    unfollowUser,
+  ]);
   
   const handleUnfollow = useCallback(() => executeAction('unfollow'), [executeAction]);
   const handleAddFriend = useCallback(() => executeAction('add'), [executeAction]);

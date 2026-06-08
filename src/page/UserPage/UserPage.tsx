@@ -13,7 +13,7 @@ import style from "./UserPage.module.css";
 const UserPage = (): ReactElement => {
   const { userId } = useParams<{ userId: string }>();
   const currentUserId = useAppSelector((state) => state.auth.user?.id);
-  const { user, loading, error, refetch, displayName, initial, isOnline } = useUserProfile(userId ? Number(userId) : 0);
+  const { user, loading, error, refetch, displayName, initial, isOnline } = useUserProfile(userId ? Number(userId) : 0, currentUserId);
   const isOwnProfile = currentUserId === user?.id;
 
   return (

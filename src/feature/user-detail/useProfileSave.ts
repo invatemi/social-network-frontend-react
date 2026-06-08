@@ -3,10 +3,7 @@ import { useAppDispatch } from "@/app/store/hooks";
 import { updateUser } from "@/app/store/slices/authSlice";
 
 import { 
-  useUpdateUserProfileMutation, 
-  useUploadAvatarMutation, 
-  useConfirmPasswordMutation,
-  useNotifyEmailChangedMutation,
+  useUpdateUserProfileMutation,
 } from "@/entities/user/api/userApi";
 
 import { UserProfile } from "@/entities/user/lib";
@@ -17,7 +14,6 @@ type SaveProfileParams = {
   bio: string;
   location: string;
   avatarFile: File | null;
-  confirmPassword: string;
   isProfileChanged: boolean;
   currentUser: UserProfile | null;
 };
@@ -26,7 +22,7 @@ type UseProfileSaveReturn = {
   isSaving: boolean;
   saveError: string | null;
   saveSuccess: string | null;
-  saveProfile: (params: SaveProfileParams) => Promise<void>;
+  saveProfile: (params: SaveProfileParams) => Promise<boolean>;
   clearMessages: () => void;
 };
 
@@ -34,10 +30,7 @@ type UseProfileSaveReturn = {
  * Хук useProfileSave
  * 
  * Управляет сохранением профиля пользователя:
- * - Валидация изменений и подтверждение паролем
  * - Обновление имени/почты/био/локации через мутацию
- * - Загрузка аватара с синхронизацией Redux
- * - Отправка уведомления о смене почты
  * - Обработка ошибок и статусов
  * 
  * @returns Объект с состояниями сохранения и методом saveProfile
@@ -50,9 +43,6 @@ export const useProfileSave = (): UseProfileSaveReturn => {
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
   const [updateProfile] = useUpdateUserProfileMutation();
-  const [uploadAvatar] = useUploadAvatarMutation();
-  const [confirmPasswordMutation] = useConfirmPasswordMutation();
-  const [notifyEmailChanged] = useNotifyEmailChangedMutation();
 
   const clearMessages = () => {
     setSaveError(null);
@@ -65,53 +55,43 @@ export const useProfileSave = (): UseProfileSaveReturn => {
     bio,
     location,
     avatarFile,
-    confirmPassword,
     isProfileChanged,
     currentUser,
   }: SaveProfileParams) => {
 
-    if (isProfileChanged && !confirmPassword) {
-      setSaveError("Введите текущий пароль для подтверждения");
-      return;
+    if (!isProfileChanged && !avatarFile) {
+      setSaveError("Нет изменений для сохранения");
+      return false;
     }
 
     setIsSaving(true);
     clearMessages();
 
     try {
-      if (isProfileChanged) {
-        await confirmPasswordMutation({ password: confirmPassword }).unwrap();
+      if (avatarFile) {
+        throw new Error("Загрузка файла аватара пока не поддержана user-service. Нужен endpoint upload или сохранение публичного avatarUrl.");
       }
 
       if (isProfileChanged) {
-        await updateProfile({ 
+        const result = await updateProfile({ 
           username, 
           email, 
           bio, 
           location 
         }).unwrap();
         
-        if (email !== currentUser?.email) {
-          await notifyEmailChanged({ newEmail: email }).unwrap();
-        }
-      }
-
-      if (avatarFile) {
-        const formData = new FormData();
-        formData.append("avatar", avatarFile);
-        
-        const result = await uploadAvatar(formData).unwrap();
-        
-        if (result?.avatarUrl && currentUser) {
-          dispatch(updateUser({ ...currentUser, avatarUrl: result.avatarUrl }));
+        if (currentUser) {
+          dispatch(updateUser({ ...currentUser, ...result.user }));
         }
       }
       
-      setSaveSuccess("✅ Профиль успешно обновлён!");
+      setSaveSuccess("Профиль успешно обновлён");
+      return true;
 
     } catch (err: any) {
       console.error("Save error:", err);
       setSaveError(err?.data?.message || err.message || "Ошибка при сохранении");
+      return false;
     } finally {
       setIsSaving(false);
     }

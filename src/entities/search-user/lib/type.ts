@@ -13,6 +13,9 @@ export type SearchUser = {
  */
 export type SearchResponse = {
   users: SearchUser[];
+  total?: number;
+  nextCursor?: string | null;
+  hasMore?: boolean;
 };
 
 export type SearchUserCardProps = {

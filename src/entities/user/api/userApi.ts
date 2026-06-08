@@ -3,13 +3,82 @@ import { baseApi } from "@/app/store/api/baseApi";
 import type { RootState } from "@/app/store/types";
 import { updateUser } from "@/app/store/slices/authSlice";
 
+type UserDto = {
+  id: number;
+  name?: string;
+  username?: string;
+  email: string;
+  avatarUrl?: string | null;
+  bio?: string | null;
+  location?: string | null;
+  createdAt?: string;
+  postsCount?: number;
+  followersCount?: number;
+  followingCount?: number;
+  friendsCount?: number;
+  friendStatus?: UserProfile["friendStatus"];
+  friendRequestFrom?: number | null;
+  isOnline?: boolean;
+};
+
+type UserProfileResponseDto = UserDto | {
+  success?: boolean;
+  user: UserDto;
+};
+
+type UpdateProfileRequest = Partial<
+  Pick<UserProfile, "username" | "email" | "avatarUrl" | "bio" | "location">
+>;
+
+type UpdateProfileDtoResponse = {
+  success?: boolean;
+  message?: string;
+  user: UserDto;
+  changedFields?: string[];
+};
+
 /**
  * Структура ответа API при обновлении профиля пользователя.
  */
 type UpdateProfileResponse = {
   message: string;
   user: UserProfile;
+  changedFields: string[];
 };
+
+const isWrappedUserResponse = (
+  response: UserProfileResponseDto
+): response is { success?: boolean; user: UserDto } => "user" in response;
+
+const normalizeUserProfile = (user: UserDto): UserProfile => ({
+  id: user.id,
+  username: user.username ?? user.name ?? user.email,
+  email: user.email,
+  avatarUrl: user.avatarUrl ?? null,
+  bio: user.bio ?? "",
+  location: user.location ?? "",
+  memberSince: user.createdAt,
+  postsCount: user.postsCount ?? 0,
+  followersCount: user.followersCount ?? 0,
+  followingCount: user.followingCount ?? user.friendsCount ?? 0,
+  friendsCount: user.friendsCount,
+  friendStatus: user.friendStatus,
+  friendRequestFrom: user.friendRequestFrom ?? undefined,
+  isOnline: user.isOnline ?? false,
+});
+
+const mapProfileResponse = (response: UserProfileResponseDto): UserProfile => {
+  const user = isWrappedUserResponse(response) ? response.user : response;
+  return normalizeUserProfile(user);
+};
+
+const toUpdateProfileBody = (profile: UpdateProfileRequest) => ({
+  ...(profile.username !== undefined ? { name: profile.username } : {}),
+  ...(profile.email !== undefined ? { email: profile.email } : {}),
+  ...(profile.avatarUrl !== undefined ? { avatarUrl: profile.avatarUrl } : {}),
+  ...(profile.bio !== undefined ? { bio: profile.bio } : {}),
+  ...(profile.location !== undefined ? { location: profile.location } : {}),
+});
 
 /**
  * API-эндпоинты для работы с профилями пользователей: получение, обновление, аватар, статус онлайн.
@@ -27,6 +96,7 @@ export const userApi = baseApi.injectEndpoints({
      */
     getUserProfile: builder.query<UserProfile, void>({
       query: () => "/api/users/me",
+      transformResponse: mapProfileResponse,
       providesTags: ["User", "UserMe"],
     }),
     
@@ -41,7 +111,8 @@ export const userApi = baseApi.injectEndpoints({
      */
     getUserPublicProfile: builder.query<UserProfile, { userId: number }>({
       query: ({ userId }) => `/api/users/${userId}`,
-      providesTags: (result, error, { userId }) => 
+      transformResponse: mapProfileResponse,
+      providesTags: (_result, _error, { userId }) => 
         [{ type: 'User' as const, id: userId }],
     }),
 
@@ -55,11 +126,16 @@ export const userApi = baseApi.injectEndpoints({
      * - Диспатчит `updateUser` в Redux store для синхронизации состояния
      * - Инвалидирует тег "User" для обновления зависимых запросов
      */
-    updateUserProfile: builder.mutation<UpdateProfileResponse, Partial<UserProfile>>({
-      query: (body) => ({ 
+    updateUserProfile: builder.mutation<UpdateProfileResponse, UpdateProfileRequest>({
+      query: (profile) => ({ 
         url: "/api/users/me", 
-        method: "PUT", 
-        body 
+        method: "PATCH", 
+        body: toUpdateProfileBody(profile),
+      }),
+      transformResponse: (response: UpdateProfileDtoResponse) => ({
+        message: response.message ?? "Profile updated",
+        user: normalizeUserProfile(response.user),
+        changedFields: response.changedFields ?? [],
       }),
       invalidatesTags: ["User"],
       
@@ -147,7 +223,7 @@ export const userApi = baseApi.injectEndpoints({
      */
     getUserOnlineStatus: builder.query<{ online: boolean }, { userId: number }>({
       query: ({ userId }) => `/api/users/${userId}/online`,
-      providesTags: (result, error, { userId }) => 
+      providesTags: (_result, _error, { userId }) => 
         [{ type: 'UserOnline' as const, id: userId }],
     }),
     

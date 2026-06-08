@@ -26,6 +26,10 @@ export type FriendActionResponse = {
   message: string;
   /** Новый статус дружбы после выполнения действия */
   newStatus: FriendStatus;
+  /** ID пользователя, от которого пришла заявка, если она входящая */
+  friendRequestFrom?: number | null;
+  /** Флаг подписки текущего пользователя на целевого */
+  isFollowing?: boolean;
 };
 
 /**

@@ -1,8 +1,15 @@
 export {
   useGetMyFriendsQuery,
   useGetUserFriendsQuery,
+  useGetUserFriendsCountQuery,
   useGetFriendStatusQuery,
-  useFriendActionMutation,
+  useGetIncomingFriendRequestsQuery,
+  useGetOutgoingFriendRequestsQuery,
+  useSendFriendRequestMutation,
+  useAcceptFriendRequestMutation,
+  useRemoveFriendMutation,
+  useFollowUserMutation,
+  useUnfollowUserMutation,
 } from "./friendApi"
 
 export { friendApi } from "./friendApi"

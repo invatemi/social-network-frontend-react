@@ -39,7 +39,8 @@ export type UserProfile = {
   postsCount?: number;
   followersCount?: number;
   followingCount?: number;
-  friendStatus?: 'none' | 'pending' | 'friends';
+  friendsCount?: number;
+  friendStatus?: 'none' | 'pending' | 'friends' | 'blocked';
   friendRequestFrom?: number;
   isOnline?: boolean;
 };

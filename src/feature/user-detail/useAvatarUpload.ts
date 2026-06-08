@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 
 type UseAvatarUploadReturn = {
   avatarPreview: string | null;
@@ -30,6 +30,12 @@ export const useAvatarUpload = (initialAvatarUrl: string | null): UseAvatarUploa
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!avatarFile) {
+      setAvatarPreview(initialAvatarUrl);
+    }
+  }, [avatarFile, initialAvatarUrl]);
 
   const openFilePicker = () => {
     fileInputRef.current?.click();

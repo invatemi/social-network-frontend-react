@@ -2,7 +2,7 @@ import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { NotificationItem } from "../NotificationItem";
 import { useGetNotifications } from "../../hooks/useGetNotifications";
-import { useFriendActionMutation } from "@/entities/friend/api";
+import { useAcceptFriendRequestMutation } from "@/entities/friend/api";
 import style from "./NotificationModal.module.css";
 
 type NotificationModalProps = {
@@ -15,22 +15,18 @@ type NotificationModalProps = {
  */
 const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
   const { requests, isLoading, unreadCount } = useGetNotifications();
-  const [friendAction] = useFriendActionMutation();
+  const [acceptFriendRequest] = useAcceptFriendRequestMutation();
 
-  const handleAccept = async (senderId: number) => {
+  const handleAccept = async (requestId: number, senderId: number) => {
     try {
-      await friendAction({ targetUserId: senderId, action: "accept" }).unwrap();
+      await acceptFriendRequest({ requestId, targetUserId: senderId }).unwrap();
     } catch (err) {
       console.error("Failed to accept request:", err);
     }
   };
 
-  const handleDecline = async (senderId: number) => {
-    try {
-      await friendAction({ targetUserId: senderId, action: "decline" }).unwrap();
-    } catch (err) {
-      console.error("Failed to decline request:", err);
-    }
+  const handleDecline = () => {
+    console.error("Decline friend request endpoint is not implemented in user-service");
   };
 
   return (

@@ -16,7 +16,7 @@ const PublicPage = (): ReactElement => {
   const currentUserId = useAppSelector((state) => state.auth.user?.id);
   
   const { user, loading, error, displayName, initial, refetch, isOnline } = 
-    useUserProfile(userId ? Number(userId) : 0);
+    useUserProfile(userId ? Number(userId) : 0, currentUserId);
 
   const handleBack = () => navigate(-1);
   const isOwnProfile = currentUserId === user?.id;
@@ -73,7 +73,7 @@ const PublicPage = (): ReactElement => {
         )}
       </div>
 
-      <PostList title={"> posts"} userId={userId} />
+      <PostList title={"> posts"} userId={user?.id} />
     </PageLayout>
   );
 };

@@ -28,6 +28,40 @@ export type NotificationsResponse = {
   unreadCount: number;
 };
 
+type IncomingFriendRequestDto = {
+  id: number;
+  fromUser: {
+    id: number;
+    name: string;
+    avatarUrl: string | null;
+    bio?: string | null;
+  };
+  createdAt: string;
+};
+
+type IncomingFriendRequestsResponseDto = {
+  success?: boolean;
+  requests: IncomingFriendRequestDto[];
+  total: number;
+};
+
+const mapIncomingRequests = (
+  response: IncomingFriendRequestsResponseDto
+): NotificationsResponse => ({
+  requests: response.requests.map((request) => ({
+    id: request.id,
+    sender: {
+      id: request.fromUser.id,
+      username: request.fromUser.name,
+      avatarUrl: request.fromUser.avatarUrl,
+      bio: request.fromUser.bio ?? undefined,
+    },
+    createdAt: request.createdAt,
+  })),
+  total: response.total,
+  unreadCount: response.total,
+});
+
 /**
  * API-эндпоинты для работы с уведомлениями пользователя.
  */
@@ -38,7 +72,8 @@ export const notificationsApi = baseApi.injectEndpoints({
      * @returns Объект со списком заявок, общим количеством и числом непрочитанных уведомлений
      */
     getFriendRequests: builder.query<NotificationsResponse, void>({
-      query: () => "/api/users/me/notifications/friend-requests",
+      query: () => "/api/users/me/friends/requests/incoming",
+      transformResponse: mapIncomingRequests,
       providesTags: ["Friends" as const],
     }),
   }),

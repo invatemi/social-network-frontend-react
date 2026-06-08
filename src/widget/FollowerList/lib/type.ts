@@ -1,4 +1,4 @@
-import { FollowerCardProps } from "@/entities/follower/ui/FollowerCard";
+import { FollowerCardProps } from "@/entities/follower/lib";
 
 export type FollowerItem = FollowerCardProps;
 

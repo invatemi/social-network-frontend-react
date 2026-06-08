@@ -1,5 +1,7 @@
 import { useGetUserProfileQuery, useGetUserPublicProfileQuery } from "@/entities/user/api";
 import { UserProfile } from "@/entities/user/lib";
+import { useGetUserFollowCountsQuery } from "@/entities/follower/api";
+import { useGetFriendStatusQuery, useGetUserFriendsCountQuery } from "@/entities/friend/api";
 
 type UseUserProfileReturn = {
   user: UserProfile | null;
@@ -29,7 +31,8 @@ export const useUserProfile = (
 ): UseUserProfileReturn => {
   
   //  Определяем, свой ли это профиль
-  const isOwnProfile = !userId || userId === currentUserId;
+  const normalizedUserId = userId && userId > 0 ? userId : undefined;
+  const isOwnProfile = !normalizedUserId || normalizedUserId === currentUserId;
   
   //  Загружаем профиль текущего пользователя (если свой профиль)
   const ownProfileQuery = useGetUserProfileQuery(undefined, {
@@ -38,8 +41,22 @@ export const useUserProfile = (
   
   //  Загружаем публичный профиль (если чужой профиль)
   const publicProfileQuery = useGetUserPublicProfileQuery(
-    { userId: userId! },
-    { skip: isOwnProfile || !userId }
+    { userId: normalizedUserId! },
+    { skip: isOwnProfile || !normalizedUserId }
+  );
+
+  const targetUserId = normalizedUserId ?? ownProfileQuery.data?.id;
+  const followCountsQuery = useGetUserFollowCountsQuery(
+    { userId: targetUserId ?? 0 },
+    { skip: !targetUserId }
+  );
+  const friendsCountQuery = useGetUserFriendsCountQuery(
+    { userId: targetUserId ?? 0 },
+    { skip: !targetUserId }
+  );
+  const relationQuery = useGetFriendStatusQuery(
+    { userId: normalizedUserId ?? 0 },
+    { skip: isOwnProfile || !normalizedUserId }
   );
   
   //  Выбираем результат в зависимости от типа профиля
@@ -53,21 +70,41 @@ export const useUserProfile = (
     refetch 
   } = query;
 
-  const displayName = user?.username || "Пользователь";
+  const profile = user
+    ? {
+        ...user,
+        followersCount: followCountsQuery.data?.followersCount ?? user.followersCount ?? 0,
+        followingCount: friendsCountQuery.data?.friendsCount ?? user.friendsCount ?? user.followingCount ?? 0,
+        friendsCount: friendsCountQuery.data?.friendsCount ?? user.friendsCount,
+        friendStatus: relationQuery.data?.status ?? user.friendStatus,
+        friendRequestFrom: relationQuery.data?.friendRequestFrom ?? user.friendRequestFrom,
+      }
+    : null;
+
+  const displayName = profile?.username || "Пользователь";
   const initial = displayName.charAt(0).toUpperCase();
   
   //  isOnline есть только в публичном профиле, для своего профиля по умолчанию false
-  const isOnline = user?.isOnline ?? false;
+  const isOnline = profile?.isOnline ?? false;
   
   const error = isError 
     ? (queryError as any)?.message || "Ошибка загрузки профиля" 
     : null;
 
   return {
-    user: user || null,
-    loading,
+    user: profile,
+    loading: loading || followCountsQuery.isLoading || friendsCountQuery.isLoading,
     error,
-    refetch,
+    refetch: () => {
+      refetch();
+      if (targetUserId) {
+        followCountsQuery.refetch();
+        friendsCountQuery.refetch();
+      }
+      if (!isOwnProfile && normalizedUserId) {
+        relationQuery.refetch();
+      }
+    },
     displayName,
     initial,
     isOnline,

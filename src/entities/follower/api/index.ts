@@ -1,4 +1,5 @@
 export {
   useGetMyFollowersQuery,
-  useGetUserFollowersQuery
+  useGetUserFollowersQuery,
+  useGetUserFollowCountsQuery
 } from "./followerApi.ts"

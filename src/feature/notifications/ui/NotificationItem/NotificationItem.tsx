@@ -5,8 +5,8 @@ import style from "./NotificationItem.module.css";
 
 type NotificationItemProps = {
   request: FriendRequestNotification;
-  onAccept: (senderId: number) => void;
-  onDecline: (senderId: number) => void;
+  onAccept: (requestId: number, senderId: number) => void;
+  onDecline: (requestId: number, senderId: number) => void;
 };
 
 /**
@@ -45,7 +45,7 @@ const NotificationItem = ({ request, onAccept, onDecline }: NotificationItemProp
         <Button
           variant="success"
           size="sm"
-          onClick={() => onAccept(sender.id)}
+          onClick={() => onAccept(request.id, sender.id)}
           aria-label="Принять заявку"
           className={style.actionBtn}
         >
@@ -55,7 +55,7 @@ const NotificationItem = ({ request, onAccept, onDecline }: NotificationItemProp
         <Button
           variant="danger"
           size="sm"
-          onClick={() => onDecline(sender.id)}
+          onClick={() => onDecline(request.id, sender.id)}
           aria-label="Отклонить заявку"
           className={style.actionBtn}
         >
