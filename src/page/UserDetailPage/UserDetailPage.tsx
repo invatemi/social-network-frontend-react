@@ -17,6 +17,7 @@ import {
   DescriptionCard,
   LocationCard
 } from "@/entities";
+import { env } from "@/shared/config/env";
 
 import style from "./UserDetailPage.module.css";
 
@@ -57,7 +58,7 @@ const UserDetailPage = (): ReactElement => {
 
   useEffect(() => {
     if (saveSuccess || saveError) {
-      const timer = setTimeout(clearMessages, 3000);
+      const timer = setTimeout(clearMessages, env.ui.profileMessageTimeoutMs);
       return () => clearTimeout(timer);
     }
   }, [saveSuccess, saveError, clearMessages]);
@@ -77,7 +78,7 @@ const UserDetailPage = (): ReactElement => {
     if (!saveError) {
       reset();
       setConfirmPassword("");
-      setTimeout(() => goBack(), 1500);
+      setTimeout(() => goBack(), env.ui.profileRedirectDelayMs);
     }
   };
 

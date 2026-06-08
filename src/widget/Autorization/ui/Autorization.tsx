@@ -18,7 +18,7 @@ const Autorization = () => {
   const [formData, setFormData] = useState<AuthFormData>({ email: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {

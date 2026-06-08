@@ -6,15 +6,11 @@ import { notificationsApi } from '../store/api/notificationsApi';
 import { friendApi } from '@/entities/friend/api/friendApi';
 import { FeedPost } from '@/entities/post/api/postApi';
 import { messagesApi } from '@/entities/message/api/messagesApi';
+import { env } from '@/shared/config/env';
 import type { AppDispatch } from '@/app/store/types';
 
 let socket: Socket | null = null;
 let isInitialized = false;
-
-const SOCKET_URL =
-  import.meta.env.VITE_WS_URL ||
-  import.meta.env.VITE_API_URL ||
-  'http://localhost:3004';
 
 // ==================== TYPES ====================
 
@@ -180,13 +176,13 @@ export const initSocket = (token: string, dispatch: AppDispatch): Socket | null 
     return socket;
   }
 
-  console.log(`[Socket] Establishing new connection: ${SOCKET_URL}`);
-  socket = io(SOCKET_URL, {
+  console.log(`[Socket] Establishing new connection: ${env.wsUrl}`);
+  socket = io(env.wsUrl, {
     auth: { token },
-    transports: ['websocket', 'polling'],
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
+    transports: env.socket.transports,
+    reconnection: env.socket.reconnection,
+    reconnectionAttempts: env.socket.reconnectionAttempts,
+    reconnectionDelay: env.socket.reconnectionDelayMs,
     extraHeaders: {
       Authorization: `Bearer ${token}`,
     },

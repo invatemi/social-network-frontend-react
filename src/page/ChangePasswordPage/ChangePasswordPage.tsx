@@ -7,6 +7,7 @@ import {
   useRequestPasswordCodeMutation, 
   useVerifyPasswordCodeMutation 
 } from "@/app/store/api";
+import { env } from "@/shared/config/env";
 import style from "./ChangePasswordPage.module.css";
 
 /**
@@ -66,7 +67,7 @@ const ChangePasswordPage = (): ReactElement => {
     try {
       await verifyCode({ code: verificationCode, newPassword }).unwrap();
       setSuccess("[password_changed]");
-      setTimeout(() => navigate("/user"), 2000);
+      setTimeout(() => navigate("/user"), env.ui.passwordRedirectDelayMs);
     } catch (err: any) {
       setLocalError(err?.data?.message || "! password_change_failed");
     }

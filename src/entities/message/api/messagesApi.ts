@@ -1,4 +1,5 @@
 import { baseApi } from "@/app/store/api/baseApi";
+import { env } from "@/shared/config/env";
 
 export type MessageAuthor = {
   id: number;
@@ -53,7 +54,7 @@ type ApiListResponse<T> = {
 export const messagesApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getChats: builder.query<ChatData[], { limit?: number; offset?: number }>({
-      query: ({ limit = 20, offset = 0 } = {}) => 
+      query: ({ limit = env.messages.defaultChatLimit, offset = 0 } = {}) => 
         `/api/messages/chats?limit=${limit}&offset=${offset}`,
       transformResponse: (response: ApiListResponse<ChatData>) => response.data,
       providesTags: (result) => 
@@ -66,7 +67,7 @@ export const messagesApi = baseApi.injectEndpoints({
     }),
 
     getMessages: builder.query<MessageData[], { chatId: number; limit?: number; before?: string }>({
-      query: ({ chatId, limit = 50, before }) => {
+      query: ({ chatId, limit = env.messages.defaultMessageLimit, before }) => {
         const params = new URLSearchParams({ limit: limit.toString() });
         if (before) params.append("before", before);
         return `/api/messages/${chatId}?${params}`;

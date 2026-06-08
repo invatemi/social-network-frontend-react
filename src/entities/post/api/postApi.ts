@@ -1,5 +1,6 @@
 import { baseApi } from "@/app/store/api/baseApi";
 import { PostListResponse } from "@/entities/post/lib";
+import { env } from "@/shared/config/env";
 
 /**
  * Представляет автора поста в ленте.
@@ -113,12 +114,12 @@ export const postApi = baseApi.injectEndpoints({
      * @returns Объект `FeedResponse` со списком постов и флагом `hasMore`
      */
     getFeedPosts: builder.query<FeedResponse, { limit?: number; offset?: number }>({
-      query: ({ limit = 20, offset = 0 }) => `/api/posts/feed?limit=${limit}&offset=${offset}`,
+      query: ({ limit = env.posts.defaultFeedLimit, offset = 0 }) => `/api/posts/feed?limit=${limit}&offset=${offset}`,
       providesTags: (result) => 
         result 
           ? [...result.posts.map(({ id }) => ({ type: "Posts" as const, id })), "Feed"] 
           : ["Feed"],
-      keepUnusedDataFor: 60, 
+      keepUnusedDataFor: env.posts.feedCacheSeconds, 
     }),
     
     /**
@@ -128,10 +129,10 @@ export const postApi = baseApi.injectEndpoints({
      * @returns Объект `FeedResponse` со списком постов и флагом `hasMore`
      */
     getPostsFromFollowers: builder.query<FeedResponse, { limit?: number; offset?: number }>({
-      query: ({ limit = 20, offset = 0 }) => `/api/posts/from-followers?limit=${limit}&offset=${offset}`,
+      query: ({ limit = env.posts.defaultFeedLimit, offset = 0 }) => `/api/posts/from-followers?limit=${limit}&offset=${offset}`,
       providesTags: (result) => 
         result ? [...result.posts.map(({ id }) => ({ type: "Posts" as const, id })), "Posts"] : ["Posts"],
-      keepUnusedDataFor: 60,
+      keepUnusedDataFor: env.posts.feedCacheSeconds,
     }),
 
     /**
@@ -141,10 +142,10 @@ export const postApi = baseApi.injectEndpoints({
      * @returns Объект `FeedResponse` со списком постов и флагом `hasMore`
      */
     getPostsFromFollowing: builder.query<FeedResponse, { limit?: number; offset?: number }>({
-      query: ({ limit = 20, offset = 0 }) => `/api/posts/from-following?limit=${limit}&offset=${offset}`,
+      query: ({ limit = env.posts.defaultFeedLimit, offset = 0 }) => `/api/posts/from-following?limit=${limit}&offset=${offset}`,
       providesTags: (result) => 
         result ? [...result.posts.map(({ id }) => ({ type: "Posts" as const, id })), "Posts"] : ["Posts"],
-      keepUnusedDataFor: 60,
+      keepUnusedDataFor: env.posts.feedCacheSeconds,
     }),
 
     /**
@@ -154,10 +155,10 @@ export const postApi = baseApi.injectEndpoints({
      * @returns Объект `FeedResponse` со списком постов и флагом `hasMore`
      */
     getPostsFromFriends: builder.query<FeedResponse, { limit?: number; offset?: number }>({
-      query: ({ limit = 20, offset = 0 }) => `/api/posts/from-friends?limit=${limit}&offset=${offset}`,
+      query: ({ limit = env.posts.defaultFeedLimit, offset = 0 }) => `/api/posts/from-friends?limit=${limit}&offset=${offset}`,
       providesTags: (result) => 
         result ? [...result.posts.map(({ id }) => ({ type: "Posts" as const, id })), "Posts"] : ["Posts"],
-      keepUnusedDataFor: 60,
+      keepUnusedDataFor: env.posts.feedCacheSeconds,
     }),
   }),
   overrideExisting: false,

@@ -7,6 +7,7 @@ import {
 import { authStore } from "@/app/provider";
 import { setTokens, logout } from "../slices/authSlice";
 import { RootState } from "../types";
+import { env } from "@/shared/config/env";
 
 /**
  * Базовый RTK Query fetchBaseQuery с конфигурацией авторизации.
@@ -17,7 +18,7 @@ import { RootState } from "../types";
  * - Предупреждает в консоль при отсутствии токена (для отладки)
  */
 const baseQuery = fetchBaseQuery({
-  baseUrl: import.meta.env.VITE_API_URL || "http://localhost:8080",
+  baseUrl: env.apiUrl,
   prepareHeaders: (headers, { getState, endpoint }) => {
     if (endpoint === "searchUsers") {
       return headers;
@@ -59,7 +60,7 @@ export const customBaseQuery: BaseQueryFn<
     if (refreshToken) {
       try {
         const refreshResult = await fetchBaseQuery({
-          baseUrl: import.meta.env.VITE_API_URL || "http://localhost:8080",
+          baseUrl: env.apiUrl,
         })(
           { 
             url: "/api/auth/refresh", 

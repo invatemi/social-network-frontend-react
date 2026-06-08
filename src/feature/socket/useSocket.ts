@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { getSocket } from '@/app/lib/socket';
 import { FeedPost } from '@/entities/post/api/postApi';
 import { SocketMessage, SocketChatEvent, SocketUserLeft } from '@/app/lib/socket';
+import { env } from '@/shared/config/env';
 
 /**
  * Уведомление, связанное с действиями дружбы между пользователями.
@@ -103,7 +104,6 @@ export function useSocket<K extends keyof SocketEvents>(
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout> | undefined;
     let isMounted = true;
-    const MAX_RETRIES = 50;
     let retryCount = 0;
     
     const trySubscribe = () => {
@@ -112,9 +112,9 @@ export function useSocket<K extends keyof SocketEvents>(
       const socket = getSocket();
       
       if (!socket) {
-        if (retryCount < MAX_RETRIES) {
+        if (retryCount < env.socket.subscribeMaxRetries) {
           retryCount++;
-          timeout = setTimeout(trySubscribe, 100);
+          timeout = setTimeout(trySubscribe, env.socket.subscribeRetryDelayMs);
         }
         return null;
       }

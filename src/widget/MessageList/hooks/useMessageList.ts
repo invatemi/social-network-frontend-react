@@ -6,6 +6,7 @@ import {
   UIMessageData,
 } from "../lib";
 import { MessageData as BackendMessageData } from '@/entities/message/api/messagesApi';
+import { env } from '@/shared/config/env';
 
 /**
  * Конвертирует сообщение из формата бэкенда в формат UI
@@ -19,6 +20,7 @@ const formatMessageForUI = (
   senderName: msg.author.username,
   text: msg.content,
   createdAt: msg.createdAt,
+  timestamp: msg.createdAt,
   status: msg.isRead ? 'read' : 'sent',
   isError: false,
 });
@@ -65,7 +67,7 @@ export const useMessageList = ({
           );
           
           setMessages(formatted);
-          setHasMore(loaded.length === 50);
+          setHasMore(loaded.length === env.messages.messageListPageSize);
         } catch (error) {
           console.error('Failed to load messages:', error);
         } finally {
@@ -82,7 +84,7 @@ export const useMessageList = ({
   // Авто-скролл при новых сообщениях
   useEffect(() => {
     if (messages.length > prevMessagesLength.current) {
-      setTimeout(scrollToBottom, 100);
+      setTimeout(scrollToBottom, env.messages.scrollToBottomDelayMs);
     }
     prevMessagesLength.current = messages.length;
   }, [messages.length, scrollToBottom]);
@@ -102,7 +104,7 @@ export const useMessageList = ({
         );
         setMessages((prev) => [...formatted, ...prev]);
         setPage(nextPage);
-        setHasMore(loaded.length === 50);
+        setHasMore(loaded.length === env.messages.messageListPageSize);
       } else {
         setHasMore(false);
       }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchUsersQuery } from "@/entities/search-user/api";
+import { env } from "@/shared/config/env";
 
 /**
  * Хук useUserSearch
@@ -20,7 +21,7 @@ export const useUserSearch = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(query);
-    }, 300);
+    }, env.search.debounceMs);
 
     return () => clearTimeout(timer);
   }, [query]);
@@ -28,7 +29,7 @@ export const useUserSearch = () => {
   const { data, isLoading } = useSearchUsersQuery(
     { query: debouncedQuery },
     { 
-      skip: debouncedQuery.length < 2, // Минимум 2 символа
+      skip: debouncedQuery.length < env.search.minQueryLength,
     }
   );
 

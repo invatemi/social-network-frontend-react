@@ -9,6 +9,7 @@ import {
 } from '@/entities/message/api/messagesApi';
 import { joinChatRoom, leaveChatRoom } from '@/app/lib/socket';
 import { useSocket } from '@/feature/socket';
+import { env } from '@/shared/config/env';
 
 export type UseMessagePageReturn = {
   chats: ChatData[];
@@ -99,7 +100,7 @@ export const useMessagePage = (currentUserId?: number): UseMessagePageReturn => 
   });
 
   // WebSocket: пользователь покинул чат
-  useSocket('user:left', (data: { chatId: number; userId: number }) => {
+  useSocket('user:left', (_data: { chatId: number; userId: number }) => {
     refetchChats(); // Обновляем список (если нужно показать, что участник ушёл)
   });
 
@@ -134,17 +135,16 @@ export const useMessagePage = (currentUserId?: number): UseMessagePageReturn => 
   const handleLoadMessages = useCallback(async (before?: string): Promise<MessageData[]> => {
     if (!activeChatId) return [];
     
-    const params = new URLSearchParams({ limit: '50' });
+    const params = new URLSearchParams({ limit: env.messages.defaultMessageLimit.toString() });
     if (before) params.append('before', before);
     
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
       const tokens = JSON.parse(localStorage.getItem('auth_tokens') || '{}') as {
         accessToken?: string;
       };
       
       const response = await fetch(
-        `${apiUrl}/api/messages/${activeChatId}?${params}`,
+        `${env.apiUrl}/api/messages/${activeChatId}?${params}`,
         {
           headers: {
             ...(tokens.accessToken ? { Authorization: `Bearer ${tokens.accessToken}` } : {}),

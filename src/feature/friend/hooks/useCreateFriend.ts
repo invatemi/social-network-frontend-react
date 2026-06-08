@@ -11,6 +11,7 @@ import {
 } from "@/entities/friend/api";
 import { userApi } from "@/entities/user/api";
 import { getSocket } from "@/app/lib/socket";
+import { env } from "@/shared/config/env";
 import type { AppDispatch } from "@/app/store/types";
 
 /**
@@ -136,7 +137,7 @@ export const useCreateFriend = (
         
         setTimeout(() => {
           refetchStatus();
-        }, 300);
+        }, env.ui.friendStatusRefetchDelayMs);
         
         return result;
       } else {
