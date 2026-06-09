@@ -10,7 +10,8 @@ import style from "./PostList.module.css";
  * PostList — список постов
  */
 const PostList = ({ 
-  userId, 
+  userId,
+  isOwnProfile,
   title = "", 
   posts: externalPosts, 
   isLoading: externalLoading, 
@@ -29,7 +30,7 @@ const PostList = ({
     error, 
     loadMore, 
     likePost 
-  } = usePostList(userId);
+  } = usePostList(userId, isOwnProfile);
 
   const posts = isControlled ? externalPosts : internalPosts;
   const isLoading = isControlled ? (externalLoading || false) : internalLoading;

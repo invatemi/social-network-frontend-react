@@ -26,6 +26,8 @@ export type FriendNotification = {
 export type SocketEvents = {
   // Посты
   'post:created': FeedPost;
+  'post:updated': FeedPost;
+  'post:deleted': { postId: number };
   'post:liked': { postId: number; likesCount: number; liked: boolean; userId: number };
   
   // Комментарии
@@ -45,6 +47,22 @@ export type SocketEvents = {
     type: 'friend_request_cancelled' | 'friend_declined' | 'friend_removed';
   };
   
+  // Подписки и профиль
+  'notification:follow_updated': {
+    id: number;
+    type: 'follow_created' | 'follow_deleted';
+    fromUser: { id: number };
+    toUser: { id: number };
+    createdAt: string;
+  };
+  'user:profile_updated': {
+    userId: number;
+    username: string;
+    avatarUrl: string | null;
+    changedFields: string[];
+    createdAt: string;
+  };
+
   // Онлайн
   'user:online': { userId: number };
   'user:offline': { userId: number };

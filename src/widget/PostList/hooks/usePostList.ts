@@ -43,10 +43,11 @@ import { selectUser } from "@/app/store/slices/authSlice";
  *   </Button>
  * )}
  */
-export const usePostList = (userId?: number) => {
+export const usePostList = (userId?: number, isOwnProfile?: boolean) => {
   const currentUser = useAppSelector(selectUser);
   const currentUserId = userId || currentUser?.id;
   const [page, setPage] = useState(1);
+  const shouldUseOwnPosts = isOwnProfile ?? (!userId && !!currentUser?.id);
 
   const { 
     data, 
@@ -55,11 +56,12 @@ export const usePostList = (userId?: number) => {
     error: queryError 
   } = useGetPostsQuery(
     { 
-      userId: currentUserId,
+      userId: shouldUseOwnPosts ? undefined : currentUserId,
+      isOwnProfile: shouldUseOwnPosts,
       page,
       limit: 5
     }, 
-    { skip: !currentUserId }
+    { skip: shouldUseOwnPosts ? !currentUser?.id : !currentUserId }
   );
   const [toggleLike] = useToggleLikeMutation();
 

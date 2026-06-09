@@ -15,7 +15,7 @@ import {
   friendApi
 } from "@/entities/friend/api";
 import { userApi } from "@/entities/user/api";
-import { getSocket } from "@/app/lib/socket";
+import { useSocket } from "@/feature/socket";
 import { env } from "@/shared/config/env";
 import type { AppDispatch } from "@/app/store/types";
 
@@ -95,24 +95,17 @@ export const useCreateFriend = (
     }
   }, [statusData?.status, onStatusChange]);
 
-  useEffect(() => {
-    const socket = getSocket();
-    if (!socket?.connected) return;
-    
-    const handleFriendUpdate = ({ fromUser: { id } }: { fromUser: { id: number } }) => {
-      if (id === targetUserId) {
-        refetchStatus();
-      }
-    };
-    
-    socket.on('notification:friend_accepted', handleFriendUpdate);
-    socket.on('notification:friend_updated', handleFriendUpdate);
-    
-    return () => {
-      socket.off('notification:friend_accepted', handleFriendUpdate);
-      socket.off('notification:friend_updated', handleFriendUpdate);
-    };
-  }, [targetUserId, refetchStatus]);
+  useSocket('notification:friend_accepted', (data) => {
+    if (data.fromUser.id === targetUserId) {
+      refetchStatus();
+    }
+  });
+
+  useSocket('notification:friend_updated', (data) => {
+    if (data.fromUser.id === targetUserId) {
+      refetchStatus();
+    }
+  });
 
   const syncFriendStatus = useCallback((result: FriendActionResponse) => {
     dispatch(

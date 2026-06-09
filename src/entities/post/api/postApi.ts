@@ -1,6 +1,58 @@
 import { baseApi } from "@/app/store/api/baseApi";
-import { PostListResponse } from "@/entities/post/lib";
+import { Post, PostListResponse } from "@/entities/post/lib";
 import { env } from "@/shared/config/env";
+
+type PostAuthorDto = {
+  id: number;
+  username: string;
+  avatarUrl: string | null;
+};
+
+type PostDto = {
+  id: number;
+  userId: number;
+  content: string;
+  imageUrl?: string | null;
+  likesCount: number;
+  commentsCount: number;
+  createdAt: string;
+  isPublished?: boolean;
+  author?: PostAuthorDto;
+};
+
+type PostsListDto = {
+  success?: boolean;
+  posts: PostDto[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+};
+
+const mapPostDto = (post: PostDto): Post => ({
+  id: post.id,
+  content: post.content,
+  images: post.imageUrl ? [post.imageUrl] : [],
+  likesCount: post.likesCount,
+  commentsCount: post.commentsCount,
+  createdAt: post.createdAt,
+  isPublished: post.isPublished,
+  author: post.author ?? {
+    id: post.userId,
+    username: `user_${post.userId}`,
+    avatarUrl: null,
+  },
+});
+
+const mapPostsListResponse = (response: PostsListDto): PostListResponse => ({
+  posts: (response.posts ?? []).map(mapPostDto),
+  pagination: {
+    page: response.page,
+    limit: response.pageSize,
+    total: response.total,
+    pages: response.totalPages,
+  },
+});
 
 /**
  * Представляет автора поста в ленте.
@@ -63,15 +115,27 @@ export const postApi = baseApi.injectEndpoints({
      * @param userId - ID пользователя для фильтрации (опционально)
      * @returns Объект `PostListResponse` со списком постов и метаданными
      */
-    getPosts: builder.query<PostListResponse, { page?: number; limit?: number; userId?: number }>({
-      query: ({ page = 1, limit = 10, userId }) => {
+    getPosts: builder.query<
+      PostListResponse,
+      { page?: number; limit?: number; userId?: number; isOwnProfile?: boolean }
+    >({
+      query: ({ page = 1, limit = 10, userId, isOwnProfile }) => {
         const params = new URLSearchParams({
           page: page.toString(),
-          limit: limit.toString(),
+          pageSize: limit.toString(),
         });
-        if (userId) params.append("userId", userId.toString());
+
+        if (isOwnProfile) {
+          return `/api/posts/me?${params}`;
+        }
+
+        if (userId) {
+          return `/api/posts/user/${userId}?${params}`;
+        }
+
         return `/api/posts?${params}`;
       },
+      transformResponse: mapPostsListResponse,
       providesTags: (result) => 
         result 
           ? [

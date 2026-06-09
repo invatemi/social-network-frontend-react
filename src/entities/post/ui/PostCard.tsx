@@ -10,10 +10,15 @@ import style from "./PostCard.module.css";
  */
 const PostCard = ({ post, onLike, currentUserId, onDelete }: PostCardProps) => {
   const navigate = useNavigate();
-  const isAuthor = currentUserId === post.author.id;
   const [toggleLike, { isLoading: isLiking }] = useToggleLikeMutation();
-  
-  usePostSubscription(post.id);
+
+  usePostSubscription(post?.id ?? 0);
+
+  if (!post?.author) {
+    return null;
+  }
+
+  const isAuthor = currentUserId === post.author.id;
   
   const images = post.images || [];
   const isLiked = post.isLiked || false;

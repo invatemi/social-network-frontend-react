@@ -51,7 +51,7 @@ const UserPage = (): ReactElement => {
         />
       </div>
 
-      <PostList title={"> my_posts"} />
+      <PostList title={"> my_posts"} isOwnProfile />
     </PageLayout>
   );
 };
