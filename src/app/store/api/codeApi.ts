@@ -15,7 +15,7 @@ export const codeApi = baseApi.injectEndpoints({
       void
     >({
       query: () => ({ 
-        url: "/api/auth/password/request", 
+        url: "/api/users/me/password/request", 
         method: "POST", 
         body: {} 
       }),
@@ -33,7 +33,7 @@ export const codeApi = baseApi.injectEndpoints({
       { code: string; newPassword: string }
     >({
       query: (body) => ({ 
-        url: "/api/auth/password/verify", 
+        url: "/api/users/me/password/verify", 
         method: "POST", 
         body 
       }),

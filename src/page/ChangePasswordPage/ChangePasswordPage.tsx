@@ -38,15 +38,30 @@ const ChangePasswordPage = (): ReactElement => {
     ? "! passwords_mismatch" 
     : undefined;
 
+  const getErrorMessage = (err: any, fallback: string): string =>
+    err?.data?.message ||
+    err?.data?.error?.message ||
+    err?.message ||
+    fallback;
+
   const handleRequestCode = async () => {
     setLocalError(null);
+    setSuccess(null);
     try {
       await requestCode().unwrap();
       setStep("verify");
-      setSuccess(`[code_sent] ${user?.email || "your_email"}`);
+      setVerificationCode("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setSuccess(`Код отправлен на ${user?.email || "ваш email"}`);
     } catch (err: any) {
-      setLocalError(err?.data?.message || "! code_send_failed");
+      setLocalError(getErrorMessage(err, "Не удалось отправить код"));
     }
+  };
+
+  const handleRequestCodeSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    void handleRequestCode();
   };
 
   const handleChangePassword = async () => {
@@ -66,11 +81,16 @@ const ChangePasswordPage = (): ReactElement => {
     setLocalError(null);
     try {
       await verifyCode({ code: verificationCode, newPassword }).unwrap();
-      setSuccess("[password_changed]");
+      setSuccess("Пароль успешно изменён");
       setTimeout(() => navigate("/user"), env.ui.passwordRedirectDelayMs);
     } catch (err: any) {
-      setLocalError(err?.data?.message || "! password_change_failed");
+      setLocalError(getErrorMessage(err, "Не удалось изменить пароль"));
     }
+  };
+
+  const handleChangePasswordSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    void handleChangePassword();
   };
 
   const handleBack = () => navigate("/user/settings");
@@ -110,28 +130,28 @@ const ChangePasswordPage = (): ReactElement => {
 
       <div className={style.card}>
         {step === "request" && (
-          <div className={style.step}>
+          <form className={style.step} onSubmit={handleRequestCodeSubmit}>
             <p className={style.description}>
-              {`// code_will_be_sent_to: ${user?.email}`}
+              {`Код будет отправлен на: ${user?.email}`}
             </p>
             <Button 
+              type="submit"
               variant="primary" 
               size="md" 
               fullWidth
               loading={isRequesting}
-              onClick={handleRequestCode}
               disabled={isLoading}
               className={style.actionButton}
             >
-              {isRequesting ? `[sending...]` : `[send_code]`}
+              {isRequesting ? "Отправка..." : "Отправить код"}
             </Button>
-          </div>
+          </form>
         )}
 
         {step === "verify" && (
-          <div className={style.step}>
+          <form className={style.step} onSubmit={handleChangePasswordSubmit}>
             <div className={style.codeInput}>
-              <label>{`> VERIFICATION_CODE`}</label>
+              <label htmlFor="verification-code">{`Код подтверждения`}</label>
               <Input
                 id="verification-code"
                 type="text"
@@ -141,48 +161,50 @@ const ChangePasswordPage = (): ReactElement => {
                   setVerificationCode(val);
                 }}
                 error={codeError}
-                placeholder={"> 0000"}
+                placeholder="0000"
                 maxLength={4}
                 inputMode="numeric"
                 pattern="\d{4}"
                 fullWidth
-                helperText={codeError ? undefined : "[4_digits_from_email]"}
+                autoComplete="one-time-code"
+                helperText={codeError ? undefined : "4 цифры из письма. При повторной отправке старый код недействителен."}
               />
             </div>
 
             <div className={style.passwordInput}>
-              <label>{`> NEW_PASSWORD`}</label>
+              <label htmlFor="new-password">{`Новый пароль`}</label>
               <Input
                 id="new-password"
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 error={passwordError}
-                placeholder={"> min_8_chars"}
+                placeholder="минимум 8 символов"
                 minLength={8}
                 fullWidth
-                helperText={passwordError ? undefined : "[letter+number]"}
+                helperText={passwordError ? undefined : "минимум 8 символов"}
                 autoComplete="new-password"
               />
             </div>
 
             <div className={style.passwordInput}>
-              <label>{`> CONFIRM_PASSWORD`}</label>
+              <label htmlFor="confirm-password">{`Подтверждение пароля`}</label>
               <Input
                 id="confirm-password"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 error={confirmError}
-                placeholder={"> repeat_password"}
+                placeholder="повторите пароль"
                 fullWidth
-                helperText={confirmError ? undefined : "[must_match]"}
+                helperText={confirmError ? undefined : "должен совпадать с новым паролем"}
                 autoComplete="new-password"
               />
             </div>
 
             <div className={style.actions}>
               <Button 
+                type="button"
                 variant="secondary" 
                 size="md"
                 onClick={() => {
@@ -191,18 +213,19 @@ const ChangePasswordPage = (): ReactElement => {
                   setNewPassword("");
                   setConfirmPassword("");
                   setLocalError(null);
+                  setSuccess(null);
                 }}
                 disabled={isLoading}
                 className={style.actionButton}
               >
-                {`[back]`}
+                Назад
               </Button>
 
               <Button 
+                type="submit"
                 variant="primary" 
                 size="md"
                 loading={isVerifying}
-                onClick={handleChangePassword}
                 disabled={
                   isLoading || 
                   verificationCode.length !== 4 || 
@@ -213,10 +236,10 @@ const ChangePasswordPage = (): ReactElement => {
                 }
                 className={style.actionButton}
               >
-                {isVerifying ? `[saving...]` : `[save_changes]`}
+                {isVerifying ? "Сохранение..." : "Сохранить"}
               </Button>
             </div>
-          </div>
+          </form>
         )}
       </div>
     </PageLayout>
