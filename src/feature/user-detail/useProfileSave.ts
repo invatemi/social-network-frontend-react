@@ -2,11 +2,13 @@ import { useState } from "react";
 import { useAppDispatch } from "@/app/store/hooks";
 import { updateUser } from "@/app/store/slices/authSlice";
 
-import { 
+import {
   useUpdateUserProfileMutation,
+  useLazyGetAvatarUploadUrlQuery,
 } from "@/entities/user/api/userApi";
 
 import { UserProfile } from "@/entities/user/lib";
+import { uploadAvatarToStorage } from "./uploadAvatarFile";
 
 type SaveProfileParams = {
   username: string;
@@ -28,12 +30,11 @@ type UseProfileSaveReturn = {
 
 /**
  * Хук useProfileSave
- * 
+ *
  * Управляет сохранением профиля пользователя:
+ * - Загрузка аватара через presigned URL в MinIO
  * - Обновление имени/почты/био/локации через мутацию
  * - Обработка ошибок и статусов
- * 
- * @returns Объект с состояниями сохранения и методом saveProfile
  */
 export const useProfileSave = (): UseProfileSaveReturn => {
   const dispatch = useAppDispatch();
@@ -43,6 +44,7 @@ export const useProfileSave = (): UseProfileSaveReturn => {
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
   const [updateProfile] = useUpdateUserProfileMutation();
+  const [getAvatarUploadUrl] = useLazyGetAvatarUploadUrlQuery();
 
   const clearMessages = () => {
     setSaveError(null);
@@ -58,7 +60,6 @@ export const useProfileSave = (): UseProfileSaveReturn => {
     isProfileChanged,
     currentUser,
   }: SaveProfileParams) => {
-
     if (!isProfileChanged && !avatarFile) {
       setSaveError("Нет изменений для сохранения");
       return false;
@@ -68,26 +69,27 @@ export const useProfileSave = (): UseProfileSaveReturn => {
     clearMessages();
 
     try {
+      let avatarUrl: string | undefined;
+
       if (avatarFile) {
-        throw new Error("Загрузка файла аватара пока не поддержана user-service. Нужен endpoint upload или сохранение публичного avatarUrl.");
+        avatarUrl = await uploadAvatarToStorage(avatarFile, (args) =>
+          getAvatarUploadUrl(args).unwrap()
+        );
       }
 
-      if (isProfileChanged) {
-        const result = await updateProfile({ 
-          username, 
-          email, 
-          bio, 
-          location 
+      if (isProfileChanged || avatarUrl) {
+        const result = await updateProfile({
+          ...(isProfileChanged ? { username, email, bio, location } : {}),
+          ...(avatarUrl ? { avatarUrl } : {}),
         }).unwrap();
-        
+
         if (currentUser) {
           dispatch(updateUser({ ...currentUser, ...result.user }));
         }
       }
-      
+
       setSaveSuccess("Профиль успешно обновлён");
       return true;
-
     } catch (err: any) {
       console.error("Save error:", err);
       setSaveError(err?.data?.message || err.message || "Ошибка при сохранении");

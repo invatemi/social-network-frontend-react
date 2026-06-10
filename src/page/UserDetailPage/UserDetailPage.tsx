@@ -127,7 +127,7 @@ const UserDetailPage = (): ReactElement => {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               onChange={handleFileChange}
               className={style.fileInput}
               hidden

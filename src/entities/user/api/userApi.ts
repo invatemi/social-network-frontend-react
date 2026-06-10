@@ -1,6 +1,5 @@
 import { UserProfile } from "../lib";
 import { baseApi } from "@/app/store/api/baseApi";
-import type { RootState } from "@/app/store/types";
 import type { AppDispatch } from "@/app/store/types";
 import { updateUser } from "@/app/store/slices/authSlice";
 
@@ -46,6 +45,18 @@ type UpdateProfileResponse = {
   user: UserProfile;
   changedFields: string[];
 };
+
+type AvatarUploadUrlDtoResponse = {
+  success?: boolean;
+  uploadUrl: string;
+  publicUrl: string;
+  method: "PUT";
+  headers: { "Content-Type": string };
+  expiresIn: number;
+  key: string;
+};
+
+export type AvatarUploadUrlData = Omit<AvatarUploadUrlDtoResponse, "success">;
 
 const isWrappedUserResponse = (
   response: UserProfileResponseDto
@@ -155,40 +166,27 @@ export const userApi = baseApi.injectEndpoints({
     }),
     
     /**
-     * Загружает новый аватар для текущего пользователя.
-     * 
-     * @param formData - Объект FormData с файлом аватара
-     * @returns Объект с новым URL аватара
-     * 
-     * @sideEffects
-     * - Диспатчит `updateUser` с новым `avatarUrl` для мгновенного обновления UI
-     * - Инвалидирует тег "User" для обновления зависимых запросов
+     * Получает presigned URL для прямой загрузки аватара в MinIO.
      */
-    uploadAvatar: builder.mutation<{ avatarUrl: string }, FormData>({
-      query: (formData) => ({
-        url: "/api/users/me/avatar",
-        method: "POST",
-        body: formData,
-        headers: {},
-      }),
-      invalidatesTags: ["User"],
-      
-      async onQueryStarted(_, { dispatch, queryFulfilled, getState }) {
-        try {
-          const { data } = await queryFulfilled;
-          
-          const state = getState() as RootState;
-          const currentUser = state.auth.user;
-          
-          if (currentUser) {
-            dispatch(updateUser({ 
-              avatarUrl: data.avatarUrl 
-            }));
-          }
-        } catch (err: unknown) {
-          console.error("[userApi] Avatar sync failed:", err);
+    getAvatarUploadUrl: builder.query<
+      AvatarUploadUrlData,
+      { contentType: string; fileName?: string }
+    >({
+      query: ({ contentType, fileName }) => {
+        const params = new URLSearchParams({ contentType });
+        if (fileName) {
+          params.set("fileName", fileName);
         }
-      }
+        return `/api/users/me/avatar-upload-url?${params.toString()}`;
+      },
+      transformResponse: (response: AvatarUploadUrlDtoResponse): AvatarUploadUrlData => ({
+        uploadUrl: response.uploadUrl,
+        publicUrl: response.publicUrl,
+        method: response.method,
+        headers: response.headers,
+        expiresIn: response.expiresIn,
+        key: response.key,
+      }),
     }),
     
     /**
@@ -235,7 +233,7 @@ export const userApi = baseApi.injectEndpoints({
 export const {
   useGetUserProfileQuery,
   useUpdateUserProfileMutation,
-  useUploadAvatarMutation,
+  useLazyGetAvatarUploadUrlQuery,
   useConfirmPasswordMutation,
   useNotifyEmailChangedMutation,
   useGetUserPublicProfileQuery,

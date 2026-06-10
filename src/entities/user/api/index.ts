@@ -1,7 +1,7 @@
 export {
   useGetUserProfileQuery,
   useUpdateUserProfileMutation,
-  useUploadAvatarMutation,
+  useLazyGetAvatarUploadUrlQuery,
   useConfirmPasswordMutation,
   useNotifyEmailChangedMutation,
   useGetUserPublicProfileQuery,

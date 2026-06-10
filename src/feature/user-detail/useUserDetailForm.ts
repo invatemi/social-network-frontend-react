@@ -42,7 +42,13 @@ export const useUserDetailForm = (initialUser: UserProfile | null): UseUserDetai
 
   useEffect(() => {
     syncWithUser(initialUser);
-  }, [initialUser]);
+  }, [
+    initialUser?.id,
+    initialUser?.username,
+    initialUser?.email,
+    initialUser?.bio,
+    initialUser?.location,
+  ]);
 
   const isProfileChanged = 
     username !== initialUser?.username || 
