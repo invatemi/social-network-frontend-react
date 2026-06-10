@@ -2,51 +2,59 @@ import { useState, useCallback } from "react";
 import { useCreatePostMutation } from "@/entities/post/api";
 import { UseCreatePostReturn } from "../lib";
 
+const MAX_CONTENT_LENGTH = 10000;
+const MAX_INLINE_IMAGE_BYTES = 500 * 1024;
+
+const readFileAsDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Failed to read image"));
+    reader.readAsDataURL(file);
+  });
+
+const getApiErrorMessage = (err: unknown): string => {
+  if (!err || typeof err !== "object" || !("data" in err)) {
+    return "Не удалось создать пост";
+  }
+
+  const data = (err as { data?: { error?: { message?: string }; message?: string } }).data;
+  return data?.error?.message ?? data?.message ?? "Не удалось создать пост";
+};
+
 /**
  * Хук useCreatePost
- * 
+ *
  * Управляет состоянием формы создания поста:
  * - Открытие/закрытие формы
  * - Валидация текста и изображений
  * - Отправка данных на сервер через мутацию
  * - Обработка ошибок и сброс формы
- * 
- * @returns Объект с состояниями и методами для управления формой
  */
 export const useCreatePost = (): UseCreatePostReturn => {
-
   const [createPost, { isLoading }] = useCreatePostMutation();
-  
+
   const [isOpen, setIsOpen] = useState(false);
   const [content, setContent] = useState("");
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  /** Открыть форму создания поста */
   const openForm = useCallback(() => {
     setIsOpen(true);
     setError(null);
   }, []);
 
-  /** Закрыть форму и очистить ошибку */
   const closeForm = useCallback(() => {
     setIsOpen(false);
     setError(null);
   }, []);
 
-  /** Удалить изображение по индексу (из файлов и превью) */
   const removeImage = useCallback((index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
-  /**
-   * Обработать выбор файлов из input
-   * - Фильтрует только изображения
-   * - Проверяет размер (макс. 10MB)
-   * - Создаёт превью через FileReader
-   */
   const handleImageSelect = useCallback((files: FileList | null) => {
     if (!files) return;
 
@@ -55,16 +63,15 @@ export const useCreatePost = (): UseCreatePostReturn => {
     const newPreviews: string[] = [];
 
     fileArray.forEach((file) => {
-
       if (!file.type.startsWith("image/")) return;
       if (file.size > 10 * 1024 * 1024) return;
-      
+
       validFiles.push(file);
 
       const reader = new FileReader();
       reader.onloadend = () => {
         newPreviews.push(reader.result as string);
-        
+
         if (newPreviews.length === validFiles.length) {
           setImagePreviews((prev) => [...prev, ...newPreviews]);
         }
@@ -83,54 +90,55 @@ export const useCreatePost = (): UseCreatePostReturn => {
     setError(null);
   }, []);
 
-  /**
-   * Отправить пост на сервер
-   * - Валидирует контент (текст или изображения)
-   * - Формирует FormData для multipart-запроса
-   * - Отправляет через мутацию
-   * - При успехе: закрывает форму и сбрасывает поля
-   * - При ошибке: показывает сообщение пользователю
-   */
   const handleSubmit = useCallback(async () => {
-    // Валидация: должен быть текст ИЛИ изображения
     if (!content.trim() && images.length === 0) {
       setError("Добавьте текст или изображения");
       return;
     }
 
-    if (content.length > 5000) {
-      setError("Текст слишком длинный (макс. 5000 символов)");
+    if (content.length > MAX_CONTENT_LENGTH) {
+      setError(`Текст слишком длинный (макс. ${MAX_CONTENT_LENGTH} символов)`);
       return;
     }
 
     try {
       setError(null);
 
-      const formData = new FormData();
-      formData.append("content", content);
-      images.forEach((image) => {
-        formData.append("images", image);
-      });
-      await createPost(formData).unwrap();
+      let imageUrl: string | undefined;
+
+      if (images.length > 0) {
+        const firstImage = images[0];
+
+        if (firstImage.size > MAX_INLINE_IMAGE_BYTES) {
+          setError("Изображение слишком большое (макс. 500 КБ)");
+          return;
+        }
+
+        imageUrl = await readFileAsDataUrl(firstImage);
+      }
+
+      const trimmedContent = content.trim();
+
+      await createPost({
+        ...(trimmedContent ? { content: trimmedContent } : {}),
+        ...(imageUrl ? { imageUrl } : {}),
+        isPublished: true,
+      }).unwrap();
 
       closeForm();
       clearForm();
-
-    } catch (err: any) {
-      setError(err?.data?.message || "Не удалось создать пост");
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err));
     }
   }, [content, images, createPost, closeForm, clearForm]);
-  
+
   return {
-    // Состояния
     isOpen,
     content,
     images,
     imagePreviews,
     isLoading,
     error,
-    
-    // Методы
     openForm,
     closeForm,
     setContent,

@@ -5,8 +5,6 @@ import {
   FetchBaseQueryError 
 } from "@reduxjs/toolkit/query/react";
 import { authStore } from "@/app/provider";
-import { setTokens, logout } from "../slices/authSlice";
-import { RootState } from "../types";
 import { env } from "@/shared/config/env";
 
 /**
@@ -24,7 +22,7 @@ const baseQuery = fetchBaseQuery({
       return headers;
     }
     
-    const state = getState() as RootState;
+    const state = getState() as { auth: { accessToken: string | null } };
     const token = state.auth.accessToken || authStore.getAccessToken();
     
     if (token) {
@@ -78,18 +76,21 @@ export const customBaseQuery: BaseQueryFn<
             refreshToken: string;
           };
           
-          api.dispatch(setTokens({ accessToken, refreshToken: newRefreshToken }));
+          api.dispatch({
+            type: "auth/setTokens",
+            payload: { accessToken, refreshToken: newRefreshToken },
+          });
           authStore.save({ accessToken, refreshToken: newRefreshToken });
           
           result = await baseQuery(args, api, extraOptions);
         } else {
-          api.dispatch(logout());
+          api.dispatch({ type: "auth/logout" });
         }
       } catch {
-        api.dispatch(logout());
+        api.dispatch({ type: "auth/logout" });
       }
     } else {
-      api.dispatch(logout());
+      api.dispatch({ type: "auth/logout" });
     }
   }
   

@@ -45,8 +45,10 @@ export const useCommentForm = (postId?: number) => {
       setError(null);
       await createComment({ postId, content }).unwrap();
       setContent("");
-    } catch (err: any) {
-      const message = err?.data?.message || err?.message || "Не удалось отправить комментарий";
+    } catch (err: unknown) {
+      const data = (err as { data?: { error?: { message?: string }; message?: string } }).data;
+      const message =
+        data?.error?.message ?? data?.message ?? "Не удалось отправить комментарий";
       setError(message);
     }
   }, [content, postId, createComment]);

@@ -26,15 +26,19 @@ export const useCommentDelete = (
       setError(null);
       await deleteComment({ commentId, postId }).unwrap();
     } catch (err) {
-      const error = err as { data?: { message?: string; code?: string }; message?: string };
-      const code = error?.data?.code;
-      
+      const error = err as {
+        data?: { error?: { message?: string; code?: string }; message?: string; code?: string };
+        message?: string;
+      };
+      const code = error?.data?.error?.code ?? error?.data?.code;
+
       let message = "Не удалось удалить комментарий";
-      if (code === 'FORBIDDEN') message = "Нет прав на удаление этого комментария";
-      else if (code === 'COMMENT_NOT_FOUND') message = "Комментарий уже удалён или не существует";
-      else if (code === 'COMMENT_POST_MISMATCH') message = "Ошибка: комментарий не принадлежит этому посту";
+      if (code === "FORBIDDEN") message = "Нет прав на удаление этого комментария";
+      else if (code === "COMMENT_NOT_FOUND") message = "Комментарий уже удалён или не существует";
+      else if (code === "COMMENT_POST_MISMATCH") message = "Ошибка: комментарий не принадлежит этому посту";
+      else if (error?.data?.error?.message) message = error.data.error.message;
       else if (error?.data?.message) message = error.data.message;
-      
+
       setError(message);
     }
   }, [commentId, postId, deleteComment]);

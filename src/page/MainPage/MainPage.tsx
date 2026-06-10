@@ -2,16 +2,19 @@ import { ReactElement, useState } from "react";
 import { PageLayout } from "@/shared";
 import { PostList } from "@/widget";
 import { useGetFeedPostsQuery } from "@/entities/post/api";
+import { env } from "@/shared/config/env";
 import style from "./MainPage.module.css";
+
+const FEED_PAGE_SIZE = env.posts.defaultFeedLimit;
 
 /**
  * MainPage — главная лента
  */
 const MainPage = (): ReactElement => {
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const { data, isLoading, error, refetch, isFetching } = useGetFeedPostsQuery({
-    limit: 20,
-    offset: page * 20,
+    page,
+    pageSize: FEED_PAGE_SIZE,
   });
 
   const handleLoadMore = () => {

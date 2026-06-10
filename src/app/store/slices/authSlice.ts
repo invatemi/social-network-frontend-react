@@ -1,8 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { disconnectSocket } from '@/app/lib/socket';
+import { disconnectSocket } from "@/app/lib/socketDisconnect";
 import { authApi } from "@/app/store/api/authApi";
 import { UserProfile } from "@/entities/user/lib";
-import type { RootState } from "@/app/store/types";
 
 /**
  * Состояние модуля аутентификации.
@@ -139,28 +138,31 @@ const authSlice = createSlice({
  * @param state - RootState приложения
  * @returns Объект `UserProfile` или `null`, если пользователь не аутентифицирован
  */
-export const selectUser = (state: RootState) => state.auth.user;
+export const selectUser = (state: { auth: AuthState }) => state.auth.user;
 
 /**
  * Селектор статуса аутентификации.
  * @param state - RootState приложения
  * @returns `true`, если пользователь вошёл в систему
  */
-export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated;
+export const selectIsAuthenticated = (state: { auth: AuthState }) =>
+  state.auth.isAuthenticated;
 
 /**
  * Селектор текущего access-токена.
  * @param state - RootState приложения
  * @returns Строка токена или `null`
  */
-export const selectAccessToken = (state: RootState) => state.auth.accessToken;
+export const selectAccessToken = (state: { auth: AuthState }) =>
+  state.auth.accessToken;
 
 /**
  * Селектор текущего refresh-токена.
  * @param state - RootState приложения
  * @returns Строка токена или `null`
  */
-export const selectRefreshToken = (state: RootState) => state.auth.refreshToken;
+export const selectRefreshToken = (state: { auth: AuthState }) =>
+  state.auth.refreshToken;
 
 export const { setAuth, setTokens, updateUser, logout } = authSlice.actions;
 export default authSlice.reducer;

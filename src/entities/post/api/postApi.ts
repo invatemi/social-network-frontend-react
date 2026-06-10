@@ -1,6 +1,7 @@
 import { baseApi } from "@/app/store/api/baseApi";
 import { Post, PostListResponse } from "@/entities/post/lib";
 import { env } from "@/shared/config/env";
+import { patchPostInCaches, registerPostApiForCache } from "@/app/lib/postRealtimeCache";
 
 type PostAuthorDto = {
   id: number;
@@ -87,6 +88,43 @@ export type FeedResponse = {
   hasMore: boolean;
 };
 
+export type CreatePostRequest = {
+  content?: string;
+  title?: string;
+  imageUrl?: string;
+  isPublished?: boolean;
+};
+
+export type CreatePostResponse = {
+  id: number;
+  message: string;
+};
+
+type CreatePostApiDto = {
+  success?: boolean;
+  post: PostDto;
+};
+
+const mapFeedPostDto = (post: PostDto): FeedPost => ({
+  id: post.id,
+  author: post.author ?? {
+    id: post.userId,
+    username: `user_${post.userId}`,
+    avatarUrl: null,
+  },
+  content: post.content,
+  imageUrl: post.imageUrl ?? undefined,
+  images: post.imageUrl ? [post.imageUrl] : [],
+  likesCount: post.likesCount,
+  commentsCount: post.commentsCount,
+  createdAt: post.createdAt,
+});
+
+const mapFeedResponse = (response: PostsListDto): FeedResponse => ({
+  posts: (response.posts ?? []).map(mapFeedPostDto),
+  hasMore: response.page < response.totalPages,
+});
+
 /**
  * API-эндпоинты для работы с постами: создание, получение, лайки, удаление.
  */
@@ -94,18 +132,21 @@ export const postApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     
     /**
-     * Создаёт новый пост с возможностью загрузки изображений.
-     * @param formData - Объект FormData с полями поста и файлами
+     * Создаёт новый пост.
+     * @param body - JSON с текстом и/или URL изображения
      * @returns Объект с ID созданного поста и сообщением об успехе
      */
-    createPost: builder.mutation<{ id: number; message: string }, FormData>({
-      query: (formData) => ({
+    createPost: builder.mutation<CreatePostResponse, CreatePostRequest>({
+      query: (body) => ({
         url: "/api/posts",
         method: "POST",
-        body: formData,
-        headers: {},
+        body,
       }),
-      invalidatesTags: ["Posts", "User"],
+      transformResponse: (response: CreatePostApiDto): CreatePostResponse => ({
+        id: response.post.id,
+        message: "Post created successfully",
+      }),
+      invalidatesTags: ["Posts", "User", "Feed"],
     }),
     
     /**
@@ -161,31 +202,74 @@ export const postApi = baseApi.injectEndpoints({
      * @returns Объект с новым состоянием лайка и обновлённым счётчиком
      */
     toggleLike: builder.mutation<
-      { liked: boolean; likesCount: number }, 
+      { liked: boolean; likesCount: number },
       { postId: number }
     >({
       query: ({ postId }) => ({
         url: `/api/posts/${postId}/like`,
         method: "POST",
       }),
-      invalidatesTags: (_result, _error, { postId }) => [{ type: "Posts", id: postId }],
+      transformResponse: (response: {
+        success?: boolean;
+        liked: boolean;
+        likesCount: number;
+      }) => ({
+        liked: response.liked,
+        likesCount: response.likesCount,
+      }),
+      async onQueryStarted({ postId }, { dispatch, queryFulfilled, getState }) {
+        try {
+          const { data } = await queryFulfilled;
+          patchPostInCaches(dispatch, getState(), postId, {
+            likesCount: data.likesCount,
+            isLiked: data.liked,
+          });
+        } catch {
+          // ignore
+        }
+      },
     }),
 
     /**
      * Получает персонализированную ленту постов.
-     * @param limit - Количество постов (по умолчанию 20)
-     * @param offset - Смещение для пагинации (по умолчанию 0)
+     * @param page - Номер страницы (по умолчанию 1)
+     * @param pageSize - Количество постов на странице
      * @returns Объект `FeedResponse` со списком постов и флагом `hasMore`
      */
-    getFeedPosts: builder.query<FeedResponse, { limit?: number; offset?: number }>({
-      query: ({ limit = env.posts.defaultFeedLimit, offset = 0 }) => `/api/posts/feed?limit=${limit}&offset=${offset}`,
-      providesTags: (result) => 
-        result 
-          ? [...result.posts.map(({ id }) => ({ type: "Posts" as const, id })), "Feed"] 
+    getFeedPosts: builder.query<FeedResponse, { page?: number; pageSize?: number }>({
+      query: ({ page = 1, pageSize = env.posts.defaultFeedLimit }) => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          pageSize: pageSize.toString(),
+        });
+        return `/api/posts/feed?${params}`;
+      },
+      serializeQueryArgs: ({ endpointName }) => endpointName,
+      merge: (currentCache, newItems, { arg }) => {
+        if (arg.page === 1 || !currentCache) {
+          return newItems;
+        }
+
+        const existingIds = new Set(currentCache.posts.map((post) => post.id));
+
+        return {
+          ...newItems,
+          posts: [
+            ...currentCache.posts,
+            ...newItems.posts.filter((post) => !existingIds.has(post.id)),
+          ],
+        };
+      },
+      forceRefetch: ({ currentArg, previousArg }) =>
+        currentArg?.page !== previousArg?.page,
+      transformResponse: mapFeedResponse,
+      providesTags: (result) =>
+        result
+          ? [...result.posts.map(({ id }) => ({ type: "Posts" as const, id })), "Feed"]
           : ["Feed"],
-      keepUnusedDataFor: env.posts.feedCacheSeconds, 
+      keepUnusedDataFor: env.posts.feedCacheSeconds,
     }),
-    
+
     /**
      * Получает посты от пользователей, на которых подписан текущий пользователь.
      * @param limit - Количество постов (по умолчанию 20)
@@ -227,6 +311,10 @@ export const postApi = baseApi.injectEndpoints({
   }),
   overrideExisting: false,
 });
+
+registerPostApiForCache(
+  postApi as unknown as Parameters<typeof registerPostApiForCache>[0]
+);
 
 export const {
   useCreatePostMutation,

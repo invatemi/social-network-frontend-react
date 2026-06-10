@@ -9,6 +9,9 @@ import { FeedPost } from '@/entities/post/api/postApi';
 import { messagesApi } from '@/entities/message/api/messagesApi';
 import { env } from '@/shared/config/env';
 import type { AppDispatch } from '@/app/store/types';
+import { store } from '@/app/store';
+import { patchPostInCaches, removePostFromCaches } from '@/app/lib/postRealtimeCache';
+import { registerSocketDisconnectHandler } from '@/app/lib/socketDisconnect';
 
 let socket: Socket | null = null;
 let isInitialized = false;
@@ -75,31 +78,38 @@ export type SocketUserLeft = {
 
 // ==================== PRIVATE FUNCTIONS ====================
 
-const invalidatePostTags = (dispatch: AppDispatch): void => {
-  dispatch(postApi.util.invalidateTags(['Posts', 'Feed', { type: 'Posts', id: 'LIST' }]));
-};
-
-/**
- * Registers all socket event handlers with the store dispatcher.
- * Called only once per session to avoid duplicate handlers.
- */
 const registerSocketHandlers = (activeSocket: Socket, dispatch: AppDispatch): void => {
   console.log('[Socket] Registering event handlers');
 
   activeSocket.on('post:created', (_newPost: FeedPost) => {
-    invalidatePostTags(dispatch);
+    dispatch(postApi.util.invalidateTags(['Feed', 'Posts']));
   });
 
-  activeSocket.on('post:updated', (_data: FeedPost) => {
-    invalidatePostTags(dispatch);
+  activeSocket.on('post:updated', (data: FeedPost & { postId?: number }) => {
+    const postId = data.id ?? data.postId;
+    if (!postId) return;
+
+    patchPostInCaches(dispatch, store.getState(), postId, {
+      content: data.content,
+      imageUrl: data.imageUrl,
+      images: data.imageUrl ? [data.imageUrl] : data.images,
+      likesCount: data.likesCount,
+      commentsCount: data.commentsCount,
+    });
+    dispatch(postApi.util.invalidateTags([{ type: 'Posts', id: postId }]));
   });
 
-  activeSocket.on('post:deleted', (_data: { postId: number }) => {
-    invalidatePostTags(dispatch);
+  activeSocket.on('post:deleted', (data: { postId: number }) => {
+    removePostFromCaches(dispatch, store.getState(), data.postId);
+    dispatch(postApi.util.invalidateTags(['Feed', 'Posts', { type: 'Posts', id: data.postId }]));
   });
 
-  activeSocket.on('post:liked', (_data: { postId: number; likesCount: number; liked: boolean; userId: number }) => {
-    dispatch(postApi.util.invalidateTags(['Posts']));
+  activeSocket.on('post:liked', (data: { postId: number; likesCount: number; liked: boolean; userId: number }) => {
+    const currentUserId = store.getState().auth.user?.id;
+    patchPostInCaches(dispatch, store.getState(), data.postId, {
+      likesCount: data.likesCount,
+      ...(currentUserId === data.userId ? { isLiked: data.liked } : {}),
+    });
   });
 
   activeSocket.on('comment:created', (data: {
@@ -107,15 +117,33 @@ const registerSocketHandlers = (activeSocket: Socket, dispatch: AppDispatch): vo
     content: string;
     createdAt: string;
     postId: number;
+    commentsCount?: number;
     author: { id: number; username: string; avatarUrl: string | null };
   }) => {
-    dispatch(commentApi.util.invalidateTags([{ type: "Comments", id: `LIST_${data.postId}` }]));
-    dispatch(postApi.util.invalidateTags(['Posts']));
+    if (data.commentsCount !== undefined) {
+      patchPostInCaches(dispatch, store.getState(), data.postId, {
+        commentsCount: data.commentsCount,
+      });
+    } else {
+      dispatch(postApi.util.invalidateTags([{ type: 'Posts', id: data.postId }]));
+    }
+    dispatch(commentApi.util.invalidateTags([{ type: 'Comments', id: `LIST_${data.postId}` }]));
   });
 
-  activeSocket.on('comment:deleted', (data: { commentId: number; postId: number; deletedBy: number }) => {
-    dispatch(commentApi.util.invalidateTags([{ type: "Comments", id: `LIST_${data.postId}` }]));
-    dispatch(postApi.util.invalidateTags(['Posts']));
+  activeSocket.on('comment:deleted', (data: {
+    commentId: number;
+    postId: number;
+    deletedBy: number;
+    commentsCount?: number;
+  }) => {
+    if (data.commentsCount !== undefined) {
+      patchPostInCaches(dispatch, store.getState(), data.postId, {
+        commentsCount: data.commentsCount,
+      });
+    } else {
+      dispatch(postApi.util.invalidateTags([{ type: 'Posts', id: data.postId }]));
+    }
+    dispatch(commentApi.util.invalidateTags([{ type: 'Comments', id: `LIST_${data.postId}` }]));
   });
 
   activeSocket.on('notification:friend_request', (data: {
@@ -276,6 +304,8 @@ export const disconnectSocket = (): void => {
 
   setConnectionStatus('disconnected');
 };
+
+registerSocketDisconnectHandler(disconnectSocket);
 
 /** Returns the current socket instance. */
 export const getSocket = (): Socket | null => socket;

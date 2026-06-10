@@ -1,4 +1,18 @@
-import { store } from ".";
+import type { ThunkDispatch, UnknownAction } from "@reduxjs/toolkit";
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+import { baseApi } from "./api/baseApi";
+import type { UserProfile } from "@/entities/user/lib";
+
+type AuthState = {
+  user: UserProfile | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  isAuthenticated: boolean;
+};
+
+export type RootState = {
+  auth: AuthState;
+  [baseApi.reducerPath]: ReturnType<typeof baseApi.reducer>;
+};
+
+export type AppDispatch = ThunkDispatch<RootState, unknown, UnknownAction>;
