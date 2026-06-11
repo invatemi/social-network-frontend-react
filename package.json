@@ -1,6 +1,5 @@
 {
-  "name": "frontend",
-  "private": true,
+  "name": "social-network-frontend",
   "version": "0.0.0",
   "type": "module",
   "scripts": {

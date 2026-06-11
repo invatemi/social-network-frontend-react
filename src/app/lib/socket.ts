@@ -255,7 +255,9 @@ export const initSocket = (token: string, dispatch: AppDispatch): Socket | null 
     return socket;
   }
 
-  console.log(`[Socket] Establishing new connection: ${env.wsUrl}`);
+  if (import.meta.env.DEV) {
+    console.log('[Socket] Establishing new connection');
+  }
   setConnectionStatus('reconnecting');
 
   socket = io(env.wsUrl, {
