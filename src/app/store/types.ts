@@ -6,8 +6,8 @@ import type { UserProfile } from "@/entities/user/lib";
 type AuthState = {
   user: UserProfile | null;
   accessToken: string | null;
-  refreshToken: string | null;
   isAuthenticated: boolean;
+  isAuthInitialized: boolean;
 };
 
 export type RootState = {

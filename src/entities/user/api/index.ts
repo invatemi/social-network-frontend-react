@@ -1,5 +1,6 @@
 export {
   useGetUserProfileQuery,
+  useLazyGetUserProfileQuery,
   useUpdateUserProfileMutation,
   useLazyGetAvatarUploadUrlQuery,
   useConfirmPasswordMutation,

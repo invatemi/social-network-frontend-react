@@ -74,7 +74,7 @@ export const patchPostInCaches = (
     dispatch(
       api.util.updateQueryData('getFeedPosts', args, (draft) => {
         patchPosts(draft.posts, postId, patch);
-      })
+      }) as Parameters<AppDispatch>[0]
     );
   }
 
@@ -84,7 +84,7 @@ export const patchPostInCaches = (
     dispatch(
       api.util.updateQueryData('getPosts', args, (draft) => {
         patchPosts(draft.posts, postId, patch);
-      })
+      }) as Parameters<AppDispatch>[0]
     );
   }
 };
@@ -101,7 +101,7 @@ export const removePostFromCaches = (
     dispatch(
       api.util.updateQueryData('getFeedPosts', args, (draft) => {
         draft.posts = draft.posts.filter((post) => post.id !== postId);
-      })
+      }) as Parameters<AppDispatch>[0]
     );
   }
 
@@ -111,7 +111,7 @@ export const removePostFromCaches = (
     dispatch(
       api.util.updateQueryData('getPosts', args, (draft) => {
         draft.posts = draft.posts.filter((post) => post.id !== postId);
-      })
+      }) as Parameters<AppDispatch>[0]
     );
   }
 };

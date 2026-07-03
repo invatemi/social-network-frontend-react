@@ -10,6 +10,8 @@ import {
 import { joinChatRoom, leaveChatRoom } from '@/app/lib/socket';
 import { useSocket } from '@/feature/socket';
 import { env } from '@/shared/config/env';
+import { useAppSelector } from '@/app/store/hooks';
+import { selectAccessToken } from '@/app/store/slices/authSlice';
 
 export type UseMessagePageReturn = {
   chats: ChatData[];
@@ -31,6 +33,7 @@ export type UseMessagePageReturn = {
 export const useMessagePage = (currentUserId?: number): UseMessagePageReturn => {
   const [activeChatId, setActiveChatId] = useState<number | null>(null);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const accessToken = useAppSelector(selectAccessToken);
   
   // RTK Query
   const { 
@@ -139,15 +142,12 @@ export const useMessagePage = (currentUserId?: number): UseMessagePageReturn => 
     if (before) params.append('before', before);
     
     try {
-      const tokens = JSON.parse(localStorage.getItem('auth_tokens') || '{}') as {
-        accessToken?: string;
-      };
-      
       const response = await fetch(
         `${env.apiUrl}/api/messages/${activeChatId}?${params}`,
         {
+          credentials: 'include',
           headers: {
-            ...(tokens.accessToken ? { Authorization: `Bearer ${tokens.accessToken}` } : {}),
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
             'Content-Type': 'application/json',
           },
         }
@@ -163,7 +163,7 @@ export const useMessagePage = (currentUserId?: number): UseMessagePageReturn => 
       console.error('❌ Failed to load messages:', error);
       return [];
     }
-  }, [activeChatId]);
+  }, [activeChatId, accessToken]);
 
   const handleDeleteChat = useCallback(async () => {
     if (!activeChatId) return;

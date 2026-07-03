@@ -81,7 +81,7 @@ export type SocketUserLeft = {
 const registerSocketHandlers = (activeSocket: Socket, dispatch: AppDispatch): void => {
   console.log('[Socket] Registering event handlers');
 
-  activeSocket.on('post:created', (_newPost: FeedPost) => {
+  activeSocket.on('post:created', () => {
     dispatch(postApi.util.invalidateTags(['Feed', 'Posts']));
   });
 
@@ -232,7 +232,7 @@ const registerSocketHandlers = (activeSocket: Socket, dispatch: AppDispatch): vo
     ]));
   });
 
-  activeSocket.on('chat:created', (_data: { chatId: number; participantIds: number[] }) => {
+  activeSocket.on('chat:created', () => {
     dispatch(messagesApi.util.invalidateTags([{ type: 'Chats', id: 'LIST' }]));
   });
 };

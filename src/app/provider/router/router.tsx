@@ -15,6 +15,12 @@ import {
     MessagePage
 } from "@/page";
 
+const ProtectedOutlet = () => (
+  <ProtectedRoute>
+    <Outlet />
+  </ProtectedRoute>
+);
+
 /**
  * Главный роутер приложения
  * 
@@ -27,12 +33,6 @@ import {
  * @returns JSX-элемент с конфигурацией маршрутов
  */
 export const AppRouter = () => {
-  const ProtectedOutlet = () => (
-    <ProtectedRoute>
-      <Outlet />
-    </ProtectedRoute>
-  );
-
   return (
     <Routes>
       {/* Публичные */}

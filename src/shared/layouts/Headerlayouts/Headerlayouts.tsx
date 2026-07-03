@@ -4,7 +4,9 @@ import { useAppSelector, useAppDispatch } from "@/app/store/hooks";
 import { 
   selectIsAuthenticated, 
   selectUser, 
-  logout } from "@/app/store/slices/authSlice";
+  logout,
+} from "@/app/store/slices/authSlice";
+import { useLogoutMutation } from "@/app/store/api/authApi";
 import { SearchInput } from "@/feature";
 import { Button, SocketStatus } from "@/shared/ui";
 import { NotificationButton } from "@/feature";
@@ -19,6 +21,7 @@ const Headerlayouts = () => {
   
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const user = useAppSelector(selectUser);
+  const [logoutRequest] = useLogoutMutation();
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
@@ -40,7 +43,12 @@ const Headerlayouts = () => {
     return () => { document.body.style.overflow = ""; };
   }, [isMenuOpen]);
   
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await logoutRequest().unwrap();
+    } catch {
+      // Clear local session even if server logout fails.
+    }
     dispatch(logout());
     setIsMenuOpen(false);
     navigate("/autorization", { replace: true });

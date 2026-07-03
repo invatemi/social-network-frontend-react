@@ -232,6 +232,7 @@ export const userApi = baseApi.injectEndpoints({
 
 export const {
   useGetUserProfileQuery,
+  useLazyGetUserProfileQuery,
   useUpdateUserProfileMutation,
   useLazyGetAvatarUploadUrlQuery,
   useConfirmPasswordMutation,

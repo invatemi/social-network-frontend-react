@@ -3,9 +3,32 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAppDispatch } from "@/app/store/hooks";
 import { setAuth } from "@/app/store/slices/authSlice";
 import { useLoginMutation } from "@/app/store/api/authApi";
-import { Button, Input } from "@/shared";
+import { Button, Input, useToast } from "@/shared";
+import { useRateLimitCountdown } from "@/shared/hooks";
+import { handleRateLimitError } from "@/shared/lib/api/handleRateLimitError";
+import { getRateLimitMessage } from "@/shared/lib/api/parseRateLimitError";
 import { authSchema, AuthFormData } from "../lib";
 import style from "./Autorization.module.css";
+
+type ValidationErrorItem = {
+  path: (string | number)[];
+  message: string;
+};
+
+type LoginApiError = {
+  data?: {
+    errors?: ValidationErrorItem[];
+    message?: string;
+    retryAfterSeconds?: number;
+  };
+};
+
+const getLoginErrorData = (err: unknown): LoginApiError["data"] | undefined => {
+  if (typeof err === "object" && err !== null && "data" in err) {
+    return (err as LoginApiError).data;
+  }
+  return undefined;
+};
 
 /**
  * Autorization — форма входа
@@ -15,6 +38,8 @@ const Autorization = () => {
   const dispatch = useAppDispatch();
   
   const [login, { isLoading }] = useLoginMutation();
+  const { showToast } = useToast();
+  const { secondsLeft, isBlocked, startCountdown } = useRateLimitCountdown();
   const [formData, setFormData] = useState<AuthFormData>({ email: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -48,19 +73,28 @@ const Autorization = () => {
       const result = await login(formData).unwrap();
       dispatch(setAuth({
         accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
         user: result.user,
       }));
       navigate("/");
-    } catch (err: any) {
-      if (err?.data?.errors) {
+    } catch (err: unknown) {
+      if (handleRateLimitError(err, { startCountdown, showToast })) {
+        const data = getLoginErrorData(err);
+        setErrors({
+          global: getRateLimitMessage(data?.retryAfterSeconds ?? 60),
+        });
+        return;
+      }
+
+      const data = getLoginErrorData(err);
+
+      if (data?.errors) {
         const formatted: Record<string, string> = {};
-        err.data.errors.forEach((e: any) => {
-          formatted[e.path[0]] = e.message;
+        data.errors.forEach((e) => {
+          formatted[String(e.path[0])] = e.message;
         });
         setErrors(formatted);
       } else {
-        setErrors({ global: err?.data?.message || "AUTH_ERROR" });
+        setErrors({ global: data?.message || "AUTH_ERROR" });
       }
     }
   };
@@ -93,7 +127,7 @@ const Autorization = () => {
               onChange={handleChange}
               error={errors.email ? `! ${errors.email}` : undefined}
               placeholder={"> you@example.com"}
-              disabled={isLoading}
+              disabled={isLoading || isBlocked}
               autoComplete="email"
               fullWidth
             />
@@ -120,7 +154,7 @@ const Autorization = () => {
               onChange={handleChange}
               error={errors.password ? `! ${errors.password}` : undefined}
               placeholder={"> enter_password"}
-              disabled={isLoading}
+              disabled={isLoading || isBlocked}
               autoComplete="current-password"
               fullWidth
             />
@@ -132,10 +166,14 @@ const Autorization = () => {
             size="md" 
             fullWidth
             loading={isLoading}
-            disabled={isLoading}
+            disabled={isLoading || isBlocked}
             className={style.submitBtn}
           >
-            {isLoading ? `[authenticating...]` : `[login]`}
+            {isBlocked
+              ? `[retry in ${secondsLeft}s]`
+              : isLoading
+                ? `[authenticating...]`
+                : `[login]`}
           </Button>
 
           <p className={style.authFooter}>

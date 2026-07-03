@@ -4,9 +4,32 @@ import { useAppDispatch } from "@/app/store/hooks";
 import { setAuth } from "@/app/store/slices/authSlice";
 import { useRegisterMutation } from "@/app/store/api/authApi";
 import { fetchUserProfileWithRetry } from "@/entities/user/api";
-import { Input, Button } from "@/shared";
+import { Input, Button, useToast } from "@/shared";
+import { useRateLimitCountdown } from "@/shared/hooks";
+import { handleRateLimitError } from "@/shared/lib/api/handleRateLimitError";
+import { getRateLimitMessage } from "@/shared/lib/api/parseRateLimitError";
 import { registrationSchema, RegistrationFormData } from "../lib";
 import style from "./Registration.module.css";
+
+type ValidationErrorItem = {
+  path: (string | number)[];
+  message: string;
+};
+
+type RegisterApiError = {
+  data?: {
+    errors?: ValidationErrorItem[];
+    message?: string;
+    retryAfterSeconds?: number;
+  };
+};
+
+const getRegisterErrorData = (err: unknown): RegisterApiError["data"] | undefined => {
+  if (typeof err === "object" && err !== null && "data" in err) {
+    return (err as RegisterApiError).data;
+  }
+  return undefined;
+};
 
 /**
  * Registration — форма регистрации
@@ -15,6 +38,8 @@ const Registration = (): ReactElement => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [register, { isLoading }] = useRegisterMutation();
+  const { showToast } = useToast();
+  const { secondsLeft, isBlocked, startCountdown } = useRateLimitCountdown();
   const [formData, setFormData] = useState<RegistrationFormData>({
     email: "",
     username: "",
@@ -53,20 +78,29 @@ const Registration = (): ReactElement => {
       const result = await register(formData).unwrap();
       dispatch(setAuth({
         accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
         user: result.user,
       }));
       await fetchUserProfileWithRetry(dispatch);
       navigate("/");
-    } catch (err: any) {
-      if (err?.data?.errors) {
+    } catch (err: unknown) {
+      if (handleRateLimitError(err, { startCountdown, showToast })) {
+        const data = getRegisterErrorData(err);
+        setErrors({
+          global: getRateLimitMessage(data?.retryAfterSeconds ?? 60),
+        });
+        return;
+      }
+
+      const data = getRegisterErrorData(err);
+
+      if (data?.errors) {
         const formatted: Record<string, string> = {};
-        err.data.errors.forEach((e: any) => {
-          formatted[e.path[0]] = e.message;
+        data.errors.forEach((e) => {
+          formatted[String(e.path[0])] = e.message;
         });
         setErrors(formatted);
       } else {
-        setErrors({ global: err?.data?.message || "REG_ERROR" });
+        setErrors({ global: data?.message || "REG_ERROR" });
       }
     }
   };
@@ -97,7 +131,7 @@ const Registration = (): ReactElement => {
               onChange={handleChange}
               error={errors.email ? `! ${errors.email}` : undefined}
               placeholder={"> you@example.com"}
-              disabled={isLoading}
+              disabled={isLoading || isBlocked}
               autoComplete="email"
               fullWidth
             />
@@ -113,7 +147,7 @@ const Registration = (): ReactElement => {
               onChange={handleChange}
               error={errors.username ? `! ${errors.username}` : undefined}
               placeholder={"> choose_username"}
-              disabled={isLoading}
+              disabled={isLoading || isBlocked}
               autoComplete="username"
               fullWidth
             />
@@ -129,7 +163,7 @@ const Registration = (): ReactElement => {
               onChange={handleChange}
               error={errors.password ? `! ${errors.password}` : undefined}
               placeholder={"> min_8_chars"}
-              disabled={isLoading}
+              disabled={isLoading || isBlocked}
               autoComplete="new-password"
               fullWidth
               helperText={"[letter+number]"}
@@ -146,7 +180,7 @@ const Registration = (): ReactElement => {
               onChange={handleChange}
               error={errors.confirmPassword ? `! ${errors.confirmPassword}` : undefined}
               placeholder={"> repeat_password"}
-              disabled={isLoading}
+              disabled={isLoading || isBlocked}
               autoComplete="new-password"
               fullWidth
             />
@@ -158,10 +192,14 @@ const Registration = (): ReactElement => {
             size="md"
             fullWidth
             loading={isLoading}
-            disabled={isLoading}
+            disabled={isLoading || isBlocked}
             className={style.submitBtn}
           >
-            {isLoading ? `[creating...]` : `[register]`}
+            {isBlocked
+              ? `[retry in ${secondsLeft}s]`
+              : isLoading
+                ? `[creating...]`
+                : `[register]`}
           </Button>
 
           <p className={style.authFooter}>

@@ -1,7 +1,6 @@
 // 📄 src/shared/ui/Input/types.ts
 import { 
   InputHTMLAttributes, 
-  TextareaHTMLAttributes, 
   ReactNode,
   ChangeEvent,
   KeyboardEvent,
