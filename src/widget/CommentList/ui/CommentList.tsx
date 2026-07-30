@@ -1,81 +1,288 @@
-import { useCallback } from "react";
+﻿import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { CommentCard } from "@/entities";
 import { CommentForm } from "@/feature";
-import { commentApi } from "@/entities/comment/api/commentApi";
+import { Button } from "@/shared";
+import { commentApi, type Comment } from "@/entities/comment/api/commentApi";
 import { useCommentList } from "../hooks/useCommentList";
 import { usePostSubscription } from "@/shared/hooks";
-import { useAppSelector } from "@/app/store/hooks";
-import { useAppDispatch } from "@/app/store/hooks";
+import { useAppSelector, useAppDispatch } from "@/app/store/hooks";
+import { checkPresence, subscribeSocketStatus } from "@/app/lib/socket";
 import style from "./CommentList.module.css";
 
 type CommentListProps = {
   postId: number;
+  /** false — только первый комментарий; true — до 10 */
+  expanded?: boolean;
 };
 
+type GhostComment = {
+  comment: Comment;
+  index: number;
+};
+
+const ANIM_MS = 420;
+const EXIT_MS = 340;
+
 /**
- * CommentList — список комментариев
+ * CommentList — список комментариев под постом
  */
-const CommentList = ({ postId }: CommentListProps) => {
+const CommentList = ({ postId, expanded = false }: CommentListProps) => {
   usePostSubscription(postId);
   const dispatch = useAppDispatch();
   const { comments, isLoading, isError, error } = useCommentList(postId);
   const currentUserId = useAppSelector((state) => state.auth.user?.id);
 
-  const handleDeleteSuccess = useCallback((deletedCommentId: number) => {
-    dispatch(
-      commentApi.util.updateQueryData('getComments', { postId }, (draft) => {
-        draft.comments = draft.comments.filter((c) => c.id !== deletedCommentId);
-      })
-    );
+  const shellRef = useRef<HTMLElement | null>(null);
+  const measureRef = useRef<HTMLDivElement | null>(null);
+  const firstItemRef = useRef<HTMLDivElement | null>(null);
+  const prevExpandedRef = useRef(expanded);
+  const prevCommentsRef = useRef(comments);
 
-    console.log(`[✓] Комментарий #${deletedCommentId} удалён`);
-    
-  }, [dispatch, postId]);
+  const [renderExpanded, setRenderExpanded] = useState(expanded);
+  const [showForm, setShowForm] = useState(expanded);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [ghosts, setGhosts] = useState<GhostComment[]>([]);
+  const [leavingIds, setLeavingIds] = useState<Set<number>>(() => new Set());
+
+  const setShellHeight = (value: number | "auto") => {
+    const shell = shellRef.current;
+    if (!shell) return;
+    shell.style.height = value === "auto" ? "auto" : `${value}px`;
+  };
+
+  const measureShell = () => shellRef.current?.getBoundingClientRect().height ?? 0;
+  const measureContent = () => measureRef.current?.scrollHeight ?? 0;
+  const measureCollapsed = () => firstItemRef.current?.getBoundingClientRect().height ?? 72;
+
+  useLayoutEffect(() => {
+    const wasExpanded = prevExpandedRef.current;
+    if (wasExpanded === expanded) return;
+    prevExpandedRef.current = expanded;
+
+    const shell = shellRef.current;
+    if (!shell) return;
+
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReduced) {
+      setRenderExpanded(expanded);
+      setShowForm(expanded);
+      setShellHeight("auto");
+      setIsAnimating(false);
+      return;
+    }
+
+    if (expanded) {
+      const from = measureShell();
+      setRenderExpanded(true);
+      setShowForm(true);
+      setIsAnimating(true);
+      setShellHeight(from);
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const to = measureContent();
+          setShellHeight(to);
+        });
+      });
+
+      const timer = window.setTimeout(() => {
+        setShellHeight("auto");
+        setIsAnimating(false);
+      }, ANIM_MS);
+
+      return () => window.clearTimeout(timer);
+    }
+
+    const from = measureShell();
+    const to = measureCollapsed();
+    setIsAnimating(true);
+    setShellHeight(from);
+    setShowForm(false);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setShellHeight(to);
+      });
+    });
+
+    const timer = window.setTimeout(() => {
+      setRenderExpanded(false);
+      setShellHeight("auto");
+      setIsAnimating(false);
+    }, ANIM_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [expanded]);
+
+  useEffect(() => {
+    const prev = prevCommentsRef.current;
+    const currentIds = new Set(comments.map((c) => c.id));
+    const removed = prev
+      .map((comment, index) => ({ comment, index }))
+      .filter(({ comment }) => !currentIds.has(comment.id));
+
+    prevCommentsRef.current = comments;
+
+    if (removed.length === 0) return;
+
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReduced) {
+      setGhosts((g) => g.filter((ghost) => currentIds.has(ghost.comment.id)));
+      setLeavingIds(new Set());
+      return;
+    }
+
+    const removedIds = new Set(removed.map(({ comment }) => comment.id));
+
+    setGhosts((g) => [
+      ...g.filter((ghost) => !removedIds.has(ghost.comment.id) && !currentIds.has(ghost.comment.id)),
+      ...removed,
+    ]);
+    setLeavingIds((ids) => {
+      const next = new Set(ids);
+      removedIds.forEach((id) => next.add(id));
+      return next;
+    });
+
+    const timer = window.setTimeout(() => {
+      setGhosts((g) => g.filter((ghost) => !removedIds.has(ghost.comment.id)));
+      setLeavingIds((ids) => {
+        const next = new Set(ids);
+        removedIds.forEach((id) => next.delete(id));
+        return next;
+      });
+    }, EXIT_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [comments]);
+
+  useEffect(() => {
+    const authorIds = comments.map((comment) => comment.author.id);
+    if (authorIds.length === 0) return;
+
+    checkPresence(authorIds);
+
+    const unsubscribe = subscribeSocketStatus((status) => {
+      if (status === "connected") {
+        checkPresence(authorIds);
+      }
+    });
+
+    return unsubscribe;
+  }, [comments]);
+
+  const displayComments = (() => {
+    const list = comments.slice();
+    const present = new Set(list.map((c) => c.id));
+    [...ghosts]
+      .sort((a, b) => a.index - b.index)
+      .forEach(({ comment, index }) => {
+        if (present.has(comment.id)) return;
+        list.splice(Math.min(index, list.length), 0, comment);
+        present.add(comment.id);
+      });
+    return list;
+  })();
+
+  const visibleComments = displayComments.slice(0, renderExpanded ? 10 : 1);
+
+  const handleDeleteSuccess = useCallback(
+    (deletedCommentId: number) => {
+      dispatch(
+        commentApi.util.updateQueryData("getComments", { postId }, (draft) => {
+          draft.comments = draft.comments.filter((c) => c.id !== deletedCommentId);
+        })
+      );
+    },
+    [dispatch, postId]
+  );
 
   if (isLoading) {
     return (
-      <div className={style.loading}>
-        <span className={style.spinnerAscii}>{`[loading...]`}</span>
-      </div>
+      <section className={style.commentList}>
+        <div className={style.loading}>Загрузка комментариев...</div>
+      </section>
     );
   }
 
   if (isError) {
     return (
-      <div className={style.error}>
-        <p>{`! ${error}`}</p>
-        <button onClick={() => window.location.reload()} className={style.retryBtn}>
-          {`[retry]`}
-        </button>
-      </div>
+      <section className={style.commentList}>
+        <div className={style.error}>
+          <p>{error || "Ошибка загрузки комментариев"}</p>
+          <Button type="button" size="sm" onClick={() => window.location.reload()}>
+            Повторить
+          </Button>
+        </div>
+      </section>
     );
   }
 
   return (
-    <section className={style.commentList}>
-      <h3 className={style.title}>
-        <span className={style.prompt}>{`>`}</span>
-        <span>{`comments`}</span>
-        <span className={style.count}>{`[${comments.length}]`}</span>
-      </h3>
+    <section
+      ref={shellRef}
+      className={[style.commentList, isAnimating ? style.animating : ""].filter(Boolean).join(" ")}
+    >
+      <div ref={measureRef} className={style.measure}>
+        <div
+          className={[
+            style.list,
+            renderExpanded ? style.listExpanded : style.listCollapsed,
+            renderExpanded && displayComments.length > 3 ? style.listScrollable : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          {visibleComments.length > 0 ? (
+            visibleComments.map((comment, index) => {
+              const isLeaving = leavingIds.has(comment.id);
+              return (
+                <div
+                  key={comment.id}
+                  ref={index === 0 ? firstItemRef : undefined}
+                  className={[
+                    style.item,
+                    isLeaving ? style.itemLeaving : "",
+                    index > 0 && !isLeaving ? style.extraItem : "",
+                    !expanded && renderExpanded && index > 0 && !isLeaving
+                      ? style.extraItemClosing
+                      : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  style={
+                    expanded && index > 0 && !isLeaving
+                      ? { animationDelay: `${Math.min(index, 9) * 45}ms` }
+                      : undefined
+                  }
+                >
+                  <CommentCard
+                    isOwner={comment.author.id === currentUserId}
+                    comment={comment}
+                    onDeleteSuccess={() => handleDeleteSuccess(comment.id)}
+                  />
+                </div>
+              );
+            })
+          ) : (
+            <div className={style.empty}>
+              <p>Комментариев пока нет</p>
+            </div>
+          )}
+        </div>
 
-      <div className={style.list}>
-        {comments.length > 0 ? (
-          comments.map((comment) => (
-            <CommentCard 
-              key={comment.id}
-              isOwner={comment.author.id === currentUserId}
-              comment={comment}
-              onDeleteSuccess={() => handleDeleteSuccess(comment.id)} />
-          ))
-        ) : (
-          <div className={style.empty}>
-            <p>{`// no_comments_yet`}</p>
+        {showForm && (
+          <div className={style.formWrap}>
+            <CommentForm postId={postId} />
           </div>
         )}
       </div>
-
-      <CommentForm postId={postId} />
     </section>
   );
 };

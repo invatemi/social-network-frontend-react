@@ -1,75 +1,71 @@
-/* Base card — terminal list item */
 .card {
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration: 0.4s;
+
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  background: #111;
-  border: 1px solid #333;
-  border-radius: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Inter", sans-serif;
+  background: transparent;
+  transition: background-color var(--duration) var(--ease);
 }
 
 .card:hover {
-  background: rgba(34, 197, 94, 0.08);
-  border-color: #444;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .card.active {
-  border-color: #22c55e;
-  background: rgba(34, 197, 94, 0.12);
+  background: rgba(255, 255, 255, 0.08);
 }
 
-/* Avatar wrapper */
 .avatarWrapper {
   position: relative;
   flex-shrink: 0;
-}
-
-.avatar {
   width: 48px;
   height: 48px;
-  border: 1px solid #333;
+}
+
+.avatar,
+.avatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
   object-fit: cover;
   display: block;
-  border-radius: 0;
 }
 
 .avatarPlaceholder {
-  width: 48px;
-  height: 48px;
-  border: 1px solid #333;
-  background: #1a1a1a;
+  background: #2a2a2a;
+  color: #aaa;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
-  font-weight: bold;
-  color: #666;
-  border-radius: 0;
+  font-weight: 600;
 }
 
-/* Status indicator — ASCII style */
-.statusIndicator {
+.onlineDot {
   position: absolute;
-  bottom: 4px;
-  right: 4px;
-  font-size: 9px;
-  font-weight: bold;
-  line-height: 1;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #141414;
+  box-sizing: border-box;
 }
 
-.statusIndicator.online {
-  color: #22c55e;
+.online {
+  background: #22c55e;
 }
 
-.statusIndicator.offline {
-  color: #444;
+.offline {
+  background: #555;
 }
 
-/* Info section */
 .info {
   flex: 1;
   min-width: 0;
@@ -80,59 +76,53 @@
 
 .header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
 }
 
 .username {
-  font-weight: 400;
-  color: #e5e5e5;
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.unreadDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  flex-shrink: 0;
 }
 
 .time {
-  font-size: 10px;
-  color: #555;
   flex-shrink: 0;
+  font-size: 12px;
+  color: #8a8a8a;
 }
 
 .lastMessage {
-  font-size: 11px;
-  color: #666;
+  font-size: 13px;
+  color: #8a8a8a;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-style: italic;
 }
 
-/* Unread badge — code-style indicator */
-.unreadBadge {
-  min-width: 28px;
-  height: 18px;
-  padding: 0 4px;
-  background: #1a1a1a;
-  color: #ef4444;
-  border: 1px solid #ef4444;
-  border-radius: 0;
-  font-size: 9px;
-  font-weight: 400;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-/* Focus for a11y */
 .card:focus-visible {
-  outline: 2px solid #22c55e;
-  outline-offset: -2px;
+  outline: 2px solid #c7c7c7;
+  outline-offset: 2px;
 }
 
-/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  .card { transition: none !important; }
+  .card {
+    transition: none !important;
+  }
 }

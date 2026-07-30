@@ -30,6 +30,7 @@ export type MessageListProps = {
     username: string;
     avatarUrl: string | null;
     isOnline: boolean;
+    email?: string | null;
   };
   initialMessages?: UIMessageData[];
   onLoadMessages?: (chatId: number, page: number) => Promise<BackendMessageData[]>;

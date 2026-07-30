@@ -1,7 +1,8 @@
-import { ChatCard } from '@/entities';
-import { formatChatTime, ChatListProps } from '../lib';
-import { useChatList } from '../hooks/useChatList';
-import style from './ChatList.module.css';
+import { ChatCard } from "@/entities";
+import { useAppSelector } from "@/app/store/hooks";
+import { formatChatTime, ChatListProps } from "../lib";
+import { useChatList } from "../hooks/useChatList";
+import style from "./ChatList.module.css";
 
 /**
  * ChatList — список чатов
@@ -10,100 +11,83 @@ const ChatList = ({
   chats = [],
   onChatSelect,
   activeChatId = null,
-  className = '',
+  className = "",
 }: ChatListProps) => {
-  const {
-    groupedChats,
-    searchQuery,
-    setSearchQuery,
-    isLoading,
-  } = useChatList(chats);
+  const presence = useAppSelector((state) => state.presence.byUserId);
+  const { groupedChats, searchQuery, setSearchQuery, isLoading } =
+    useChatList(chats);
 
   const handleChatClick = (chatId: number) => {
     onChatSelect?.(chatId);
   };
 
-  // ASCII-иконка поиска
-  const SearchIcon = () => <span className={style.iconAscii}>{`[?]`}</span>;
-
-  // ASCII-иконка пустого состояния
-  const EmptyIcon = () => <span className={style.iconLarge}>{`[∅]`}</span>;
-
   if (isLoading) {
     return (
       <div className={`${style.container} ${className}`}>
-        <div className={style.loadingState}>
-          <span className={style.spinnerAscii}>{`[loading...]`}</span>
-        </div>
+        <div className={style.loadingState}>Загрузка...</div>
       </div>
     );
   }
 
+  const flatEmpty = Object.keys(groupedChats).length === 0;
+
   return (
     <div className={`${style.container} ${className}`}>
-      <div className={style.header}>
-        <h2 className={style.title}>
-          <span className={style.prompt}>{`>`}</span>
-          <span>{`chats`}</span>
-        </h2>
-        
-        <div className={style.searchWrapper}>
-          <span className={style.searchIcon}>
-            <SearchIcon />
-          </span>
-          <input
-            type="text"
-            className={style.searchInput}
-            placeholder={"> search_chats..."}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="Поиск по чатам"
-          />
-        </div>
+      <div className={style.searchField}>
+        <span className={style.searchIcon} aria-hidden />
+        <input
+          type="search"
+          className={style.searchInput}
+          placeholder="Поиск"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          aria-label="Поиск по чатам"
+          autoComplete="off"
+        />
       </div>
 
       <div className={style.chatsList}>
-        {Object.keys(groupedChats).length === 0 ? (
+        {flatEmpty ? (
           <div className={style.emptyState}>
-            <EmptyIcon />
             <p className={style.emptyText}>
-              {searchQuery ? `// no_results` : `// no_chats`}
+              {searchQuery ? "Ничего не найдено" : "Нет чатов"}
             </p>
           </div>
         ) : (
           Object.entries(groupedChats).map(([group, groupChats]) => (
             <div key={group} className={style.section}>
-              <h3 className={style.sectionTitle}>{`// ${group}`}</h3>
-              
               {groupChats.map((chat) => {
-                const username = chat.isGroup 
-                  ? chat.chatName || 'Групповой чат' 
-                  : chat.participant?.username || 'Собеседник';
-                
-                const avatarUrl = chat.isGroup 
+                const username = chat.isGroup
+                  ? chat.chatName || "Групповой чат"
+                  : chat.participant?.username || "Собеседник";
+
+                const avatarUrl = chat.isGroup
                   ? null
                   : chat.participant?.avatarUrl || null;
-                
-                const isOnline = chat.participant?.isOnline ?? false;
-                const lastMessageTime = 
-                  chat.lastMessage?.createdAt || 
-                  chat.lastMessageAt || 
-                  null;
+
+                const userId = chat.participant?.userId;
+                const isOnline =
+                  (userId != null && presence[String(userId)] === true) ||
+                  (chat.participant?.isOnline ?? false);
+
+                const lastMessageTime =
+                  chat.lastMessage?.createdAt || chat.lastMessageAt || null;
 
                 return (
-                  <div key={chat.chatId} className={style.chatCardWrapper}>
-                    <ChatCard
-                      chatId={chat.chatId}
-                      avatarUrl={avatarUrl}
-                      username={username}
-                      lastMessage={chat.lastMessage?.content || '// no messages'}
-                      lastMessageTime={lastMessageTime ? formatChatTime(lastMessageTime) : ''}
-                      unreadCount={chat.unreadCount}
-                      isOnline={isOnline}
-                      onClick={handleChatClick}
-                      isActive={activeChatId === chat.chatId}
-                    />
-                  </div>
+                  <ChatCard
+                    key={chat.chatId}
+                    chatId={chat.chatId}
+                    avatarUrl={avatarUrl}
+                    username={username}
+                    lastMessage={chat.lastMessage?.content || ""}
+                    lastMessageTime={
+                      lastMessageTime ? formatChatTime(lastMessageTime) : ""
+                    }
+                    unreadCount={chat.unreadCount}
+                    isOnline={isOnline}
+                    onClick={handleChatClick}
+                    isActive={activeChatId === chat.chatId}
+                  />
                 );
               })}
             </div>

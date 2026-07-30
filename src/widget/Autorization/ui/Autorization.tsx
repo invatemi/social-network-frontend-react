@@ -1,5 +1,5 @@
 import { useState, FormEvent, ChangeEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "@/app/store/hooks";
 import { setAuth } from "@/app/store/slices/authSlice";
 import { useLoginMutation } from "@/app/store/api/authApi";
@@ -8,6 +8,7 @@ import { useRateLimitCountdown } from "@/shared/hooks";
 import { handleRateLimitError } from "@/shared/lib/api/handleRateLimitError";
 import { getRateLimitMessage } from "@/shared/lib/api/parseRateLimitError";
 import { authSchema, AuthFormData } from "../lib";
+import logo from "../../../shared/img/6832de8b533af79915e665b090ccb89883ebe89c.png";
 import style from "./Autorization.module.css";
 
 type ValidationErrorItem = {
@@ -39,7 +40,7 @@ const Autorization = () => {
   
   const [login, { isLoading }] = useLoginMutation();
   const { showToast } = useToast();
-  const { secondsLeft, isBlocked, startCountdown } = useRateLimitCountdown();
+  const { isBlocked, startCountdown } = useRateLimitCountdown();
   const [formData, setFormData] = useState<AuthFormData>({ email: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -101,91 +102,66 @@ const Autorization = () => {
 
   return (
     <div className={style.authWrapper}>
-      {/* <AuthBackground /> */}
-      
       <div className={style.authCard}>
-        <div className={style.authHeader}>
-          <h1 className={style.authTitle}>
-            <span className={style.prompt}>{`>`}</span>
-            <span>{`login`}</span>
-          </h1>
-          <p className={style.authSubtitle}>{`// proceed_to_dashboard`}</p>
-        </div>
-
         <form className={style.authForm} onSubmit={handleSubmit} noValidate>
           {errors.global && (
-            <div className={style.errorGlobal}>{`! ${errors.global}`}</div>
+            <div className={style.errorGlobal}>{errors.global}</div>
           )}
 
-          <div className={style.fieldGroup}>
-            <label className={style.label} htmlFor="email">{`> EMAIL`}</label>
+          <p className={style.authTitle}>Вход</p>
+
+          <div className={style.authFormGroup}>
+            <label className={style.authFormGroupLabel} htmlFor="email">{`Email`}</label>
             <Input
-              id="email"
-              name="email"
               type="email"
+              name="email"
+              placeholder="Email"
+              id="email"
               value={formData.email}
               onChange={handleChange}
-              error={errors.email ? `! ${errors.email}` : undefined}
-              placeholder={"> you@example.com"}
-              disabled={isLoading || isBlocked}
-              autoComplete="email"
+              error={errors.email}
               fullWidth
             />
           </div>
 
-          <div className={style.fieldGroup}>
-            <div className={style.labelRow}>
-              <label className={style.label} htmlFor="password">{`> PASSWORD`}</label>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                type="button" 
-                onClick={() => navigate("/password/reset")}
-                className={style.linkForgot}
-              >
-                {`[reset?]`}
-              </Button>
-            </div>
+          <div className={style.authFormGroup}>
+            <label className={style.authFormGroupLabel} htmlFor="password">{`Password`}</label>
             <Input
-              id="password"
-              name="password"
               type="password"
+              name="password"
+              placeholder="Password"
+              id="password"
               value={formData.password}
               onChange={handleChange}
-              error={errors.password ? `! ${errors.password}` : undefined}
-              placeholder={"> enter_password"}
-              disabled={isLoading || isBlocked}
-              autoComplete="current-password"
+              error={errors.password}
               fullWidth
             />
           </div>
 
-          <Button 
-            type="submit" 
-            variant="primary" 
-            size="md" 
-            fullWidth
-            loading={isLoading}
-            disabled={isLoading || isBlocked}
-            className={style.submitBtn}
-          >
-            {isBlocked
-              ? `[retry in ${secondsLeft}s]`
-              : isLoading
-                ? `[authenticating...]`
-                : `[login]`}
-          </Button>
+          <div className={style.authActions}>
+            <Button
+              type="submit"
+              fullWidth
+              loading={isLoading}
+              disabled={isLoading || isBlocked}
+            >
+              Войти
+            </Button>
+            <Button
+              type="button"
+              fullWidth
+              onClick={() => navigate("/registration")}
+            >
+              Зарегистрироваться
+            </Button>
+          </div>
 
-          <p className={style.authFooter}>
-            {`// new_user?`}{" "}
-            <Link to="/registration" className={style.linkRegister}>
-              {`[register]`}
-            </Link>
-          </p>
-        </form>
+      </form>
+      <div className={style.authVisual}>
+        <img src={logo} alt="" className={style.authLogo} />
       </div>
     </div>
-  );
-};
+  </div>
+)};
 
 export default Autorization;

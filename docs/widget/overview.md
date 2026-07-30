@@ -17,7 +17,7 @@
 
 | Widget | Путь | Назначение |
 |--------|------|------------|
-| `Autorization` | `src/widget/Autorization/` | Форма входа, 3D-фон (Three.js) |
+| `Autorization` | `src/widget/Autorization/` | Форма входа (flat dark card) |
 | `Registration` | `src/widget/Registration/` | Форма регистрации |
 | `PostList` | `src/widget/PostList/` | Список постов, пагинация, лайки |
 | `CommentList` | `src/widget/CommentList/` | Комментарии к посту |
@@ -60,7 +60,7 @@ flowchart TB
   Page["page/*"] --> Widget["widget/*"]
   Widget --> Entities["entities/ui"]
   Widget --> Feature["feature/*"]
-  Header["Headerlayouts"] --> SearchUserList
+  FeatureSearch["SearchInput"] --> SearchUserList
 ```
 
 ## Public API

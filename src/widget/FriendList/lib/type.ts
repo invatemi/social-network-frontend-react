@@ -2,9 +2,11 @@ export type FriendItem = {
   id: number;
   username: string;
   avatarUrl: string | null;
-  friendsSince: string;
+  friendsSince?: string;
 };
 
 export type FriendListProps = {
   friends: FriendItem[];
+  onMessageClick?: (userId: number) => void;
+  emptyTitle?: string;
 };

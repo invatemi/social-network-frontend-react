@@ -6,14 +6,14 @@
 
 | Слой | Технология |
 |------|------------|
-| UI | React 19, TypeScript, CSS Modules |
+| UI | React 19, TypeScript, CSS Modules, design tokens |
 | Сборка | Vite 8 |
 | Роутинг | React Router 7 |
 | State / API | Redux Toolkit, RTK Query |
 | Real-time | Socket.IO Client |
 | Формы / валидация | Zod |
 | UI primitives | Headless UI |
-| 3D (экран auth) | Three.js, React Three Fiber |
+| Тесты | Vitest, Testing Library |
 
 ## Паттерн: Feature-Sliced Design (FSD)
 
@@ -95,7 +95,6 @@ flowchart TB
 | Socket hub | `src/app/lib/socket.ts` | Подключение к `VITE_WS_URL`, обработка событий |
 | Cache patch | `src/app/lib/postRealtimeCache.ts` | Оптимистичный патч кэша постов |
 | Disconnect | `src/app/lib/socketDisconnect.ts` | Очистка при logout |
-| UI status | `src/shared/ui/SocketStatus` | Индикатор состояния соединения |
 
 Socket-события инвалидируют RTK Query tags или патчат кэш напрямую (посты, лайки, комментарии, друзья, сообщения).
 
@@ -105,6 +104,6 @@ Socket-события инвалидируют RTK Query tags или патча�
 
 ## Что не входит в репозиторий
 
-- Unit/e2e тесты (пока отсутствуют)
+- Полное e2e-покрытие (есть точечные unit/component тесты на Vitest)
 - Backend-сервисы (отдельный репозиторий)
 - Папка `public/` (статика не используется)

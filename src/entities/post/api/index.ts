@@ -1,5 +1,6 @@
 export {
   useCreatePostMutation,
+  useLazyGetPostImageUploadUrlQuery,
   useGetPostsQuery,
   useDeletePostMutation,
   useToggleLikeMutation,
@@ -8,3 +9,5 @@ export {
   useGetPostsFromFollowingQuery,
   useGetPostsFromFriendsQuery,
 } from "./postApi";
+
+export type { PostImageUploadUrlData } from "./postApi";

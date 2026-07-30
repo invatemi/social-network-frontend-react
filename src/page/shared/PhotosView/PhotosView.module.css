@@ -1,0 +1,98 @@
+.root {
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration: 0.42s;
+
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  font-family: "Inter", sans-serif;
+  color: #fff;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #fff;
+}
+
+.hint {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #888;
+}
+
+.state,
+.empty,
+.stateError {
+  margin: 24px 0;
+  font-size: 14px;
+  color: #888;
+}
+
+.stateError {
+  color: #ef4444;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.yearSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeIn var(--duration) var(--ease) both;
+}
+
+.yearLabel {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (max-width: 520px) {
+  .grid {
+    gap: 10px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yearSection {
+    animation: none !important;
+  }
+}

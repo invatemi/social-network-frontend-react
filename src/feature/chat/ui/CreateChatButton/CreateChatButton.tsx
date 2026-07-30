@@ -1,26 +1,25 @@
-import { useState } from 'react';
-import { CreateChatModal } from "@/feature"
-import { Button } from '@/shared';
+import { useState } from "react";
+import { CreateChatModal } from "@/feature";
+import style from "./CreateChatButton.module.css";
+
+export type CreateChatButtonVariant = "icon" | "labeled";
 
 export type CreateChatButtonProps = {
   currentUserId: number;
   onChatCreated?: (chatId: number) => void;
-  variant?: 'primary' | 'ghost';
   children?: React.ReactNode;
+  /** icon — компактный «+»; labeled — full-width CTA с подписью */
+  variant?: CreateChatButtonVariant;
 };
 
 /**
  * Кнопка для создания нового чата
- * 
- * @description
- * Открывает модальное окно со списком друзей.
- * При выборе друга автоматически создаётся личный чат.
  */
 const CreateChatButton = ({
   currentUserId,
   onChatCreated,
-  variant = 'ghost',
-  children = 'Новый чат',
+  children,
+  variant = "icon",
 }: CreateChatButtonProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -29,15 +28,28 @@ const CreateChatButton = ({
     setIsModalOpen(false);
   };
 
+  const isLabeled = variant === "labeled";
+
   return (
     <>
-      <Button
-        variant={variant}
+      <button
+        type="button"
+        className={[style.button, isLabeled ? style.labeled : ""]
+          .filter(Boolean)
+          .join(" ")}
         onClick={() => setIsModalOpen(true)}
         aria-label="Создать новый чат"
       >
-        {children}
-      </Button>
+        {children ??
+          (isLabeled ? (
+            <>
+              <span className={style.chatIcon} aria-hidden />
+              <span className={style.label}>Новый чат</span>
+            </>
+          ) : (
+            <span className={style.plus} aria-hidden />
+          ))}
+      </button>
 
       <CreateChatModal
         isOpen={isModalOpen}

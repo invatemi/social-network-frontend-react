@@ -26,7 +26,7 @@ const NotificationItem = ({ request, onAccept, onDecline }: NotificationItemProp
     <div className={style.item}>
       <Link to={`/user/${sender.id}`} className={style.sender}>
         <div className={style.avatarWrapper}>
-          <img 
+          <img
             src={sender.avatarUrl || "/default-avatar.png"}
             alt={sender.username}
             className={style.avatar}
@@ -35,31 +35,29 @@ const NotificationItem = ({ request, onAccept, onDecline }: NotificationItemProp
           <span className={style.avatarFallback}>{sender.username.charAt(0).toUpperCase()}</span>
         </div>
         <div className={style.info}>
-          <span className={style.username}>{`@${sender.username}`}</span>
-          {sender.bio && <span className={style.bio}>{`// ${sender.bio}`}</span>}
-          <span className={style.time}>{`[${formattedTime}]`}</span>
+          <span className={style.username}>@{sender.username}</span>
+          {sender.bio && <span className={style.bio}>{sender.bio}</span>}
+          <span className={style.time}>{formattedTime}</span>
         </div>
       </Link>
-      
+
       <div className={style.actions}>
         <Button
           variant="success"
           size="sm"
           onClick={() => onAccept(request.id, sender.id)}
           aria-label="Принять заявку"
-          className={style.actionBtn}
         >
-          {`[OK]`}
+          Принять
         </Button>
-        
+
         <Button
           variant="danger"
           size="sm"
           onClick={() => onDecline(request.id, sender.id)}
           aria-label="Отклонить заявку"
-          className={style.actionBtn}
         >
-          {`[X]`}
+          Отклонить
         </Button>
       </div>
     </div>

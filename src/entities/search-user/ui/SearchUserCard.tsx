@@ -26,13 +26,13 @@ const SearchUserCard = ({ user, onClick }: SearchUserCardProps) => {
             draggable={false}
           />
         ) : (
-          <div className={style.avatarPlaceholder}>{`[${initial}]`}</div>
+          <div className={style.avatarPlaceholder}>{initial}</div>
         )}
       </div>
       
       <div className={style.userInfo}>
         <span className={style.username}>{`@${user.username}`}</span>
-        {user.bio && <span className={style.bio}>{`// ${user.bio}`}</span>}
+        {user.bio && <span className={style.bio}>{user.bio}</span>}
       </div>
     </div>
   );

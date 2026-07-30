@@ -1,4 +1,5 @@
 import { baseApi } from "@/app/store/api/baseApi";
+import { bumpCommentsCountInCaches } from "@/app/lib/postRealtimeCache";
 
 export type CommentAuthor = {
   id: number;
@@ -36,6 +37,11 @@ type CommentDto = {
   userId: number;
   content: string;
   createdAt: string;
+  author?: {
+    id: number;
+    username: string;
+    avatarUrl: string | null;
+  };
 };
 
 type CommentsListApiDto = {
@@ -60,7 +66,7 @@ const mapCommentDto = (comment: CommentDto): Comment => ({
   postId: comment.postId,
   content: comment.content,
   createdAt: comment.createdAt,
-  author: {
+  author: comment.author ?? {
     id: comment.userId,
     username: `user_${comment.userId}`,
     avatarUrl: null,
@@ -107,9 +113,16 @@ export const commentApi = baseApi.injectEndpoints({
       }),
       transformResponse: (response: CommentApiDto): Comment =>
         mapCommentDto(response.comment),
+      async onQueryStarted({ postId }, { dispatch, queryFulfilled, getState }) {
+        bumpCommentsCountInCaches(dispatch, getState(), postId, 1);
+        try {
+          await queryFulfilled;
+        } catch {
+          bumpCommentsCountInCaches(dispatch, getState(), postId, -1);
+        }
+      },
       invalidatesTags: (_result, _error, { postId }) => [
         { type: "Comments" as const, id: `LIST_${postId}` },
-        { type: "Posts" as const },
       ],
     }),
 
@@ -121,9 +134,16 @@ export const commentApi = baseApi.injectEndpoints({
       transformResponse: (response: DeleteCommentApiDto): DeleteCommentResponse => ({
         message: response.message,
       }),
+      async onQueryStarted({ postId }, { dispatch, queryFulfilled, getState }) {
+        bumpCommentsCountInCaches(dispatch, getState(), postId, -1);
+        try {
+          await queryFulfilled;
+        } catch {
+          bumpCommentsCountInCaches(dispatch, getState(), postId, 1);
+        }
+      },
       invalidatesTags: (_result, _error, { postId }) => [
         { type: "Comments" as const, id: `LIST_${postId}` },
-        { type: "Posts" as const },
       ],
     }),
   }),

@@ -1,177 +1,86 @@
-/* Base wrapper — terminal login screen */
 .authWrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100dvh;
-  padding: 2rem 1rem;
-  background: #0a0a0a;
-  position: relative;
-  overflow: hidden;
-  font-family: 'Courier New', Courier, monospace;
-}
-
-/* Terminal card frame */
-.authCard {
-  position: relative;
-  z-index: 1;
   width: 100%;
-  max-width: 400px;
-  background: #111;
-  border: 1px solid #333;
-  border-radius: 0;
-  padding: 32px 24px;
-  box-shadow: 0 0 40px rgba(34, 197, 94, 0.05);
-  animation: cardEntry 0.3s ease-out;
 }
 
-@keyframes cardEntry {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Header with prompt */
-.authHeader {
-  margin-bottom: 24px;
-  text-align: center;
+.authCard {
+  display: flex;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--color-surface);
+  width: 940px;
+  max-width: 100%;
+  height: min(600px, calc(100dvh - 96px));
+  max-height: calc(100dvh - 96px);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
 }
 
 .authTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 40px 0;
+}
+
+.authForm {
+  flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-size: 20px;
-  font-weight: 400;
-  color: #e5e5e5;
-  margin: 0 0 8px 0;
-  letter-spacing: 0;
+  gap: 30px;
+  padding: 48px 40px;
+  min-width: 0;
+  z-index: 1;
 }
 
-.prompt {
-  color: #22c55e;
-  font-weight: bold;
-  animation: blink 1.5s infinite;
-}
-
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
-.authSubtitle {
-  font-size: 11px;
-  color: #555;
-  margin: 0;
-  font-style: italic;
-}
-
-/* Form layout */
-.authForm {
+.authFormGroup {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  align-items: stretch;
+  justify-content: start;
+  gap: 10px;
+  width: 324px;
 }
 
-.fieldGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.authFormGroupLabel {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
-.labelRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.label {
-  font-size: 11px;
-  font-weight: 400;
-  color: #22c55e;
-  letter-spacing: 0.5px;
-}
-
-/* Forgot link */
-.linkForgot {
-  font-size: 10px !important;
-  padding: 4px 8px !important;
-  border-radius: 0 !important;
-  color: #555 !important;
-  border: 1px solid #444 !important;
-  background: transparent !important;
-  font-family: inherit !important;
-}
-
-.linkForgot:hover {
-  color: #22c55e !important;
-  border-color: #22c55e !important;
-  background: rgba(34, 197, 94, 0.08) !important;
-}
-
-/* Error states */
 .errorGlobal {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid #ef4444;
-  color: #ef4444;
-  padding: 10px 12px;
-  border-radius: 0;
-  font-size: 11px;
-  text-align: center;
-  animation: slideDown 0.2s ease-out;
+  width: 324px;
+  color: var(--color-danger);
+  font-size: 14px;
 }
 
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+.authActions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 324px;
 }
 
-.errorText {
-  font-size: 10px;
-  color: #ef4444;
-  margin-top: 4px;
+.authVisual {
+  flex: 0 0 48%;
+  height: 100%;
+  min-width: 0;
+  padding: 20px 20px 20px 0;
+  box-sizing: border-box;
 }
 
-/* Submit button */
-.submitBtn {
-  margin-top: 8px !important;
-  font-size: 12px !important;
-  padding: 10px !important;
-  border-radius: 0 !important;
-}
-
-/* Footer */
-.authFooter {
-  text-align: center;
-  font-size: 10px;
-  color: #555;
-  margin: 8px 0 0 0;
-}
-
-.linkRegister {
-  color: #666;
-  text-decoration: none;
-  font-weight: 400;
-  transition: color 0.2s ease;
-}
-
-.linkRegister:hover {
-  color: #22c55e;
-}
-
-/* Input overrides — delegated to Input component */
-/* Focus states handled by Input.module.css */
-
-/* Focus for a11y */
-.authCard:focus-within,
-.linkForgot:focus-visible,
-.linkRegister:focus-visible {
-  outline: 2px solid #22c55e;
-  outline-offset: 2px;
-}
-
-/* Reduced motion preference */
-@media (prefers-reduced-motion: reduce) {
-  .authCard, .errorGlobal, .prompt { animation: none !important; }
-  .linkForgot, .linkRegister { transition: none !important; }
+.authLogo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right center;
+  border-radius: 15px 10px 10px 15px;
 }

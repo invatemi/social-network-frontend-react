@@ -3,6 +3,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { NotificationItem } from "../NotificationItem";
 import { useGetNotifications } from "../../hooks/useGetNotifications";
 import { useAcceptFriendRequestMutation } from "@/entities/friend/api";
+import { Spinner } from "@/shared/ui";
 import style from "./NotificationModal.module.css";
 
 type NotificationModalProps = {
@@ -56,20 +57,21 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
           >
             <Dialog.Panel className={style.panel}>
               <Dialog.Title className={style.title}>
-                <span className={style.titlePrompt}>{`>`}</span>
-                <span>friend_requests</span>
+                <span>Заявки в друзья</span>
                 {unreadCount > 0 && (
-                  <span className={style.badge}>{`{${unreadCount}}`}</span>
+                  <span className={style.badge}>{unreadCount}</span>
                 )}
               </Dialog.Title>
 
               <div className={style.content}>
                 {isLoading && (
-                  <div className={style.loader}>{`[loading...]`}</div>
+                  <div className={style.loader}>
+                    <Spinner size="md" />
+                  </div>
                 )}
-                
+
                 {!isLoading && requests.length === 0 && (
-                  <div className={style.empty}>{`// no_pending_requests`}</div>
+                  <div className={style.empty}>Нет входящих заявок</div>
                 )}
 
                 {!isLoading && requests.length > 0 && (
@@ -87,7 +89,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
               </div>
 
               <button className={style.closeBtn} onClick={onClose}>
-                {`[close]`}
+                Закрыть
               </button>
             </Dialog.Panel>
           </Transition.Child>

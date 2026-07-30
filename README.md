@@ -8,14 +8,14 @@ Backend: [social-backend-service](https://github.com/invatemi/social-backend-ser
 
 | Категория | Технологии |
 |-----------|------------|
-| UI | React 19, TypeScript, CSS Modules |
+| UI | React 19, TypeScript, CSS Modules, design tokens |
 | Сборка | Vite 8 |
 | Роутинг | React Router 7 |
 | State / API | Redux Toolkit, RTK Query |
 | Real-time | Socket.IO Client |
 | Формы / валидация | Zod |
 | UI primitives | Headless UI |
-| 3D (auth screen) | Three.js, React Three Fiber |
+| Тесты | Vitest, Testing Library |
 
 ## Архитектура
 
@@ -28,7 +28,7 @@ Backend: [social-backend-service](https://github.com/invatemi/social-backend-ser
              │ VITE_API_URL              │ VITE_WS_URL
              ▼                           ▼
     ┌────────────────┐          ┌─────────────────────┐
-    │ KrakenD :8080  │          │ notifications :3005 │
+    │ KrakenD :8088  │          │ notifications :3005 │
     │  API Gateway   │          │   (Socket.IO hub)   │
     └────────┬───────┘          └─────────────────────┘
              │
@@ -87,10 +87,12 @@ sh scripts/setup-env.sh
 
 | Переменная | Значение по умолчанию | Назначение |
 |------------|----------------------|------------|
-| `VITE_API_URL` | `http://localhost:8080` | KrakenD API Gateway |
+| `VITE_API_URL` | `http://localhost:8088` | KrakenD API Gateway (`KRAKEND_EXTERNAL_PORT`) |
 | `VITE_WS_URL` | `http://localhost:3005` | WebSocket уведомлений |
 
 > Переменные `VITE_*` попадают в browser bundle — не храните в них секреты.
+
+Backend (в `social-backend-service`): `.\scripts\setup-env.ps1` → `docker compose up --build -d` → `.\scripts\bootstrap-db.ps1`. В backend `.env`: `CORS_ORIGINS=http://localhost:5173`.
 
 ### 2. Установка и запуск
 
@@ -100,8 +102,6 @@ npm run dev
 ```
 
 Приложение: http://localhost:5173
-
-Убедитесь, что в backend `.env` указано `CORS_ORIGINS=http://localhost:5173`.
 
 ### 3. Сборка
 

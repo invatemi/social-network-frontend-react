@@ -25,8 +25,7 @@
 
 | Слайс | UI | API | Backend |
 |-------|-----|-----|---------|
-| `user` | ProfileCard, StatsCard, InfoCard | userApi | `/api/users/*` |
-| `user-detail` | UsernameCard, EmailCard, DescriptionCard, LocationCard, ChangePasswordCard, PasswordConfirmCard | — | логика в feature/user-detail |
+| `user` | типы `UserProfile` (UI профиля — ProfileView) | userApi | `/api/users/*` |
 | `post` | PostCard | postApi | `/api/posts/*` |
 | `comment` | CommentCard | commentApi | `/api/comments/*` |
 | `friend` | FriendCard | friendApi | friends, follow |
@@ -34,11 +33,12 @@
 | `search-user` | SearchUserCard | searchApi | `/api/users/search` |
 | `chat` | ChatCard | — | чаты в messagesApi |
 | `message` | MessageCard | messagesApi | `/api/messages/*` |
+| `photo` | PhotoCard | — | локальные preview (нет gallery API) |
 
 ### Особенности
 
 - `entities/chat` не имеет `api/` — CRUD чатов в `entities/message/api/messagesApi.ts`.
-- `user-detail` — только UI-карточки; хуки сохранения в `feature/user-detail`.
+- Редактирование профиля и смена пароля — в `feature/user-detail` (SettingsModal).
 
 ## Связи
 

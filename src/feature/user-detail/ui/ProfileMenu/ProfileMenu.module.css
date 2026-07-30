@@ -1,0 +1,290 @@
+.backdrop {
+  --menu-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --menu-duration: 0.55s;
+
+  position: fixed;
+  inset: 0;
+  z-index: 44;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--menu-duration) var(--menu-ease);
+}
+
+.backdropVisible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.menu {
+  --menu-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --menu-duration: 0.55s;
+  --stagger: 0.055s;
+
+  position: fixed;
+  z-index: 46;
+  width: min(272px, calc(100vw - 48px));
+  box-sizing: border-box;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: linear-gradient(
+    165deg,
+    rgba(22, 22, 22, 0.98) 0%,
+    rgba(14, 14, 14, 0.98) 100%
+  );
+  border: 1px solid rgba(42, 42, 42, 0.9);
+  border-radius: 22px;
+  font-family: "Inter", sans-serif;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    12px 8px 40px rgba(0, 0, 0, 0.45),
+    0 20px 48px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transform: translate3d(-72px, 0, 0) scale(0.94);
+  filter: blur(8px);
+  pointer-events: none;
+  transform-origin: left center;
+  transition:
+    opacity var(--menu-duration) var(--menu-ease),
+    transform var(--menu-duration) var(--menu-ease),
+    filter calc(var(--menu-duration) * 0.75) var(--menu-ease),
+    box-shadow var(--menu-duration) var(--menu-ease);
+  will-change: transform, opacity, filter;
+}
+
+.menuVisible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+  pointer-events: auto;
+}
+
+.profileCard,
+.row,
+.addAccount {
+  opacity: 0;
+  transform: translate3d(-16px, 0, 0);
+}
+
+.menuVisible .profileCard,
+.menuVisible .row,
+.menuVisible .addAccount {
+  animation: itemIn 0.48s var(--menu-ease) both;
+}
+
+.menuVisible .profileCard {
+  animation-delay: calc(var(--stagger) * 1);
+}
+
+.menuVisible .row {
+  animation-delay: calc(var(--stagger) * 2);
+}
+
+.menuVisible .addAccount {
+  animation-delay: calc(var(--stagger) * 3);
+}
+
+.profileCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(36, 36, 36, 0.92);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.avatarWrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #2a2a2a;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  border-radius: 50%;
+}
+
+.onlineDot {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2px solid #242424;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.25);
+}
+
+.userMeta {
+  flex: 1;
+  min-width: 0;
+}
+
+.userName {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userEmail {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: #8a8a8a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logoutBtn {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.55);
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  cursor: pointer;
+  transition:
+    background-color 0.28s var(--menu-ease),
+    box-shadow 0.28s var(--menu-ease),
+    transform 0.22s var(--menu-ease),
+    border-color 0.28s var(--menu-ease);
+}
+
+.logoutBtn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.8);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.3);
+  transform: scale(1.05);
+}
+
+.logoutBtn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.logoutBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.row,
+.addAccount {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0;
+  padding: 13px 14px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    background-color 0.28s var(--menu-ease),
+    transform 0.22s var(--menu-ease);
+  text-align: left;
+}
+
+.row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.row:active,
+.addAccount:active {
+  transform: scale(0.98);
+}
+
+.rowIcon {
+  width: 18px;
+  height: 18px;
+  color: #e8e8e8;
+  flex-shrink: 0;
+}
+
+.addAccount {
+  background: rgba(36, 36, 36, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  margin-top: 2px;
+}
+
+.addAccount:hover {
+  background: #2a2a2a;
+}
+
+@keyframes itemIn {
+  from {
+    opacity: 0;
+    transform: translate3d(-14px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .menu,
+  .logoutBtn,
+  .row,
+  .addAccount {
+    transition: none !important;
+  }
+
+  .menuVisible .profileCard,
+  .menuVisible .row,
+  .menuVisible .addAccount {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+
+  .menu {
+    filter: none;
+    transform: none;
+  }
+
+  .menuVisible {
+    opacity: 1;
+  }
+
+  .backdropVisible {
+    opacity: 1;
+  }
+}

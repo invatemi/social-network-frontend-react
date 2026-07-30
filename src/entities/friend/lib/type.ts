@@ -15,8 +15,8 @@ export type FriendCardProps = {
   /** Ссылка на аватар или `null`, если аватар не задан */
   avatarUrl: string | null;
   
-  /** Дата начала дружбы в формате для отображения */
-  friendsSince: string;
+  /** Дата начала дружбы (может не отображаться в UI) */
+  friendsSince?: string;
   
   /** Обработчик клика по действию «Написать сообщение». Передаёт ID пользователя */
   onMessageClick?: (userId: number) => void;

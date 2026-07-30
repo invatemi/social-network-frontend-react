@@ -63,9 +63,23 @@ export type SocketEvents = {
     createdAt: string;
   };
 
+  // Фото
+  'photo:created': {
+    photoId: number;
+    userId: number;
+    url: string;
+    isCurrent: boolean;
+    createdAt: string;
+  };
+  'photo:deleted': {
+    photoId: number;
+    userId: number;
+  };
+
   // Онлайн
   'user:online': { userId: number };
   'user:offline': { userId: number };
+  'presence:status': { statuses: Record<string, boolean> };
   
   // Чаты
   'message:new': SocketMessage;

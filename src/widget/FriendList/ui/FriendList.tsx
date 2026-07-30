@@ -5,21 +5,24 @@ import style from "./FriendList.module.css";
 /**
  * FriendList — список друзей
  */
-const FriendList = ({ friends }: FriendListProps) => {
+const FriendList = ({ friends, onMessageClick, emptyTitle = "Нет друзей" }: FriendListProps) => {
   if (friends.length === 0) {
     return (
       <div className={style.empty}>
-        <span className={style.emptyIcon}>{`[∅]`}</span>
-        <p>{`// no_friends`}</p>
-        <span className={style.emptyHint}>{`> use_search_to_find_people`}</span>
+        <p className={style.emptyTitle}>{emptyTitle}</p>
+        <span className={style.emptyHint}>Попробуйте изменить поиск или фильтр</span>
       </div>
     );
   }
 
   return (
-    <div className={style.grid}>
+    <div className={style.list}>
       {friends.map((friend) => (
-        <FriendCard key={friend.id} {...friend} />
+        <FriendCard
+          key={friend.id}
+          {...friend}
+          onMessageClick={onMessageClick}
+        />
       ))}
     </div>
   );

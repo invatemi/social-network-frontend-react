@@ -1,4 +1,10 @@
-export { useAvatarUpload } from "../user-detail/useAvatarUpload" 
-export { usePasswordNavigation } from "../user-detail/usePasswordNavigation"
-export { useProfileSave } from "../user-detail/useProfileSave"
-export { useUserDetailForm } from "../user-detail/useUserDetailForm"
+export { useAvatarUpload } from "./useAvatarUpload";
+export { useChangePassword } from "./useChangePassword";
+export { useProfileSave } from "./useProfileSave";
+export { useUserDetailForm } from "./useUserDetailForm";
+export {
+  ProfileSettingsProvider,
+  useProfileSettings,
+} from "./ProfileSettingsProvider";
+export { ProfileMenu } from "./ui/ProfileMenu";
+export { SettingsModal } from "./ui/SettingsModal";

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Input } from "@/shared";
+import { Input, Spinner, SearchIcon } from "@/shared/ui";
 import { SearchUserList } from "@/widget";
 import { useUserSearch } from "../hooks";
 import style from "./SearchInput.module.css";
@@ -10,14 +10,6 @@ import style from "./SearchInput.module.css";
 const SearchInput = () => {
   const { query, setQuery, isOpen, isLoading, users, handleClose, handleSelect } = useUserSearch();
 
-  const SearchIcon = () => (
-    <span className={style.iconAscii}>{`[?]`}</span>
-  );
-
-  const LoadingSpinner = () => (
-    <span className={style.spinnerAscii}>{`[•••]`}</span>
-  );
-
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -25,12 +17,12 @@ const SearchInput = () => {
         handleClose();
       }
     };
-    
+
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
-    
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen, handleClose]);
 
   return (
@@ -40,9 +32,9 @@ const SearchInput = () => {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onBlur={handleClose}
-        placeholder={"> поиск пользователей..."}
-        leftIcon={<SearchIcon />}
-        rightIcon={isLoading ? <LoadingSpinner /> : undefined}
+        placeholder="Поиск пользователей..."
+        leftIcon={<SearchIcon size={16} />}
+        rightIcon={isLoading ? <Spinner size="sm" color="secondary" label="" /> : undefined}
         className={style.searchInput}
         fullWidth
         autoComplete="off"
@@ -51,7 +43,7 @@ const SearchInput = () => {
       {isOpen && users.length > 0 && (
         <div className={style.dropdown}>
           <div className={style.dropdownHeader}>
-            {`// results: ${users.length}`}
+            Найдено: {users.length}
           </div>
           <SearchUserList users={users} onSelect={handleSelect} />
         </div>
@@ -59,7 +51,7 @@ const SearchInput = () => {
 
       {isOpen && !isLoading && query.length >= 2 && users.length === 0 && (
         <div className={style.dropdown}>
-          <div className={style.empty}>{`// no_users_found`}</div>
+          <div className={style.empty}>Никого не найдено</div>
         </div>
       )}
     </div>

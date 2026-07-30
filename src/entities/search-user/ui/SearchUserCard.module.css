@@ -1,24 +1,21 @@
-/* Base card — terminal search result */
 .userCard {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background: #111;
-  border: 1px solid #333;
-  border-radius: 0;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
-  font-family: 'Courier New', Courier, monospace;
+  transition: border-color var(--duration-fast) ease, background var(--duration-fast) ease;
   user-select: none;
 }
 
 .userCard:hover {
-  background: rgba(34, 197, 94, 0.08);
-  border-color: #444;
+  background: var(--color-surface-hover);
+  border-color: #3a3a3a;
 }
 
-/* Avatar wrapper */
 .avatarWrapper {
   flex-shrink: 0;
 }
@@ -27,23 +24,22 @@
 .avatarPlaceholder {
   width: 40px;
   height: 40px;
-  border: 1px solid #333;
+  border: 1px solid var(--color-border);
   object-fit: cover;
   display: block;
-  border-radius: 0;
+  border-radius: 50%;
 }
 
 .avatarPlaceholder {
-  background: #1a1a1a;
+  background: var(--color-surface-hover);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  font-weight: bold;
-  color: #666;
+  font-weight: 600;
+  color: var(--color-text-muted);
 }
 
-/* User info */
 .userInfo {
   display: flex;
   flex-direction: column;
@@ -52,30 +48,27 @@
 }
 
 .username {
-  font-weight: 400;
-  color: #e5e5e5;
-  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  font-size: 14px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .bio {
-  font-size: 10px;
-  color: #555;
+  font-size: 12px;
+  color: var(--color-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-style: italic;
 }
 
-/* Focus for a11y */
 .userCard:focus-visible {
-  outline: 2px solid #22c55e;
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
-/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  .userCard { transition: none !important; }
+  .userCard { transition: none; }
 }

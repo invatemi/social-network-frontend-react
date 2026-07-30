@@ -1,5 +1,5 @@
 import { useState, FormEvent, ChangeEvent, ReactElement } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "@/app/store/hooks";
 import { setAuth } from "@/app/store/slices/authSlice";
 import { useRegisterMutation } from "@/app/store/api/authApi";
@@ -9,6 +9,7 @@ import { useRateLimitCountdown } from "@/shared/hooks";
 import { handleRateLimitError } from "@/shared/lib/api/handleRateLimitError";
 import { getRateLimitMessage } from "@/shared/lib/api/parseRateLimitError";
 import { registrationSchema, RegistrationFormData } from "../lib";
+import logo from "../../../shared/img/6832de8b533af79915e665b090ccb89883ebe89c.png";
 import style from "./Registration.module.css";
 
 type ValidationErrorItem = {
@@ -108,107 +109,99 @@ const Registration = (): ReactElement => {
   return (
     <div className={style.authWrapper}>
       <div className={style.authCard}>
-        <div className={style.authHeader}>
-          <h1 className={style.authTitle}>
-            <span className={style.prompt}>{`>`}</span>
-            <span>{`register`}</span>
-          </h1>
-          <p className={style.authSubtitle}>{`// join_the_community`}</p>
-        </div>
-
         <form className={style.authForm} onSubmit={handleSubmit} noValidate>
           {errors.global && (
-            <div className={style.errorGlobal}>{`! ${errors.global}`}</div>
+            <div className={style.errorGlobal}>{errors.global}</div>
           )}
 
-          <div className={style.fieldGroup}>
-            <label className={style.label} htmlFor="email">{`> EMAIL`}</label>
+          <p className={style.authTitle}>Регистрация</p>
+
+          <div className={style.authFormGroup}>
+            <label className={style.authFormGroupLabel} htmlFor="email">Email</label>
             <Input
               id="email"
               name="email"
               type="email"
               value={formData.email}
               onChange={handleChange}
-              error={errors.email ? `! ${errors.email}` : undefined}
-              placeholder={"> you@example.com"}
+              error={errors.email}
+              placeholder="Email"
               disabled={isLoading || isBlocked}
               autoComplete="email"
               fullWidth
             />
           </div>
 
-          <div className={style.fieldGroup}>
-            <label className={style.label} htmlFor="username">{`> USERNAME`}</label>
+          <div className={style.authFormGroup}>
+            <label className={style.authFormGroupLabel} htmlFor="username">Username</label>
             <Input
               id="username"
               name="username"
               type="text"
               value={formData.username}
               onChange={handleChange}
-              error={errors.username ? `! ${errors.username}` : undefined}
-              placeholder={"> choose_username"}
+              error={errors.username}
+              placeholder="Username"
               disabled={isLoading || isBlocked}
               autoComplete="username"
               fullWidth
             />
           </div>
 
-          <div className={style.fieldGroup}>
-            <label className={style.label} htmlFor="password">{`> PASSWORD`}</label>
+          <div className={style.authFormGroup}>
+            <label className={style.authFormGroupLabel} htmlFor="password">Password</label>
             <Input
               id="password"
               name="password"
               type="password"
               value={formData.password}
               onChange={handleChange}
-              error={errors.password ? `! ${errors.password}` : undefined}
-              placeholder={"> min_8_chars"}
+              error={errors.password}
+              placeholder="Password"
               disabled={isLoading || isBlocked}
               autoComplete="new-password"
               fullWidth
-              helperText={"[letter+number]"}
             />
           </div>
 
-          <div className={style.fieldGroup}>
-            <label className={style.label} htmlFor="confirmPassword">{`> CONFIRM`}</label>
+          <div className={style.authFormGroup}>
+            <label className={style.authFormGroupLabel} htmlFor="confirmPassword">Confirm password</label>
             <Input
               id="confirmPassword"
               name="confirmPassword"
               type="password"
               value={formData.confirmPassword}
               onChange={handleChange}
-              error={errors.confirmPassword ? `! ${errors.confirmPassword}` : undefined}
-              placeholder={"> repeat_password"}
+              error={errors.confirmPassword}
+              placeholder="Confirm password"
               disabled={isLoading || isBlocked}
               autoComplete="new-password"
               fullWidth
             />
           </div>
 
-          <Button
-            type="submit"
-            variant="primary"
-            size="md"
-            fullWidth
-            loading={isLoading}
-            disabled={isLoading || isBlocked}
-            className={style.submitBtn}
-          >
-            {isBlocked
-              ? `[retry in ${secondsLeft}s]`
-              : isLoading
-                ? `[creating...]`
-                : `[register]`}
-          </Button>
-
-          <p className={style.authFooter}>
-            {`// has_account?`}{" "}
-            <Link to="/autorization" className={style.linkLogin}>
-              {`[login]`}
-            </Link>
-          </p>
+          <div className={style.authActions}>
+            <Button
+              type="submit"
+              fullWidth
+              loading={isLoading}
+              disabled={isLoading || isBlocked}
+            >
+              {isBlocked ? `Повторить через ${secondsLeft}с` : "Зарегистрироваться"}
+            </Button>
+            <Button
+              type="button"
+              fullWidth
+              onClick={() => navigate("/autorization")}
+            >
+              Назад
+            </Button>
+          </div>
         </form>
+
+        <div className={style.authVisual}>
+          <img src={logo} alt="" className={style.authLogo} />
+        </div>
       </div>
     </div>
   );

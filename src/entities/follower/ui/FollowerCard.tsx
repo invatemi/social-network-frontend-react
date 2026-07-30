@@ -1,45 +1,61 @@
 import { Link } from "react-router-dom";
-import { Button } from "@/shared";
+import { useAppSelector } from "@/app/store/hooks";
 import { FollowerCardProps } from "../lib";
 import style from "./FollowerCard.module.css";
 
 /**
  * FollowerCard — карточка подписчика
  */
-const FollowerCard = ({ id, username, avatarUrl, followedSince, onMessageClick }: FollowerCardProps) => {
-  const formattedDate = new Date(followedSince).toLocaleDateString("ru-RU");
+const FollowerCard = ({
+  id,
+  username,
+  avatarUrl,
+  onMessageClick,
+}: FollowerCardProps) => {
+  const isOnline = useAppSelector(
+    (state) => state.presence.byUserId[String(id)] === true
+  );
+
+  const initial = username.charAt(0).toUpperCase();
 
   return (
     <div className={style.card}>
-      <Link to={`/user/${id}`} className={style.link}>
+      <Link to={`/user/${id}`} className={style.avatarLink} aria-label={username}>
         <div className={style.avatarWrapper}>
-          <img 
-            src={avatarUrl || "/default-avatar.png"}
-            alt={username} 
-            className={style.avatar} 
-            loading="lazy"
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt=""
+              className={style.avatar}
+              loading="lazy"
+            />
+          ) : (
+            <div className={style.avatarPlaceholder}>{initial}</div>
+          )}
+          <span
+            className={[style.onlineDot, isOnline ? style.online : style.offline]
+              .filter(Boolean)
+              .join(" ")}
+            aria-label={isOnline ? "Онлайн" : "Офлайн"}
+            title={isOnline ? "Онлайн" : "Офлайн"}
           />
-          <span className={style.avatarFallback}>{username.charAt(0).toUpperCase()}</span>
-        </div>
-
-        <div className={style.info}>
-          <span className={style.username}>{`@${username}`}</span>
-          <span className={style.since}>{`[followed: ${formattedDate}]`}</span>
         </div>
       </Link>
 
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={(e) => {
-          e.preventDefault();
-          onMessageClick?.(id);
-        }}
-        className={style.actionBtn}
-        aria-label={`Написать сообщение пользователю ${username}`}
-      >
-        {`[message]`}
-      </Button>
+      <div className={style.info}>
+        <Link to={`/user/${id}`} className={style.username}>
+          {username}
+        </Link>
+        <button
+          type="button"
+          className={style.messageBtn}
+          onClick={() => onMessageClick?.(id)}
+          aria-label={`Написать сообщение пользователю ${username}`}
+        >
+          Написать сообщение
+          <span className={style.messageIcon} aria-hidden />
+        </button>
+      </div>
     </div>
   );
 };

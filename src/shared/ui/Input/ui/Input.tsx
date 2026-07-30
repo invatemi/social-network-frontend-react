@@ -25,7 +25,7 @@ const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>(({
   ...restProps
 }, ref) => {
   const isTextarea = Component === 'textarea';
-  
+
   const inputClasses = [
     styles.input,
     styles[`input_${size}`],
@@ -51,14 +51,14 @@ const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>(({
     <div className={wrapperClasses}>
       {label && (
         <label className={styles.label} htmlFor={id}>
-          {`> ${label}`}
+          {label}
         </label>
       )}
 
       <div className={styles.inputWrapper}>
         {leftIcon && (
           <span className={`${styles.icon} ${styles.icon_left}`}>
-            {`[${leftIcon}]`}
+            {leftIcon}
           </span>
         )}
 
@@ -80,19 +80,19 @@ const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>(({
             tabIndex={-1}
             aria-label="Действие с полем"
           >
-            {`[${rightIcon}]`}
+            {rightIcon}
           </button>
         )}
       </div>
 
       {error && (
         <span id={`${id}-error`} className={styles.error} role="alert">
-          {`⚠ ${error}`}
+          {error}
         </span>
       )}
       {helperText && !error && (
         <span id={`${id}-helper`} className={styles.helper}>
-          {`// ${helperText}`}
+          {helperText}
         </span>
       )}
     </div>

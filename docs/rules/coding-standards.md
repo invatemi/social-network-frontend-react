@@ -19,13 +19,15 @@
 
 - Экспорт наружу только через `index.ts` слоя (`@/page`, `@/widget`, `@/feature`, `@/entities`, `@/shared`).
 - Импорты между слоями — только сверху вниз по FSD.
-- Стили — CSS Modules (`.module.css`), без глобальных class names в компонентах.
+- Стили — CSS Modules (`.module.css`) на глобальных токенах из `src/app/style/index.css` (`var(--color-*)`, `var(--radius-*)`, `var(--ease-out)`).
 
 ### Запрещено
 
 - Хранить секреты в `VITE_*` переменных (они попадают в browser bundle).
 - Коммитить `.env` (только `.env.example`).
 - Импортировать из внутренних путей слайса, минуя public API, без веской причины.
+- Courier New / ASCII terminal UI (`[loading...]`, `> prompt`, fake progress bars).
+- Хардкод цветов вместо CSS-переменных (кроме редких одноразовых акцентов в domain icons).
 
 ## TypeScript
 
@@ -71,7 +73,9 @@
 
 ## Тестирование
 
-Unit/e2e тесты в репозитории **отсутствуют**. При добавлении тестов рекомендуется Vitest + React Testing Library.
+Vitest + React Testing Library + jsdom (`npm test` / `npm run test:watch`).
+
+Покрытие точечное: MessagesView, PhotosView, ProfileMenu, SettingsModal, hooks Message/Photo, `groupPhotosByYear`. Новые UI-сценарии — добавлять тесты рядом с модулем (`*.test.ts(x)`).
 
 ## Git и изменения
 

@@ -1,0 +1,129 @@
+.root {
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration: 0.42s;
+
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  height: calc(
+    100vh - var(--layout-inset-top, 20px) - var(--layout-inset-bottom, 20px)
+  );
+  max-height: calc(
+    100dvh - var(--layout-inset-top, 20px) - var(--layout-inset-bottom, 20px)
+  );
+  min-height: 520px;
+  font-family: "Inter", sans-serif;
+}
+
+.rootIdle {
+  /* Список чатов сразу у левого края main (рядом с AsidePageNav) */
+  grid-template-columns: minmax(280px, 360px);
+  justify-content: start;
+}
+
+.rootActive {
+  /* Тред занимает всё оставшееся место */
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr) minmax(220px, 280px);
+  justify-content: stretch;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: 16px;
+  background: #141414;
+  border: 1px solid #222;
+  border-radius: 16px;
+  animation: panelIn var(--duration) var(--ease) both;
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.sidebarHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.chatList {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.thread,
+.details {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+}
+
+.overlay {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .rootActive {
+    grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  }
+
+  .details {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .rootIdle,
+  .rootActive {
+    grid-template-columns: 1fr;
+  }
+
+  .rootActive .sidebarHiddenMobile {
+    display: none;
+  }
+
+  .sidebar.open {
+    display: flex;
+    position: fixed;
+    z-index: 40;
+    inset: 12px;
+    height: auto;
+    max-height: calc(100vh - 24px);
+  }
+
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(0, 0, 0, 0.65);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    animation: none !important;
+  }
+}

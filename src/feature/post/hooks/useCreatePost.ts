@@ -1,19 +1,19 @@
 import { useState, useCallback } from "react";
-import { useCreatePostMutation } from "@/entities/post/api";
+import {
+  useCreatePostMutation,
+  useLazyGetPostImageUploadUrlQuery,
+} from "@/entities/post/api";
 import { UseCreatePostReturn } from "../lib";
+import { uploadPostImageToStorage } from "../lib/uploadPostImage";
 
 const MAX_CONTENT_LENGTH = 10000;
-const MAX_INLINE_IMAGE_BYTES = 500 * 1024;
-
-const readFileAsDataUrl = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = () => reject(new Error("Failed to read image"));
-    reader.readAsDataURL(file);
-  });
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 const getApiErrorMessage = (err: unknown): string => {
+  if (err instanceof Error && err.message) {
+    return err.message;
+  }
+
   if (!err || typeof err !== "object" || !("data" in err)) {
     return "Не удалось создать пост";
   }
@@ -28,11 +28,12 @@ const getApiErrorMessage = (err: unknown): string => {
  * Управляет состоянием формы создания поста:
  * - Открытие/закрытие формы
  * - Валидация текста и изображений
- * - Отправка данных на сервер через мутацию
+ * - Загрузка изображения в MinIO и создание поста
  * - Обработка ошибок и сброс формы
  */
 export const useCreatePost = (): UseCreatePostReturn => {
   const [createPost, { isLoading }] = useCreatePostMutation();
+  const [getPostImageUploadUrl] = useLazyGetPostImageUploadUrlQuery();
 
   const [isOpen, setIsOpen] = useState(false);
   const [content, setContent] = useState("");
@@ -64,7 +65,7 @@ export const useCreatePost = (): UseCreatePostReturn => {
 
     fileArray.forEach((file) => {
       if (!file.type.startsWith("image/")) return;
-      if (file.size > 10 * 1024 * 1024) return;
+      if (file.size > MAX_IMAGE_BYTES) return;
 
       validFiles.push(file);
 
@@ -101,6 +102,11 @@ export const useCreatePost = (): UseCreatePostReturn => {
       return;
     }
 
+    if (images.length > 1) {
+      setError("Можно прикрепить только одно изображение");
+      return;
+    }
+
     try {
       setError(null);
 
@@ -109,12 +115,14 @@ export const useCreatePost = (): UseCreatePostReturn => {
       if (images.length > 0) {
         const firstImage = images[0];
 
-        if (firstImage.size > MAX_INLINE_IMAGE_BYTES) {
-          setError("Изображение слишком большое (макс. 500 КБ)");
+        if (firstImage.size > MAX_IMAGE_BYTES) {
+          setError("Изображение слишком большое (макс. 10 МБ)");
           return;
         }
 
-        imageUrl = await readFileAsDataUrl(firstImage);
+        imageUrl = await uploadPostImageToStorage(firstImage, (args) =>
+          getPostImageUploadUrl(args).unwrap()
+        );
       }
 
       const trimmedContent = content.trim();
@@ -130,7 +138,7 @@ export const useCreatePost = (): UseCreatePostReturn => {
     } catch (err: unknown) {
       setError(getApiErrorMessage(err));
     }
-  }, [content, images, createPost, closeForm, clearForm]);
+  }, [content, images, createPost, getPostImageUploadUrl, closeForm, clearForm]);
 
   return {
     isOpen,

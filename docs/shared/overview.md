@@ -6,8 +6,8 @@
 
 ## Зона ответственности
 
-- UI-компоненты (`Button`, `Input`, `Spinner`, `Toast`, …)
-- Layouts (`PageLayout`, `Headerlayouts`, `Footerlayouts`)
+- UI-компоненты (`Button`, `Input`, `Spinner`, `Toast`, icons)
+- Layouts (`PageLayout`, `Footerlayouts`)
 - Конфигурация окружения (`config/env.ts`)
 - Утилиты (rate limit, friend button config)
 - Общие хуки (`usePostSubscription`, `useRateLimitCountdown`)
@@ -20,14 +20,15 @@
 |-----|-----------|
 | Build | Vite (`import.meta.env`) |
 | UI | Headless UI (в модалках feature/widget) |
+| Font | Inter (Google Fonts в `index.html`) |
 
 ## Структура
 
 | Подпапка | Путь | Содержимое |
 |----------|------|------------|
 | `config/` | `src/shared/config/env.ts` | Валидация всех `VITE_*` |
-| `layouts/` | `src/shared/layouts/` | PageLayout, Header, Footer |
-| `ui/` | `src/shared/ui/` | Button, Input, Spinner, AsidePageNav, SocketStatus, Toast |
+| `layouts/` | `src/shared/layouts/` | PageLayout, Footer |
+| `ui/` | `src/shared/ui/` | Button, Input, Spinner, AsidePageNav, Toast, icons |
 | `hooks/` | `src/shared/hooks/` | usePostSubscription, useRateLimitCountdown |
 | `lib/` | `src/shared/lib/` | friendButtonConfig, api/parseRateLimitError, handleRateLimitError |
 
@@ -41,19 +42,35 @@ flowchart TB
   Shared --> Feature["feature/"]
   Shared --> Entities["entities/"]
   Env["config/env.ts"] --> All["все слои"]
+  Tokens["app/style/index.css"] --> Shared
 ```
 
 ## Public API
 
 Экспорт из `src/shared/index.ts`:
 
-- Layouts: `PageLayout`, `Headerlayouts`, `Footerlayouts`
-- UI: `Button`, `Input`, `Spinner`, `AsidePageNav`, `SocketStatus`, `ToastProvider`, `useToast`
+- Layouts: `PageLayout`, `Footerlayouts`
+- UI: `Button`, `Input`, `Spinner`, `AsidePageNav`, `ToastProvider`, `useToast`
 - Lib: `getFriendButtonConfig`
 - Hooks: `usePostSubscription`
 
-Config (`env`) импортируется напрямую: `@/shared/config/env`.
+Иконки: `@/shared/ui/icons` (или через `shared/ui`). Config (`env`) — напрямую: `@/shared/config/env`.
+
+## Design tokens
+
+Глобальные CSS-переменные в [`src/app/style/index.css`](../../src/app/style/index.css) (`:root`):
+
+| Группа | Примеры |
+|--------|---------|
+| Цвета | `--color-bg` `#0a0a0a`, `--color-surface` `#101010`, `--color-surface-elevated` `#141414`, `--color-border` `#222`, `--color-text` / `--color-text-muted` |
+| Semantic | `--color-success`, `--color-warning`, `--color-danger`, `--color-focus` |
+| Radius | `--radius-sm/md/lg/xl` (10–20px) |
+| Motion | `--ease-out` `cubic-bezier(0.22, 1, 0.36, 1)`, `--duration` / `--duration-fast` |
+| Layout | `--layout-inset-*`, `--layout-main-padding-*` |
+| Font | `--font-sans` Inter |
+
+Компоненты должны использовать `var(--*)`, без Courier/ASCII UI и без hardcoded terminal-эстетики.
 
 ## UI-тема
 
-«Терминальный» стиль: ASCII-оформление в `PageLayout`, `AsidePageNav`. Стили — CSS Modules.
+Тёмная flat-тема. AsidePageNav top-aligned (`--layout-inset-top`). Friend/Follower — PeopleRelationsView. Messages — idle / 3 колонки. Photos — `/photos`. Auth — flat card без Three.js. Стили — CSS Modules.

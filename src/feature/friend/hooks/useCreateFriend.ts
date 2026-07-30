@@ -96,13 +96,13 @@ export const useCreateFriend = (
   }, [statusData?.status, onStatusChange]);
 
   useSocket('notification:friend_accepted', (data) => {
-    if (data.fromUser.id === targetUserId) {
+    if (data.fromUser.id === targetUserId || data.toUser.id === targetUserId) {
       refetchStatus();
     }
   });
 
   useSocket('notification:friend_updated', (data) => {
-    if (data.fromUser.id === targetUserId) {
+    if (data.fromUser.id === targetUserId || data.toUser.id === targetUserId) {
       refetchStatus();
     }
   });

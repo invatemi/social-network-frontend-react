@@ -1,7 +1,7 @@
 import { baseApi } from "@/app/store/api/baseApi";
 import { Post, PostListResponse } from "@/entities/post/lib";
 import { env } from "@/shared/config/env";
-import { patchPostInCaches, registerPostApiForCache } from "@/app/lib/postRealtimeCache";
+import { patchPostInCaches, registerPostApiForCache, optimisticToggleLikeInCaches } from "@/app/lib/postRealtimeCache";
 
 type PostAuthorDto = {
   id: number;
@@ -18,6 +18,7 @@ type PostDto = {
   commentsCount: number;
   createdAt: string;
   isPublished?: boolean;
+  isLiked?: boolean;
   author?: PostAuthorDto;
 };
 
@@ -38,6 +39,7 @@ const mapPostDto = (post: PostDto): Post => ({
   commentsCount: post.commentsCount,
   createdAt: post.createdAt,
   isPublished: post.isPublished,
+  isLiked: post.isLiked ?? false,
   author: post.author ?? {
     id: post.userId,
     username: `user_${post.userId}`,
@@ -100,9 +102,28 @@ export type CreatePostResponse = {
   message: string;
 };
 
+export type PostImageUploadUrlData = {
+  uploadUrl: string;
+  publicUrl: string;
+  method: "PUT";
+  headers: { "Content-Type": string };
+  expiresIn: number;
+  key: string;
+};
+
 type CreatePostApiDto = {
   success?: boolean;
   post: PostDto;
+};
+
+type PostImageUploadUrlDto = {
+  success?: boolean;
+  uploadUrl: string;
+  publicUrl: string;
+  method: "PUT";
+  headers: { "Content-Type": string };
+  expiresIn: number;
+  key: string;
 };
 
 const mapFeedPostDto = (post: PostDto): FeedPost => ({
@@ -118,6 +139,7 @@ const mapFeedPostDto = (post: PostDto): FeedPost => ({
   likesCount: post.likesCount,
   commentsCount: post.commentsCount,
   createdAt: post.createdAt,
+  isLiked: post.isLiked ?? false,
 });
 
 const mapFeedResponse = (response: PostsListDto): FeedResponse => ({
@@ -147,6 +169,30 @@ export const postApi = baseApi.injectEndpoints({
         message: "Post created successfully",
       }),
       invalidatesTags: ["Posts", "User", "Feed"],
+    }),
+
+    /**
+     * Получает presigned URL для прямой загрузки изображения поста в MinIO.
+     */
+    getPostImageUploadUrl: builder.query<
+      PostImageUploadUrlData,
+      { contentType?: string; fileName?: string }
+    >({
+      query: ({ contentType, fileName } = {}) => {
+        const params = new URLSearchParams();
+        if (contentType) params.set("contentType", contentType);
+        if (fileName) params.set("fileName", fileName);
+        const qs = params.toString();
+        return `/api/posts/me/image-upload-url${qs ? `?${qs}` : ""}`;
+      },
+      transformResponse: (response: PostImageUploadUrlDto): PostImageUploadUrlData => ({
+        uploadUrl: response.uploadUrl,
+        publicUrl: response.publicUrl,
+        method: response.method,
+        headers: response.headers,
+        expiresIn: response.expiresIn,
+        key: response.key,
+      }),
     }),
     
     /**
@@ -218,6 +264,7 @@ export const postApi = baseApi.injectEndpoints({
         likesCount: response.likesCount,
       }),
       async onQueryStarted({ postId }, { dispatch, queryFulfilled, getState }) {
+        const previous = optimisticToggleLikeInCaches(dispatch, getState(), postId);
         try {
           const { data } = await queryFulfilled;
           patchPostInCaches(dispatch, getState(), postId, {
@@ -225,7 +272,9 @@ export const postApi = baseApi.injectEndpoints({
             isLiked: data.liked,
           });
         } catch {
-          // ignore
+          if (previous) {
+            patchPostInCaches(dispatch, getState(), postId, previous);
+          }
         }
       },
     }),
@@ -318,6 +367,7 @@ registerPostApiForCache(
 
 export const {
   useCreatePostMutation,
+  useLazyGetPostImageUploadUrlQuery,
   useGetPostsQuery,
   useDeletePostMutation,
   useToggleLikeMutation,

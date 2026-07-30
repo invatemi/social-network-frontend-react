@@ -24,7 +24,7 @@
 | `post` | `src/feature/post/` | CreatePost, useCreatePost | Создание поста |
 | `profile` | `src/feature/profile/` | useUserProfile | Агрегация профиля |
 | `user` | `src/feature/user/` | SearchInput, useUserSearch | Поиск пользователей |
-| `user-detail` | `src/feature/user-detail/` | useAvatarUpload, useProfileSave, … | Редактирование профиля |
+| `user-detail` | `src/feature/user-detail/` | ProfileMenu, SettingsModal, ProfileSettingsProvider, useAvatarUpload, useProfileSave, useChangePassword | Меню профиля и редактирование |
 | `socket` | `src/feature/socket/` | useSocket | Подписка на socket-события |
 
 ## Зависимости
@@ -41,7 +41,6 @@
 flowchart LR
   Page["page/*"] --> Feature["feature/*"]
   Widget["widget/*"] --> Feature
-  Header["Headerlayouts"] --> Feature
   Feature --> Entities["entities/*/api"]
   Feature --> Socket["app/lib/socket"]
 ```
@@ -58,4 +57,4 @@ flowchart LR
 | `src/feature/profile/useUserProfile.ts` | user + friend + follower данные |
 | `src/feature/notifications/` | REST + modal UI заявок |
 | `src/feature/socket/useSocket.ts` | Typed socket event listener |
-| `src/feature/user-detail/` | Avatar upload, profile save, password nav |
+| `src/feature/user-detail/` | ProfileMenu, SettingsModal, avatar/profile/password hooks |

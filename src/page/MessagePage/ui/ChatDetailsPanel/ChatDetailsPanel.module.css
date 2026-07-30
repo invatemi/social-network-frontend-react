@@ -1,0 +1,166 @@
+.panel {
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration: 0.4s;
+
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+  padding: 24px 18px;
+  background: #141414;
+  border: 1px solid #222;
+  border-radius: 16px;
+  font-family: "Inter", sans-serif;
+  overflow-y: auto;
+  animation: panelIn 0.42s var(--ease) both;
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translate3d(8px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.avatarWrap {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  margin-bottom: 4px;
+}
+
+.avatar,
+.avatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatarPlaceholder {
+  background: #2a2a2a;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.onlineDot {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #141414;
+  box-sizing: border-box;
+}
+
+.online {
+  background: #22c55e;
+}
+
+.offline {
+  background: #555;
+}
+
+.name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.email {
+  margin: 0;
+  font-size: 13px;
+  color: #8a8a8a;
+  word-break: break-all;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.photosGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.photoPlaceholder {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: #d8efdc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photoIcon {
+  position: relative;
+  width: 28px;
+  height: 24px;
+  border: 2px solid #7a9a82;
+  border-radius: 4px;
+  opacity: 0.75;
+}
+
+.photoIcon::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  bottom: 3px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 6px 9px 6px;
+  border-color: transparent transparent #7a9a82 transparent;
+}
+
+.photoIcon::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  top: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #7a9a82;
+}
+
+.emptyHint {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none !important;
+  }
+}

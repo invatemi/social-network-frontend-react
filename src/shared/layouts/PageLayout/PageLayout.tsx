@@ -1,10 +1,7 @@
-import { ReactNode } from "react";
-import { Headerlayouts } from "../Headerlayouts";
+import { ReactNode, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Footerlayouts } from "../Footerlayouts";
-import { 
-  AsidePageNav, 
-  Spinner, 
-  Button } from "@/shared/ui";
+import { AsidePageNav, Spinner, Button } from "@/shared/ui";
 import style from "./PageLayout.module.css";
 
 export type PageLayoutProps = {
@@ -16,10 +13,9 @@ export type PageLayoutProps = {
   onRetry?: () => void;
   fullWidth?: boolean;
   withContainer?: boolean;
-  
   mainClassName?: string;
   contentClassName?: string;
-  hideHeader?: boolean;
+  pageClassName?: string;
   hideFooter?: boolean;
   hideAside?: boolean;
   centerContent?: boolean;
@@ -37,32 +33,54 @@ const PageLayout = ({
   onRetry,
   mainClassName = "",
   contentClassName = "",
-  hideHeader = false,
+  pageClassName = "",
   hideFooter = false,
   hideAside = false,
   centerContent = false,
 }: PageLayoutProps) => {
-  
+  const location = useLocation();
+  const [prevPathname, setPrevPathname] = useState(location.pathname);
+  const [contentVisible, setContentVisible] = useState(false);
+
+  if (location.pathname !== prevPathname) {
+    setPrevPathname(location.pathname);
+    setContentVisible(false);
+  }
+
+  useEffect(() => {
+    if (contentVisible) return;
+
+    let frame2 = 0;
+    const frame1 = requestAnimationFrame(() => {
+      frame2 = requestAnimationFrame(() => {
+        setContentVisible(true);
+      });
+    });
+
+    return () => {
+      cancelAnimationFrame(frame1);
+      cancelAnimationFrame(frame2);
+    };
+  }, [location.pathname, contentVisible]);
+
+  const enterClassName = [
+    style.pageEnter,
+    contentVisible ? style.pageEnterVisible : "",
+    centerContent ? style.centeredMain : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   if (isLoading) {
     return (
-      <div className={style.page}>
-        {!hideHeader && <Headerlayouts />}
+      <div className={`${style.page} ${pageClassName}`}>
         <div className={style.layout}>
           {!hideAside && <AsidePageNav />}
           <main className={`${style.main} ${mainClassName}`}>
             <div className={style.centered}>
-              <div className={style.terminalBox}>
-                <div className={style.terminalHeader}>
-                  <span className={style.terminalDot} style={{ background: "#ef4444" }} />
-                  <span className={style.terminalDot} style={{ background: "#eab308" }} />
-                  <span className={style.terminalDot} style={{ background: "#22c55e" }} />
-                  <span className={style.terminalTitle}>system</span>
-                </div>
-                <div className={style.terminalContent}>
-                  <Spinner size="lg" />
-                  <p className={style.loadingText}>{`> loading...`}</p>
-                  <p className={style.loadingSubtext}>{`[====____________] 35%`}</p>
-                </div>
+              <div className={style.statusPanel}>
+                <Spinner size="lg" />
+                <p className={style.loadingText}>Загрузка...</p>
               </div>
             </div>
           </main>
@@ -74,36 +92,19 @@ const PageLayout = ({
 
   if (error) {
     return (
-      <div className={style.page}>
-        {!hideHeader && <Headerlayouts />}
+      <div className={`${style.page} ${pageClassName}`}>
         <div className={style.layout}>
           {!hideAside && <AsidePageNav />}
           <main className={`${style.main} ${mainClassName}`}>
             <div className={style.centered}>
-              <div className={style.terminalBox}>
-                <div className={style.terminalHeader}>
-                  <span className={style.terminalDot} style={{ background: "#ef4444" }} />
-                  <span className={style.terminalDot} style={{ background: "#eab308" }} />
-                  <span className={style.terminalDot} style={{ background: "#22c55e" }} />
-                  <span className={style.terminalTitle}>error</span>
-                </div>
-                <div className={style.terminalContent}>
-                  <div className={style.errorBox}>
-                    <pre className={style.errorAscii}>
-                      {`
-  ╔═══════════════════════╗
-  ║   ⚠ SYSTEM ERROR    ║
-  ═══════════════════════╝
-                      `}
-                    </pre>
-                    <p className={style.errorMessage}>{`> ${error}`}</p>
-                    {onRetry && (
-                      <Button variant="primary" size="md" onClick={onRetry} className={style.retryButton}>
-                        {`> retry_connection()`}
-                      </Button>
-                    )}
-                  </div>
-                </div>
+              <div className={style.statusPanel}>
+                <p className={style.errorTitle}>Ошибка</p>
+                <p className={style.errorMessage}>{error}</p>
+                {onRetry && (
+                  <Button variant="primary" size="md" onClick={onRetry}>
+                    Повторить
+                  </Button>
+                )}
               </div>
             </div>
           </main>
@@ -114,35 +115,19 @@ const PageLayout = ({
   }
 
   return (
-    <div className={style.page}>
-      {!hideHeader && <Headerlayouts />}
-      
+    <div className={`${style.page} ${pageClassName}`}>
       <div className={style.layout}>
         {!hideAside && <AsidePageNav />}
-        
-        <main className={style.main}>
-          <div className={centerContent ? style.centeredMain : ""}>
-            
+
+        <main className={`${style.main} ${mainClassName}`}>
+          <div key={location.pathname} className={enterClassName}>
             {(title || subtitle) && !centerContent && (
               <header className={style.pageHeader}>
-                {title && (
-                  <div className={style.titleBlock}>
-                    <pre className={style.titleAscii}>
-                      {`┌${"─".repeat(Math.min(title.length, 60))}┐`}
-                    </pre>
-                    <h1 className={style.pageTitle}>{`> ${title}`}</h1>
-                    <pre className={style.titleAscii}>
-                      {`└${"─".repeat(Math.min(title.length, 60))}┘`}
-                    </pre>
-                  </div>
-                )}
-                {subtitle && <p className={style.pageSubtitle}>{`// ${subtitle}`}</p>}
-                <div className={style.headerSeparator}>
-                  {Array(80).fill("─").join("")}
-                </div>
+                {title && <h1 className={style.pageTitle}>{title}</h1>}
+                {subtitle && <p className={style.pageSubtitle}>{subtitle}</p>}
               </header>
             )}
-            
+
             <div className={`${style.contentWrapper} ${contentClassName}`}>
               {children}
             </div>

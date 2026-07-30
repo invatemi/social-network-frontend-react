@@ -1,31 +1,32 @@
 import style from "./Spinner.module.css";
 import { SpinnerProps } from "../lib";
+import { LoadingIcon } from "@/shared/ui/icons";
+
+const SIZE_PX = {
+  sm: 14,
+  md: 20,
+  lg: 28,
+  xl: 36,
+} as const;
 
 /**
  * Spinner — индикатор загрузки
  */
-const Spinner = ({ 
-  size = "md", 
-  color = "primary", 
+const Spinner = ({
+  size = "md",
+  color = "primary",
   label = "Загрузка...",
-  className = "" 
+  className = "",
 }: SpinnerProps) => {
   return (
-    <div 
+    <div
       className={`${style.spinner} ${style[size]} ${style[color]} ${className}`}
       role="status"
-      aria-label={label}
+      aria-label={label || "Загрузка..."}
+      aria-hidden={label === "" ? true : undefined}
     >
-      <span className={style.visuallyHidden}>{label}</span>
-      <div className={style.spinnerChars} aria-hidden="true">
-        <span className={style.char}>[</span>
-        <span className={style.dots}>
-          <span className={style.dot}>•</span>
-          <span className={style.dot}>•</span>
-          <span className={style.dot}>•</span>
-        </span>
-        <span className={style.char}>]</span>
-      </div>
+      {label !== "" && <span className={style.visuallyHidden}>{label}</span>}
+      <LoadingIcon size={SIZE_PX[size]} className={style.icon} />
     </div>
   );
 };

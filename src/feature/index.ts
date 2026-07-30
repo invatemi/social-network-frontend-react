@@ -27,9 +27,15 @@ export { useUserSearch } from "./user/hooks"
 
 export { useSocket } from "./socket"
 
-export { 
+export { PhotoModal } from "./photo"
+
+export {
     useAvatarUpload,
-    usePasswordNavigation,
+    useChangePassword,
     useProfileSave,
-    useUserDetailForm
+    useUserDetailForm,
+    ProfileSettingsProvider,
+    useProfileSettings,
+    ProfileMenu,
+    SettingsModal,
  } from "./user-detail"

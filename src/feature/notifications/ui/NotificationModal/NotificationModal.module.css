@@ -1,14 +1,12 @@
-/* Base modal — terminal window style */
 .dialog {
   position: relative;
   z-index: 50;
-  font-family: 'Courier New', Courier, monospace;
 }
 
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .container {
@@ -20,70 +18,53 @@
   padding: 16px;
 }
 
-/* Panel — terminal window frame */
 .panel {
   width: 100%;
   max-width: 480px;
   max-height: 80vh;
-  background: #0f0f0f;
-  border: 1px solid #333;
-  border-radius: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 0 40px rgba(34, 197, 94, 0.05);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
 }
 
-/* Title bar */
 .title {
-  padding: 12px 16px;
-  font-size: 13px;
-  font-weight: 400;
-  color: #e5e5e5;
-  border-bottom: 1px solid #222;
+  padding: 16px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #111;
+  background: var(--color-surface-elevated);
 }
 
-.titlePrompt {
-  color: #22c55e;
-  font-weight: bold;
-  animation: blink 1.5s infinite;
-}
-
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
-/* Badge — code-style indicator */
 .badge {
-  background: #1a1a1a;
-  color: #ef4444;
-  font-size: 10px;
-  font-weight: 400;
-  padding: 2px 6px;
-  border: 1px solid #ef4444;
-  border-radius: 0;
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-danger);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
   margin-left: auto;
 }
 
-/* Content area */
 .content {
   flex: 1;
   overflow-y: auto;
   padding: 8px 0;
 }
 
-/* States */
 .loader,
 .empty {
   padding: 24px;
   text-align: center;
-  color: #666;
-  font-size: 12px;
+  color: var(--color-text-muted);
+  font-size: 14px;
 }
 
 .list {
@@ -91,44 +72,38 @@
   flex-direction: column;
 }
 
-/* Close button */
 .closeBtn {
-  padding: 12px 20px;
+  padding: 14px 20px;
   background: transparent;
   border: none;
-  border-top: 1px solid #222;
-  color: #666;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
   font-family: inherit;
-  font-size: 12px;
+  font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color var(--duration-fast) ease, background var(--duration-fast) ease;
   text-align: left;
 }
 
 .closeBtn:hover {
-  color: #22c55e;
-  background: rgba(34, 197, 94, 0.08);
+  color: var(--color-text);
+  background: var(--color-surface-hover);
 }
 
 .closeBtn:focus-visible {
-  outline: 2px solid #22c55e;
+  outline: 2px solid var(--color-focus);
   outline-offset: -2px;
 }
 
-/* Scrollbar — terminal style */
 .content::-webkit-scrollbar {
   width: 6px;
 }
 
 .content::-webkit-scrollbar-track {
-  background: #111;
+  background: var(--color-surface);
 }
 
 .content::-webkit-scrollbar-thumb {
   background: #333;
-  border-radius: 0;
-}
-
-.content::-webkit-scrollbar-thumb:hover {
-  background: #444;
+  border-radius: 4px;
 }

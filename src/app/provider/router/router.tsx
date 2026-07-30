@@ -1,23 +1,24 @@
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { ProtectedRoute } from "../../provider";
+import { ProfileSettingsProvider } from "@/feature";
 import { 
     AutorizationPage,
     RegistrationPage,
     MainPage,
     ErrorPage,
     UserPage,
-    UserDetailPage,
-    ChangePasswordPage,
-    CommentPage,
     PublicPage,
     FriendPage,
     FollowerPage,
-    MessagePage
+    MessagePage,
+    PhotoPage
 } from "@/page";
 
 const ProtectedOutlet = () => (
   <ProtectedRoute>
-    <Outlet />
+    <ProfileSettingsProvider>
+      <Outlet />
+    </ProfileSettingsProvider>
   </ProtectedRoute>
 );
 
@@ -44,14 +45,14 @@ export const AppRouter = () => {
       <Route element={<ProtectedOutlet />}>
         <Route path="/" element={<MainPage />} />
         <Route path="/user" element={<UserPage />} />
-        <Route path="/user/settings" element={<UserDetailPage />} />
-        <Route path="/user/settings/password" element={<ChangePasswordPage />} />
-        <Route path="/post/:postId/comments" element={<CommentPage />} />
+        <Route path="/user/settings" element={<Navigate to="/user" replace />} />
+        <Route path="/user/settings/password" element={<Navigate to="/user" replace />} />
         <Route path="/user/:userId" element={<PublicPage />} />
         <Route path="/friends/:userId?" element={<FriendPage />} />
         <Route path="/followers/:userId?" element={<FollowerPage />} />
         <Route path="/messages" element={<MessagePage />} />
         <Route path="/messages/:chatId" element={<MessagePage />} />
+        <Route path="/photos" element={<PhotoPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/error" replace />} />

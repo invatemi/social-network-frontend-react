@@ -1,5 +1,6 @@
-import { Button, Input } from "@/shared";
+import { useId } from "react";
 import { useCommentForm } from "../../hooks";
+import { SendIcon } from "@/entities/post/ui/icons";
 import style from "./CommentForm.module.css";
 
 type CommentFormProps = {
@@ -7,42 +8,44 @@ type CommentFormProps = {
 };
 
 /**
- * CommentForm — форма комментария
- * 
- * @param postId - ID поста для привязки комментария
- * @returns JSX-элемент формы комментария
+ * CommentForm — форма комментария с кнопкой отправки внутри поля
  */
 const CommentForm = ({ postId }: CommentFormProps) => {
+  const gradientId = useId().replace(/:/g, "");
   const { content, setContent, handleSubmit, isLoading, error } = useCommentForm(postId);
 
   return (
-    <form className={style.form} onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
-      <Input
-        as="textarea"
-        id={`comment-${postId}`}
-        value={content ?? undefined}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder={"> введите текст комментария..."}
-        error={error ? `! ${error}` : undefined}
-        disabled={isLoading}
-        rows={3}
-        maxLength={2000}
-        fullWidth
-        helperText={`[${content?.length ?? 0}/2000]`}
-      />
+    <form
+      className={style.form}
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSubmit();
+      }}
+    >
+      <div className={style.inputBar}>
+        <input
+          id={`comment-${postId}`}
+          className={style.input}
+          type="text"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Сообщение"
+          disabled={isLoading}
+          maxLength={2000}
+          aria-label="Текст комментария"
+        />
 
-      <div className={style.footer}>
-        <Button
+        <button
           type="submit"
-          variant="primary"
-          size="sm"
-          loading={isLoading}
-          disabled={!content.trim()}
-          className={style.submitBtn}
+          className={style.sendButton}
+          disabled={isLoading || !content.trim()}
+          aria-label="Отправить комментарий"
         >
-          {`[send]`}
-        </Button>
+          <SendIcon gradientId={gradientId} className={style.sendIcon} />
+        </button>
       </div>
+
+      {error && <p className={style.error}>{error}</p>}
     </form>
   );
 };

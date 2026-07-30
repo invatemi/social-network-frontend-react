@@ -2,85 +2,79 @@
 
 ## Локальный запуск
 
-1. Backend с message-service и notifications-service запущен.
-2. `VITE_API_URL=http://localhost:8080`, `VITE_WS_URL=http://localhost:3005`.
-3. Авторизоваться и перейти на `/messages`.
+1. Backend с message-service и notifications-service запущен (`docker compose` в backend-репо).
+2. `CORS_ORIGINS` / `SOCKET_CORS_ORIGIN` включают Vite origin (`http://localhost:5173`).
+3. `VITE_API_URL=http://localhost:8080`, `VITE_WS_URL=http://localhost:3005`.
+4. Авторизоваться и перейти на `/messages`.
 
 ## Основные сценарии
 
 ### Открыть мессенджер
 
-1. Navigate на `/messages`.
-2. `useGetChatsQuery` загружает список чатов.
-3. `ChatList` отображает `ChatCard` для каждого чата.
+1. `/messages` — `MessagesView` в idle: заголовок «Сообщения», CTA «Новый чат», `ChatList`.
+2. `useGetChatsQuery` загружает чаты.
+3. `MessagePage` только оркестрирует данные и передаёт слоты в `MessagesView`.
 
 ### Выбрать чат
 
-1. Клик по чату → `handleChatSelect(chatId)`.
-2. Navigate на `/messages/:chatId`.
-3. `joinChatRoom(chatId)` — подписка на socket-комнату.
-4. `useGetMessagesQuery` загружает сообщения.
-5. При unmount / смене чата — `leaveChatRoom`.
+1. Клик по `ChatCard` → `handleChatSelect` → `navigate(/messages/:chatId)`.
+2. `MessagesView` переходит в active (три колонки; на mobile — тред + back).
+3. `joinChatRoom` + `useGetMessagesQuery`.
+4. Правая панель: `ChatDetailsPanel` (профиль; Фото — mint grid placeholder; Файлы — empty).
+
+### URL sync
+
+- `useParams().chatId` → `activeChatId`.
+- Закрытие / back → `/messages`.
+- Переход «Написать сообщение» с Friend/Follower открывает чат по URL.
 
 ### Отправить сообщение
 
-1. `MessageSend` (feature/message) → `handleSendMessage(text)`.
-2. `useSendMessageMutation` → `POST /api/messages/send`.
-3. При успехе — refetch messages/chats.
-4. Параллельно `message:new` через socket обновляет список.
+1. `MessageSend` → `handleSendMessage`.
+2. Пузыри: входящие слева, исходящие справа; read ticks при `isRead`.
 
 ### Создать чат
 
-1. `CreateChatButton` → `CreateChatModal`.
-2. Выбор пользователя, `useCreateChatMutation`.
-3. Socket `chat:created` → invalidate Chats для обеих сторон.
-4. Navigate на новый чат.
+1. `CreateChatButton` с `variant="labeled"` → CreateChatModal.
+2. Выбор друга → `useCreateChatMutation` → navigate на новый чат.
+3. Компактный `variant="icon"` (дефолт) доступен для других мест.
 
-### Infinite scroll (старые сообщения)
+## MessagesView
 
-1. `MessageList` вызывает `handleLoadMessages(before)`.
-2. Подгрузка с cursor `before` (createdAt).
-3. Prepend к текущему списку.
+Shell в `src/page/shared/MessagesView/`:
 
-### Удалить чат
-
-1. `handleDeleteChat` → `useDeleteChatMutation`.
-2. Socket `chat:deleted` → invalidate tags.
-3. Сброс activeChatId, navigate на `/messages`.
+| Prop | Назначение |
+|------|------------|
+| `hasActiveChat` | idle vs active grid |
+| `isMobileSidebarOpen` / `onCloseMobileSidebar` | overlay на mobile |
+| `sidebarHeader` / `sidebarList` | заголовок + список |
+| `thread` / `details` | тред и правая панель (только active) |
 
 ## useMessagePage
 
-Центральный хук страницы (`src/page/MessagePage/lib/useMessagePage.ts`):
-
-- Оркестрация RTK Query (chats, messages, mutations)
-- Socket listeners через `useSocket`
-- Mobile sidebar toggle
-- Sync `activeChatId` с URL params
+- RTK Query + socket listeners
+- Sync `activeChatId` с URL
+- `handleCloseChat` для mobile back
 
 ## Бизнес-правила
 
-- Сообщения требуют auth (protected route).
-- Активный чат синхронизирован с URL (`/messages/:chatId`).
-- При `message:new` в активном чате — `refetchMessages`.
-- Лимиты пагинации из `env.messages.*`.
+- Protected route.
+- Активный чат = `/messages/:chatId`.
+- Вложений в message API нет — секции медиа только UI placeholder.
 
 ## Тесты
 
-Тесты для messaging отсутствуют.
+```bash
+npm test
+```
+
+Покрывают `MessagesView` (layout) и `useMessagePage` (URL/navigate). Моки: RTK Query, router, socket.
 
 ## Troubleshooting
 
 | Проблема | Действие |
 |----------|----------|
-| Сообщения не приходят realtime | Проверить socket connection, `chat:join`, `VITE_WS_URL` |
-| Новый чат не виден второму пользователю | Проверить `chat:created` handler, notifications-service |
-| Старые сообщения не грузятся | Проверить cursor `before` в `handleLoadMessages` |
-| 401 на messages API | Проверить auth flow (docs/auth/) |
-| Socket disconnected | `SocketStatus` в header, env reconnection settings |
-
-## Связанная документация
-
-- [docs/page/](../page/overview.md) — MessagePage
-- [docs/entities/](../entities/overview.md) — messagesApi
-- [docs/app/](../app/overview.md) — socket.ts
-- Backend: [message-service](https://github.com/invatemi/social-backend-service/blob/main/docs/message-service/overview.md), [notifications-service](https://github.com/invatemi/social-backend-service/blob/main/docs/notifications-service/overview.md)
+| Чат не открывается с FriendPage | Проверить URL sync в `useMessagePage` |
+| Нет realtime | Socket, `chat:join`, `VITE_WS_URL`, `SOCKET_CORS_ORIGIN` |
+| Нет email в шапке | Public profile API / privacy email |
+| Overlay не закрывается | `onCloseMobileSidebar` в `MessagesView` |

@@ -16,44 +16,51 @@ const ChatCard = ({
   isActive = false,
 }: ChatCardProps) => {
   const initial = username.charAt(0).toUpperCase();
-  
   const handleClick = () => onClick?.(chatId);
 
   return (
-    <div 
-      className={`${style.card} ${isActive ? style.active : ''}`}
+    <div
+      className={[style.card, isActive ? style.active : ""].filter(Boolean).join(" ")}
       onClick={handleClick}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+      onKeyDown={(e) => e.key === "Enter" && handleClick()}
       aria-label={`Чат с ${username}`}
+      aria-current={isActive ? "true" : undefined}
     >
       <div className={style.avatarWrapper}>
         {avatarUrl ? (
-          <img src={avatarUrl} alt={username} className={style.avatar} loading="lazy" />
+          <img src={avatarUrl} alt="" className={style.avatar} loading="lazy" />
         ) : (
-          <div className={style.avatarPlaceholder} aria-hidden="true">
-            {`[${initial}]`}
+          <div className={style.avatarPlaceholder} aria-hidden>
+            {initial}
           </div>
         )}
-        <span className={`${style.statusIndicator} ${isOnline ? style.online : style.offline}`}>
-          {isOnline ? `[•]` : `[○]`}
-        </span>
+        <span
+          className={[style.onlineDot, isOnline ? style.online : style.offline]
+            .filter(Boolean)
+            .join(" ")}
+          aria-label={isOnline ? "Онлайн" : "Офлайн"}
+        />
       </div>
 
       <div className={style.info}>
         <div className={style.header}>
-          <span className={style.username}>{`@${username}`}</span>
-          <span className={style.time}>{`[${lastMessageTime}]`}</span>
+          <span className={style.username}>
+            {username}
+            {unreadCount > 0 ? (
+              <span
+                className={style.unreadDot}
+                aria-label={`${unreadCount} непрочитанных`}
+              />
+            ) : null}
+          </span>
+          <span className={style.time}>{lastMessageTime}</span>
         </div>
-        <span className={style.lastMessage}>{lastMessage ? `> ${lastMessage}` : '// no messages'}</span>
-      </div>
-
-      {unreadCount > 0 && (
-        <span className={style.unreadBadge} aria-label={`${unreadCount} непрочитанных`}>
-          {`{${unreadCount > 99 ? '99+' : unreadCount}}`}
+        <span className={style.lastMessage}>
+          {lastMessage || "Нет сообщений"}
         </span>
-      )}
+      </div>
     </div>
   );
 };

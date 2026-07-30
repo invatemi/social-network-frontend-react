@@ -27,7 +27,7 @@ npm run preview
 
 | Переменная | По умолчанию | Назначение |
 |------------|--------------|------------|
-| `VITE_API_URL` | `http://localhost:8080` | KrakenD API Gateway |
+| `VITE_API_URL` | `http://localhost:8088` | KrakenD API Gateway (host-порт backend) |
 | `VITE_WS_URL` | `http://localhost:3005` | Socket.IO notifications-service |
 
 Полный список — в [`.env.example`](../../.env.example).

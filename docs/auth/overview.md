@@ -13,7 +13,11 @@
 - Защищённые маршруты
 - Инициализация Socket.IO после login
 
-**Не входит:** смена пароля (codeApi + ChangePasswordPage), профиль пользователя (entities/user).
+**Не входит:** смена пароля (codeApi + SettingsModal в feature/user-detail), профиль пользователя (entities/user).
+
+## UI
+
+Flat dark auth без Three.js: centered card (`--color-surface`), dark Input/Button, logo. Страницы `AutorizationPage` / `RegistrationPage` через `PageLayout` (без aside/footer по необходимости).
 
 ## Участвующие модули (сквозной flow)
 
@@ -28,7 +32,7 @@
 | app | `App.tsx` | initSocket при наличии token |
 | page | `AutorizationPage`, `RegistrationPage` | Страницы auth |
 | widget | `Autorization`, `Registration` | Формы с Zod |
-| shared | `Headerlayouts` | Logout |
+| feature | `ProfileMenu` | Logout из меню профиля |
 | entities | `userApi` | Профиль после login/bootstrap |
 
 ## Связи
@@ -78,12 +82,3 @@ sequenceDiagram
 | POST | `/login` | `useLoginMutation` |
 | POST | `/refresh` | `useRefreshTokensMutation`, `refreshMutex` |
 | POST | `/logout` | `useLogoutMutation` |
-
-## Состояние authSlice
-
-| Поле | Тип | Описание |
-|------|-----|----------|
-| `user` | `UserProfile \| null` | Текущий пользователь |
-| `accessToken` | `string \| null` | JWT в памяти |
-| `isAuthenticated` | `boolean` | Есть валидная сессия |
-| `isAuthInitialized` | `boolean` | Bootstrap завершён |

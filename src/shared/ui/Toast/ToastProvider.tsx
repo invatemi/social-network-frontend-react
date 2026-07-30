@@ -45,7 +45,7 @@ export function ToastProvider({ children }: { children: ReactNode }): ReactEleme
         <div className={style.container} aria-live="polite" aria-atomic="true">
           {toasts.map((toast) => (
             <div key={toast.id} className={style.toast} role="status">
-              {`! ${toast.message}`}
+              {toast.message}
             </div>
           ))}
         </div>,

@@ -1,0 +1,17 @@
+.mainLayout {
+  background: #0a0a0a;
+  font-family: "Inter", sans-serif;
+  padding:
+    var(--layout-main-padding-top, 20px)
+    var(--layout-main-padding-x, 20px)
+    var(--layout-main-padding-bottom, 32px) !important;
+}
+
+@media (max-width: 900px) {
+  .mainLayout {
+    padding:
+      var(--layout-main-padding-top, 20px)
+      12px
+      24px !important;
+  }
+}

@@ -39,7 +39,9 @@ export const baseApi = createApi({
     "Chat",
     "Chats",
     "Messages",
-    "Message"
+    "Message",
+    "Photos",
+    "PhotoComments",
   ],
   endpoints: () => ({}),
 });

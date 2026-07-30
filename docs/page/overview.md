@@ -18,21 +18,21 @@
 | Роут | Страница | Protected | Основной состав |
 |------|----------|-----------|-----------------|
 | `/` | MainPage | да | `useGetFeedPostsQuery`, PostList |
-| `/autorization` | AutorizationPage | нет | Autorization widget |
+| `/autorization` | AutorizationPage | нет | Autorization widget (flat dark) |
 | `/registration` | RegistrationPage | нет | Registration widget |
-| `/user` | UserPage | да | useUserProfile, CreatePost, PostList |
-| `/user/settings` | UserDetailPage | да | user-detail cards, feature hooks |
-| `/user/settings/password` | ChangePasswordPage | да | codeApi, смена пароля |
-| `/user/:userId` | PublicPage | да | публичный профиль, CreateFriend |
-| `/post/:postId/comments` | CommentPage | да | CommentList |
-| `/friends/:userId?` | FriendPage | да | FriendList |
-| `/followers/:userId?` | FollowerPage | да | FollowerList |
-| `/messages` | MessagePage | да | ChatList, MessageList, useMessagePage |
-| `/messages/:chatId` | MessagePage | да | то же + activeChatId из URL |
+| `/user` | UserPage | да | ProfileView, CreatePost, PostList |
+| `/user/:userId` | PublicPage | да | ProfileView, CreateFriend |
+| `/friends/:userId?` | FriendPage | да | PeopleRelationsView + FriendList |
+| `/followers/:userId?` | FollowerPage | да | PeopleRelationsView + FollowerList |
+| `/messages` | MessagePage | да | MessagesView + ChatList, useMessagePage |
+| `/messages/:chatId` | MessagePage | да | то же + MessageList + ChatDetailsPanel |
+| `/photos` | PhotoPage | да | PhotosView + usePhotoPage (локальные preview) |
 | `/error` | ErrorPage | нет | Страница ошибки |
 | `*` | — | — | Redirect → `/error` |
 
 Конфигурация: `src/app/provider/router/router.tsx`.
+
+Настройки профиля открываются модалкой (`feature/user-detail`: ProfileMenu + SettingsModal), а не отдельной страницей. Устаревшие `/user/settings*` редиректят на `/user`.
 
 ## Зависимости
 
@@ -62,9 +62,13 @@ flowchart TB
 |------|------|
 | `src/page/MainPage/` | Лента постов |
 | `src/page/UserPage/` | Свой профиль |
-| `src/page/UserDetailPage/` | Настройки профиля |
 | `src/page/PublicPage/` | Чужой профиль |
-| `src/page/MessagePage/` | Мессенджер + `useMessagePage` |
+| `src/page/MessagePage/` | Мессенджер: тонкая композиция + `useMessagePage` |
+| `src/page/PhotoPage/` | «Мои фотографии» + `usePhotoPage` |
+| `src/page/shared/MessagesView/` | Layout-shell idle ↔ 3 колонки |
+| `src/page/shared/PhotosView/` | Layout-shell галереи по годам |
+| `src/page/shared/PeopleRelationsView/` | Shell Friend/Follower |
+| `src/page/shared/ProfileView/` | Shell профиля |
 | `src/page/index.ts` | Public API всех страниц |
 
 ## Public API

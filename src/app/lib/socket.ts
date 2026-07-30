@@ -5,6 +5,7 @@ import { commentApi } from '@/entities/comment/api/commentApi';
 import { notificationsApi } from '../store/api/notificationsApi';
 import { friendApi } from '@/entities/friend/api/friendApi';
 import { followersApi } from '@/entities/follower/api/followerApi';
+import { photoApi } from '@/entities/photo/api/photoApi';
 import { FeedPost } from '@/entities/post/api/postApi';
 import { messagesApi } from '@/entities/message/api/messagesApi';
 import { env } from '@/shared/config/env';
@@ -12,6 +13,11 @@ import type { AppDispatch } from '@/app/store/types';
 import { store } from '@/app/store';
 import { patchPostInCaches, removePostFromCaches } from '@/app/lib/postRealtimeCache';
 import { registerSocketDisconnectHandler } from '@/app/lib/socketDisconnect';
+import {
+  setUserOnline,
+  setUserOffline,
+  setPresenceStatuses,
+} from '@/app/store/slices/presenceSlice';
 
 let socket: Socket | null = null;
 let isInitialized = false;
@@ -28,10 +34,14 @@ const setConnectionStatus = (nextStatus: SocketConnectionStatus): void => {
   statusListeners.forEach((listener) => listener(nextStatus));
 };
 
-const registerConnectionStatusHandlers = (activeSocket: Socket): void => {
+const registerConnectionStatusHandlers = (activeSocket: Socket, dispatch: AppDispatch): void => {
   activeSocket.on('connect', () => {
     setConnectionStatus('connected');
     console.log('[Socket] Connected');
+    const currentUserId = store.getState().auth.user?.id;
+    if (currentUserId) {
+      dispatch(setUserOnline(currentUserId));
+    }
   });
 
   activeSocket.on('disconnect', (reason: string) => {
@@ -143,7 +153,11 @@ const registerSocketHandlers = (activeSocket: Socket, dispatch: AppDispatch): vo
     } else {
       dispatch(postApi.util.invalidateTags([{ type: 'Posts', id: data.postId }]));
     }
-    dispatch(commentApi.util.invalidateTags([{ type: 'Comments', id: `LIST_${data.postId}` }]));
+    dispatch(
+      commentApi.util.updateQueryData('getComments', { postId: data.postId }, (draft) => {
+        draft.comments = draft.comments.filter((c) => c.id !== data.commentId);
+      })
+    );
   });
 
   activeSocket.on('notification:friend_request', (data: {
@@ -155,8 +169,12 @@ const registerSocketHandlers = (activeSocket: Socket, dispatch: AppDispatch): vo
     status: 'pending';
   }) => {
     dispatch(notificationsApi.util.invalidateTags(['Friends']));
-    dispatch(friendApi.util.invalidateTags([{ type: 'FriendStatus', id: data.fromUser.id }]));
-    dispatch(friendApi.util.invalidateTags(['Friends']));
+    dispatch(friendApi.util.invalidateTags([
+      { type: 'FriendStatus', id: data.fromUser.id },
+      { type: 'FriendStatus', id: data.toUser.id },
+      'FriendStatus',
+      'Friends',
+    ]));
     dispatch(userApi.util.invalidateTags([{ type: 'User', id: data.toUser.id }, 'User', 'UserMe']));
   });
 
@@ -168,7 +186,13 @@ const registerSocketHandlers = (activeSocket: Socket, dispatch: AppDispatch): vo
     createdAt: string;
     status: 'accepted';
   }) => {
-    dispatch(friendApi.util.invalidateTags([{ type: 'FriendStatus', id: data.fromUser.id }, 'Friends', 'User']));
+    dispatch(friendApi.util.invalidateTags([
+      { type: 'FriendStatus', id: data.fromUser.id },
+      { type: 'FriendStatus', id: data.toUser.id },
+      'FriendStatus',
+      'Friends',
+      'User',
+    ]));
     dispatch(userApi.util.invalidateTags([{ type: 'User', id: data.fromUser.id }, 'User', 'UserMe']));
     if (data.toUser.id !== data.fromUser.id) {
       dispatch(userApi.util.invalidateTags([{ type: 'User', id: data.toUser.id }]));
@@ -182,7 +206,12 @@ const registerSocketHandlers = (activeSocket: Socket, dispatch: AppDispatch): vo
     toUser: { id: number };
     createdAt: string;
   }) => {
-    dispatch(friendApi.util.invalidateTags([{ type: 'FriendStatus', id: data.fromUser.id }, 'Friends']));
+    dispatch(friendApi.util.invalidateTags([
+      { type: 'FriendStatus', id: data.fromUser.id },
+      { type: 'FriendStatus', id: data.toUser.id },
+      'FriendStatus',
+      'Friends',
+    ]));
     dispatch(userApi.util.invalidateTags([{ type: 'User', id: data.fromUser.id }, 'User', 'UserMe', { type: 'User', id: data.toUser.id }]));
   });
 
@@ -200,14 +229,55 @@ const registerSocketHandlers = (activeSocket: Socket, dispatch: AppDispatch): vo
 
   activeSocket.on('user:profile_updated', ({ userId }: { userId: number }) => {
     dispatch(userApi.util.invalidateTags([{ type: 'User', id: userId }, 'User', 'UserMe']));
+    dispatch(photoApi.util.invalidateTags([
+      { type: 'Photos', id: `USER_${userId}` },
+      { type: 'Photos', id: 'LIST' },
+      { type: 'Photos', id: 'ME' },
+    ]));
+  });
+
+  activeSocket.on('photo:created', (data: {
+    photoId: number;
+    userId: number;
+    url: string;
+    isCurrent: boolean;
+    createdAt: string;
+  }) => {
+    dispatch(photoApi.util.invalidateTags([
+      { type: 'Photos', id: data.photoId },
+      { type: 'Photos', id: `USER_${data.userId}` },
+      { type: 'Photos', id: 'LIST' },
+      { type: 'Photos', id: 'ME' },
+    ]));
+    if (data.isCurrent) {
+      dispatch(userApi.util.invalidateTags([{ type: 'User', id: data.userId }, 'User', 'UserMe']));
+    }
+  });
+
+  activeSocket.on('photo:deleted', (data: { photoId: number; userId: number }) => {
+    dispatch(photoApi.util.invalidateTags([
+      { type: 'Photos', id: data.photoId },
+      { type: 'Photos', id: `USER_${data.userId}` },
+      { type: 'Photos', id: 'LIST' },
+      { type: 'Photos', id: 'ME' },
+    ]));
+    dispatch(userApi.util.invalidateTags([{ type: 'User', id: data.userId }, 'User', 'UserMe']));
   });
 
   activeSocket.on('user:online', ({ userId }: { userId: number }) => {
+    dispatch(setUserOnline(userId));
     dispatch(userApi.util.invalidateTags([{ type: 'User', id: userId }, 'User', 'UserMe']));
   });
 
   activeSocket.on('user:offline', ({ userId }: { userId: number }) => {
+    dispatch(setUserOffline(userId));
     dispatch(userApi.util.invalidateTags([{ type: 'User', id: userId }, 'User', 'UserMe']));
+  });
+
+  activeSocket.on('presence:status', (data: { statuses?: Record<string, boolean> }) => {
+    if (data?.statuses) {
+      dispatch(setPresenceStatuses(data.statuses));
+    }
   });
 
   activeSocket.on('message:new', (message: SocketMessage) => {
@@ -273,7 +343,7 @@ export const initSocket = (token: string, dispatch: AppDispatch): Socket | null 
 
   if (!isInitialized) {
     registerSocketHandlers(socket, dispatch);
-    registerConnectionStatusHandlers(socket);
+    registerConnectionStatusHandlers(socket, dispatch);
     isInitialized = true;
   }
 
@@ -293,6 +363,13 @@ export const joinChatRoom = (chatId: number): void => {
 /** Emits a leave event for the specified chat room. */
 export const leaveChatRoom = (chatId: number): void => {
   socket?.emit('chat:leave', chatId);
+};
+
+/** Requests current online status for the given user IDs. */
+export const checkPresence = (userIds: number[]): void => {
+  const uniqueIds = [...new Set(userIds.filter((id) => Number.isInteger(id) && id > 0))];
+  if (uniqueIds.length === 0 || !socket?.connected) return;
+  socket.emit('presence:check', { userIds: uniqueIds });
 };
 
 /** Disconnects and cleans up the socket instance. */

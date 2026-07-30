@@ -1,64 +1,66 @@
-/* Контейнер кнопки */
-.container {
-  display: inline-flex;
-  position: relative;
-}
-
-/* Основная кнопка удаления */
 .deleteButton {
-  /* Наследуем стили из Button, добавляем только специфику */
-  transition: all 0.15s ease-in-out;
-  min-width: auto;
-  padding: 0.25rem 0.5rem;
+  height: auto !important;
+  padding: 4px 8px !important;
+  color: #888 !important;
+  font-size: 13px !important;
+  flex-shrink: 0;
 }
 
 .deleteButton:hover:not(:disabled) {
-  transform: scale(1.05);
-  filter: brightness(1.1);
+  color: #ef4444 !important;
+  background: transparent !important;
 }
 
-.deleteButton:active:not(:disabled) {
-  transform: scale(0.95);
-}
-
-/* ASCII-рамка при ховере */
-.deleteButton:hover:not(:disabled)::after {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border: 1px dashed var(--color-accent, #ff6b6b);
-  border-radius: 4px;
-  pointer-events: none;
-  animation: asciiFlicker 2s infinite;
-}
-
-@keyframes asciiFlicker {
-  0%, 100% { opacity: 1; }
-  92% { opacity: 1; }
-  94% { opacity: 0.7; }
-  96% { opacity: 1; }
-  98% { opacity: 0.8; }
-}
-
-/* Блок подтверждения */
-.confirmBox {
+.confirmPanel {
+  flex: 1 1 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: var(--color-bg-secondary, #1a1a2e);
-  border: 1px solid var(--color-border, #4a4a6a);
-  border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  font-family: var(--font-mono, 'Fira Code', monospace);
-  min-width: 220px;
-  animation: slideIn 0.2s ease-out;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  animation: confirmIn 0.22s ease;
+  transform-origin: top right;
 }
 
-@keyframes slideIn {
+.confirmText {
+  margin: 0;
+  font-size: 13px;
+  color: #cfcfcf;
+  line-height: 1.35;
+}
+
+.errorMessage {
+  margin: 0;
+  font-size: 12px;
+  color: #f87171;
+  line-height: 1.35;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.confirmBtn,
+.cancelBtn {
+  min-width: 0;
+}
+
+.deleteButton:focus-visible,
+.confirmBtn:focus-visible,
+.cancelBtn:focus-visible {
+  outline: 2px solid #a8a8a8;
+  outline-offset: 2px;
+}
+
+@keyframes confirmIn {
   from {
     opacity: 0;
-    transform: translateY(-8px) scale(0.98);
+    transform: translateY(-4px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -66,103 +68,8 @@
   }
 }
 
-/* Текст подтверждения в ASCII-стиле */
-.confirmText {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--color-text-primary, #e0e0ff);
-  text-align: center;
-  letter-spacing: 0.5px;
-}
-
-.confirmText::before,
-.confirmText::after {
-  content: "─";
-  display: inline-block;
-  width: 2ch;
-  color: var(--color-border, #4a4a6a);
-}
-
-/* Блок ошибки в терминальном стиле */
-.errorAscii {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: var(--color-error-bg, #2a1a1a);
-  border-left: 2px solid var(--color-error, #ff6b6b);
-  border-radius: 0 4px 4px 0;
-  font-size: 0.75rem;
-  color: var(--color-error-text, #ffb4b4);
-  font-family: var(--font-mono, 'Fira Code', monospace);
-  animation: errorPulse 0.3s ease-out;
-}
-
-@keyframes errorPulse {
-  0% { transform: translateX(-4px); opacity: 0; }
-  100% { transform: translateX(0); opacity: 1; }
-}
-
-.errorIcon {
-  flex-shrink: 0;
-  color: var(--color-error, #ff6b6b);
-  font-weight: bold;
-}
-
-.errorMessage {
-  line-height: 1.4;
-}
-
-/* Действия подтверждения */
-.confirmActions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  margin-top: 0.25rem;
-}
-
-.confirmBtn {
-  min-width: 100px;
-}
-
-.cancelBtn {
-  min-width: 80px;
-}
-
-/* Адаптивность для мобильных */
-@media (max-width: 480px) {
-  .confirmBox {
-    min-width: 180px;
-    padding: 0.625rem 0.875rem;
+@media (prefers-reduced-motion: reduce) {
+  .confirmPanel {
+    animation: none;
   }
-  
-  .confirmActions {
-    flex-direction: column;
-  }
-  
-  .confirmBtn,
-  .cancelBtn {
-    width: 100%;
-  }
-}
-
-/* Доступность: фокус в стиле терминала */
-.deleteButton:focus-visible,
-.confirmBtn:focus-visible,
-.cancelBtn:focus-visible {
-  outline: 2px dashed var(--color-focus, #7aa2f7);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(122, 162, 247, 0.15);
-}
-
-/* Скрытие для скринридеров декоративных элементов */
-.deleteButton[aria-label] .label {
-  /* Текст иконки уже описан в aria-label */
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  height: 1px;
-  overflow: hidden;
-  position: absolute;
-  white-space: nowrap;
-  width: 1px;
 }

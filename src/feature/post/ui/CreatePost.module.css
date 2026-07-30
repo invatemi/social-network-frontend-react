@@ -1,89 +1,149 @@
-/* Base card — terminal window style */
-.createPostCard {
-  background: #0f0f0f;
-  border: 1px solid #333;
-  border-radius: 0;
-  padding: 16px;
-  margin-bottom: 24px;
-  font-family: 'Courier New', Courier, monospace;
+.root {
+  display: flex;
+  flex-direction: column;
 }
 
-/* Trigger button — collapsed state */
-.triggerWrapper {
-  display: flex;
-  justify-content: center;
+.slot {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.45s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.slotOpen {
+  grid-template-rows: 1fr;
+}
+
+.slotInner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.createPostCard {
+  background: #141414;
+  border: 1px solid #222;
+  border-radius: 16px;
+  padding: 16px;
+  font-family: "Inter", sans-serif;
+}
+
+.formCard {
+  opacity: 0.96;
+  transform: translateY(6px);
+  transition:
+    opacity 0.35s ease,
+    transform 0.45s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.formCardVisible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .triggerButton {
-  border: 1px dashed #444 !important;
-  background: #111 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  transform: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  margin: 0;
+  padding: 14px 18px;
+  border: 1px dashed #3a3a3a;
+  border-radius: 12px;
+  background: #101010;
+  color: #cfcfcf;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease;
 }
 
 .triggerButton:hover {
-  border-color: #22c55e !important;
-  background: rgba(34, 197, 94, 0.08) !important;
+  border-color: #555;
+  background: #161616;
+  color: #fff;
+}
+
+.triggerPlus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #1f1f1f;
+  border: 1px solid #333;
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  transition: background 0.25s ease;
+}
+
+.triggerButton:hover .triggerPlus {
+  background: #2a2a2a;
 }
 
 .buttonText {
-  font-size: 13px;
-  font-weight: 400;
-  color: #999;
+  font-size: 15px;
+  font-weight: 500;
 }
 
-.triggerButton:hover .buttonText {
-  color: #22c55e;
-}
-
-/* Header */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   padding-bottom: 12px;
   border-bottom: 1px solid #222;
 }
 
 .title {
-  font-size: 14px;
-  font-weight: 400;
-  color: #e5e5e5;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
   margin: 0;
 }
 
 .closeButton {
-  font-size: 11px !important;
-  padding: 4px 8px !important;
-  border-radius: 0 !important;
-  color: #666 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #888;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
 }
 
 .closeButton:hover {
-  color: #ef4444 !important;
-  border-color: #ef4444 !important;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
 }
 
-/* Content area */
 .contentArea {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
-/* Images grid */
 .imagesGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 12px;
-  margin-top: 16px;
+  gap: 10px;
+  margin-top: 14px;
 }
 
 .imageWrapper {
   position: relative;
   aspect-ratio: 1;
-  border: 1px solid #333;
-  border-radius: 0;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
   overflow: hidden;
 }
 
@@ -96,31 +156,33 @@
 
 .removeImageButton {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 24px !important;
-  height: 24px !important;
-  min-width: auto !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  background: #0f0f0f !important;
-  border: 1px solid #ef4444 !important;
-  color: #ef4444 !important;
-  font-size: 9px !important;
-  box-shadow: none !important;
-  transform: none !important;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid #3a3a3a;
+  background: rgba(16, 16, 16, 0.85);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .removeImageButton:hover {
-  background: rgba(239, 68, 68, 0.15) !important;
+  background: rgba(239, 68, 68, 0.9);
+  color: #fff;
 }
 
-/* Toolbar */
 .toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 16px;
+  gap: 12px;
+  padding-top: 14px;
   border-top: 1px solid #222;
 }
 
@@ -129,74 +191,73 @@
   gap: 8px;
 }
 
-/* ASCII icon */
-.iconAscii {
-  font-size: 10px;
-  color: #666;
-  font-weight: bold;
-  letter-spacing: 1px;
+.attachIcon {
+  flex-shrink: 0;
 }
 
 .attachmentButton {
-  border-radius: 0 !important;
-  border: 1px solid #333 !important;
-  background: transparent !important;
-  color: #666 !important;
-  font-size: 11px !important;
-  box-shadow: none !important;
-  transform: none !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #2a2a2a;
+  background: transparent;
+  color: #bdbdbd;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
 }
 
 .attachmentButton:hover {
-  border-color: #22c55e !important;
-  color: #22c55e !important;
-  background: rgba(34, 197, 94, 0.08) !important;
+  border-color: #444;
+  color: #fff;
+  background: #1a1a1a;
 }
 
-.fileInput { display: none; }
+.fileInput {
+  display: none;
+}
 
 .submitButton {
-  font-size: 12px !important;
-  padding: 8px 20px !important;
-  border-radius: 0 !important;
-  min-width: auto !important;
-  width: auto !important;
+  min-width: 140px !important;
+  border-radius: 12px !important;
 }
 
-/* Error message */
-.errorMessage {
-  margin-top: 12px;
-  padding: 8px 12px;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid #ef4444;
-  border-radius: 0;
-  color: #ef4444;
-  font-size: 11px;
-}
-
-/* Focus for a11y */
 .createPostCard:focus-within {
-  border-color: #22c55e;
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+  border-color: #3a3a3a;
 }
 
-/* Responsive */
 @media (max-width: 640px) {
   .imagesGrid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .toolbar {
     flex-direction: column;
-    gap: 12px;
     align-items: stretch;
   }
-  
+
   .toolbarLeft {
-    justify-content: center;
+    justify-content: flex-start;
   }
-  
+
   .submitButton {
     width: 100% !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot,
+  .formCard,
+  .triggerButton,
+  .triggerPlus,
+  .closeButton,
+  .attachmentButton,
+  .removeImageButton {
+    transition: none;
   }
 }

@@ -29,15 +29,26 @@
    ```
 
 2. Компонент не должен импортировать из `entities`, `feature`, `widget`, `page`.
-3. Добавить экспорт в `src/shared/ui/index.ts` и `src/shared/index.ts`.
+3. Стили на токенах `var(--color-*)` / `var(--radius-*)` / `var(--ease-out)`.
+4. Добавить экспорт в `src/shared/ui/index.ts` и при необходимости `src/shared/index.ts`.
+
+## Иконки действий
+
+Общие SVG: `src/shared/ui/icons/` (`UploadIcon`, `SearchIcon`, `LoadingIcon`, `CloseIcon`, `TrashIcon`, …).
+
+Доменные иконки (лайк/коммент/nav) могут оставаться локальными, но action UI (upload, search, loading) — из shared.
 
 ## Layouts
 
 | Компонент | Использование |
 |-----------|---------------|
-| `PageLayout` | Обёртка страниц: header, aside nav, footer, outlet |
-| `Headerlayouts` | Поиск, уведомления, logout |
+| `PageLayout` | Обёртка: AsidePageNav, main, footer; loading/error через Spinner |
 | `Footerlayouts` | Social links из env |
+| `AsidePageNav` | Основная навигация (fixed) |
+
+**Нет Headerlayouts** — шапка удалена; поиск/уведомления живут в feature-компонентах на страницах.
+
+**Выравнивание aside + content:** `--layout-inset-top` / `--layout-main-padding-*` на `:root`. `AsidePageNav` — `position: fixed; top: var(--layout-inset-top)`.
 
 ## Rate limit UI
 
@@ -46,13 +57,9 @@
 3. `useRateLimitCountdown` — обратный отсчёт для кнопок/форм.
 4. `ToastProvider` — глобальные уведомления (подключён в `App.tsx`).
 
-## SocketStatus
-
-Подписывается на `subscribeSocketStatus` из `app/lib/socket.ts`. Показывает connected / disconnected / reconnecting.
-
 ## Тесты
 
-Тесты для shared отсутствуют.
+Vitest + Testing Library. Shared UI без выделенных тестов; доменные тесты — в page/feature/entities (см. `npm test`).
 
 ## Troubleshooting
 
@@ -61,3 +68,4 @@
 | `[env] Missing required` | Скопировать `.env.example` → `.env`, заполнить все ключи |
 | `[env] must be a finite number` | Проверить числовые значения в `.env` |
 | Toast не показывается | Убедиться, что компонент внутри `ToastProvider` |
+| Шрифт не Inter | Проверить Google Fonts link в `index.html` и `--font-sans` |

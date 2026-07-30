@@ -1,17 +1,18 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  useGetChatsQuery, 
-  useGetMessagesQuery, 
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  useGetChatsQuery,
+  useGetMessagesQuery,
   useSendMessageMutation,
   useDeleteChatMutation,
   ChatData,
   MessageData,
-} from '@/entities/message/api/messagesApi';
-import { joinChatRoom, leaveChatRoom } from '@/app/lib/socket';
-import { useSocket } from '@/feature/socket';
-import { env } from '@/shared/config/env';
-import { useAppSelector } from '@/app/store/hooks';
-import { selectAccessToken } from '@/app/store/slices/authSlice';
+} from "@/entities/message/api/messagesApi";
+import { joinChatRoom, leaveChatRoom } from "@/app/lib/socket";
+import { useSocket } from "@/feature/socket";
+import { env } from "@/shared/config/env";
+import { useAppSelector } from "@/app/store/hooks";
+import { selectAccessToken } from "@/app/store/slices/authSlice";
 
 export type UseMessagePageReturn = {
   chats: ChatData[];
@@ -22,6 +23,7 @@ export type UseMessagePageReturn = {
   messages: MessageData[];
   isLoadingMessages: boolean;
   handleChatSelect: (chatId: number) => void;
+  handleCloseChat: () => void;
   handleSendMessage: (text: string) => Promise<void>;
   handleLoadMessages: (before?: string) => Promise<MessageData[]>;
   handleDeleteChat: () => Promise<void>;
@@ -30,18 +32,25 @@ export type UseMessagePageReturn = {
   closeMobileSidebar: () => void;
 };
 
-export const useMessagePage = (currentUserId?: number): UseMessagePageReturn => {
-  const [activeChatId, setActiveChatId] = useState<number | null>(null);
+export const useMessagePage = (
+  currentUserId?: number
+): UseMessagePageReturn => {
+  const { chatId: chatIdParam } = useParams<{ chatId?: string }>();
+  const navigate = useNavigate();
+  const parsedParam = chatIdParam ? Number(chatIdParam) : NaN;
+  const urlChatId =
+    Number.isFinite(parsedParam) && parsedParam > 0 ? parsedParam : null;
+
+  const [activeChatId, setActiveChatId] = useState<number | null>(urlChatId);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const accessToken = useAppSelector(selectAccessToken);
-  
-  // RTK Query
-  const { 
-    data: chats = [], 
+
+  const {
+    data: chats = [],
     isLoading: isLoadingChats,
     refetch: refetchChats,
   } = useGetChatsQuery({ limit: 50, offset: 0 });
-  
+
   const {
     data: messages = [],
     isLoading: isLoadingMessages,
@@ -49,65 +58,59 @@ export const useMessagePage = (currentUserId?: number): UseMessagePageReturn => 
     refetch: refetchMessages,
   } = useGetMessagesQuery(
     { chatId: activeChatId!, limit: 50 },
-    { 
+    {
       skip: !activeChatId,
-      refetchOnMountOrArgChange: true
+      refetchOnMountOrArgChange: true,
     }
   );
-  
+
   const [sendMessage, { isLoading: isSending }] = useSendMessageMutation();
   const [deleteChat] = useDeleteChatMutation();
-  
+
   const activeChatIdRef = useRef(activeChatId);
-  
+
   useEffect(() => {
     activeChatIdRef.current = activeChatId;
   }, [activeChatId]);
 
-  // WebSocket: новое сообщение в активном чате
-  useSocket('message:new', (message: MessageData) => {
+  useEffect(() => {
+    setActiveChatId(urlChatId);
+  }, [urlChatId]);
+
+  useSocket("message:new", (message: MessageData) => {
     if (message.chatId === activeChatIdRef.current) {
       refetchMessages();
     }
     refetchChats();
   });
 
-  //WebSocket: создан новый чат (для ОБЕИХ сторон!)
-  useSocket('chat:created', (data: { 
-    chatId: number; 
-    participantIds: number[];
-    chatName?: string | null;
-    isGroup?: boolean;
-  }) => {
-    console.log("Received chat:created:", data);
-    refetchChats();
-    
-    //Если текущий пользователь — участник чата, авто-присоединяемся к комнате
-    if (currentUserId && data.participantIds.includes(currentUserId)) {
-      joinChatRoom(data.chatId);
-      
-      //Опционально: авто-открываем чат, если он только что создан с нами
-      // (уберите этот блок, если не хотите авто-переключение)
-      if (!activeChatIdRef.current) {
-        setActiveChatId(data.chatId);
+  useSocket(
+    "chat:created",
+    (data: {
+      chatId: number;
+      participantIds: number[];
+      chatName?: string | null;
+      isGroup?: boolean;
+    }) => {
+      refetchChats();
+      if (currentUserId && data.participantIds.includes(currentUserId)) {
+        joinChatRoom(data.chatId);
       }
     }
-  });
+  );
 
-  //WebSocket: чат удалён
-  useSocket('chat:deleted', (data: { chatId: number }) => {
+  useSocket("chat:deleted", (data: { chatId: number }) => {
     if (data.chatId === activeChatIdRef.current) {
       setActiveChatId(null);
+      navigate("/messages", { replace: true });
     }
     refetchChats();
   });
 
-  // WebSocket: пользователь покинул чат
-  useSocket('user:left', (_data: { chatId: number; userId: number }) => {
-    refetchChats(); // Обновляем список (если нужно показать, что участник ушёл)
+  useSocket("user:left", () => {
+    refetchChats();
   });
 
-  // Подписка/отписка от комнат чатов
   useEffect(() => {
     if (activeChatId) {
       joinChatRoom(activeChatId);
@@ -119,63 +122,85 @@ export const useMessagePage = (currentUserId?: number): UseMessagePageReturn => 
     };
   }, [activeChatId]);
 
-  const handleChatSelect = useCallback((chatId: number) => {
-    setActiveChatId(chatId);
+  const handleChatSelect = useCallback(
+    (chatId: number) => {
+      setActiveChatId(chatId);
+      setIsMobileSidebarOpen(false);
+      navigate(`/messages/${chatId}`);
+    },
+    [navigate]
+  );
+
+  const handleCloseChat = useCallback(() => {
+    setActiveChatId(null);
     setIsMobileSidebarOpen(false);
-  }, []);
+    navigate("/messages");
+  }, [navigate]);
 
-  const handleSendMessage = useCallback(async (text: string) => {
-    if (!activeChatId || !text.trim()) return;
-    
-    try {
-      await sendMessage({ chatId: activeChatId, content: text.trim() }).unwrap();
-    } catch (error) {
-      console.error('❌ Failed to send message:', error);
-      throw error;
-    }
-  }, [activeChatId, sendMessage]);
+  const handleSendMessage = useCallback(
+    async (text: string) => {
+      if (!activeChatId || !text.trim()) return;
 
-  const handleLoadMessages = useCallback(async (before?: string): Promise<MessageData[]> => {
-    if (!activeChatId) return [];
-    
-    const params = new URLSearchParams({ limit: env.messages.defaultMessageLimit.toString() });
-    if (before) params.append('before', before);
-    
-    try {
-      const response = await fetch(
-        `${env.apiUrl}/api/messages/${activeChatId}?${params}`,
-        {
-          credentials: 'include',
-          headers: {
-            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      try {
+        await sendMessage({
+          chatId: activeChatId,
+          content: text.trim(),
+        }).unwrap();
+      } catch (error) {
+        console.error("Failed to send message:", error);
+        throw error;
       }
-      
-      const result = await response.json();
-      return result.data || [];
-    } catch (error) {
-      console.error('❌ Failed to load messages:', error);
-      return [];
-    }
-  }, [activeChatId, accessToken]);
+    },
+    [activeChatId, sendMessage]
+  );
+
+  const handleLoadMessages = useCallback(
+    async (before?: string): Promise<MessageData[]> => {
+      if (!activeChatId) return [];
+
+      const params = new URLSearchParams({
+        limit: env.messages.defaultMessageLimit.toString(),
+      });
+      if (before) params.append("before", before);
+
+      try {
+        const response = await fetch(
+          `${env.apiUrl}/api/messages/${activeChatId}?${params}`,
+          {
+            credentials: "include",
+            headers: {
+              ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        return result.data || [];
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+        return [];
+      }
+    },
+    [activeChatId, accessToken]
+  );
 
   const handleDeleteChat = useCallback(async () => {
     if (!activeChatId) return;
-    
+
     try {
       await deleteChat({ chatId: activeChatId }).unwrap();
       setActiveChatId(null);
+      navigate("/messages", { replace: true });
     } catch (error) {
-      console.error('Failed to delete chat:', error);
+      console.error("Failed to delete chat:", error);
       throw error;
     }
-  }, [activeChatId, deleteChat]);
+  }, [activeChatId, deleteChat, navigate]);
 
   const toggleMobileSidebar = useCallback(() => {
     setIsMobileSidebarOpen((prev) => !prev);
@@ -196,6 +221,7 @@ export const useMessagePage = (currentUserId?: number): UseMessagePageReturn => 
     messages,
     isLoadingMessages: isLoadingMessages || isFetchingMessages || isSending,
     handleChatSelect,
+    handleCloseChat,
     handleSendMessage,
     handleLoadMessages,
     handleDeleteChat,

@@ -1,134 +1,84 @@
-/* Base message — terminal chat row */
 .message {
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;
-  gap: 12px;
-  max-width: 75%;
-  margin-bottom: 8px;
-  font-family: 'Courier New', Courier, monospace;
+  margin-bottom: 10px;
+  font-family: "Inter", sans-serif;
+  animation: msgIn 0.35s var(--ease) both;
 }
 
-/* Alignment */
-.message.other { align-self: flex-start; flex-direction: row; }
-.message.me { align-self: flex-end; flex-direction: row-reverse; }
-
-/* Avatar wrapper */
-.avatarWrapper {
-  flex-shrink: 0;
-  align-self: flex-end;
+@keyframes msgIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 4px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
-.avatar,
-.avatarPlaceholder {
-  width: 32px;
-  height: 32px;
-  border: 1px solid #333;
-  object-fit: cover;
-  display: block;
-  border-radius: 0;
+.me {
+  justify-content: flex-end;
 }
 
-.avatarPlaceholder {
-  background: #1a1a1a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  color: #666;
+.other {
+  justify-content: flex-start;
 }
 
-/* Message bubble — terminal box style */
 .bubble {
-  padding: 10px 14px;
-  border: 1px solid #333;
-  border-radius: 0;
-  font-size: 12px;
-  line-height: 1.5;
-  word-break: break-word;
-  background: #111;
-  color: #e5e5e5;
+  max-width: min(72%, 520px);
+  padding: 12px 14px 8px;
+  border-radius: 14px;
+  background: #1c1c1c;
+  border: 1px solid #2a2a2a;
 }
 
-/* Other user bubble */
-.other .bubble {
-  border-left: 2px solid #444;
-}
-
-/* My message bubble */
 .me .bubble {
-  border-right: 2px solid #22c55e;
-  background: rgba(34, 197, 94, 0.08);
-  color: #e5e5e5;
+  background: #222;
+  border-color: #333;
 }
 
-/* Sender name */
-.senderName {
-  font-size: 10px;
-  font-weight: 400;
-  color: #666;
-  margin-bottom: 6px;
+.error .bubble {
+  border-color: #7f1d1d;
 }
 
-.me .senderName {
-  text-align: right;
-  color: #22c55e;
-}
-
-/* Message text */
 .text {
+  color: #f0f0f0;
+  font-size: 14px;
+  line-height: 1.45;
   white-space: pre-wrap;
-  color: #999;
+  word-break: break-word;
 }
 
-/* Meta: timestamp + status */
 .meta {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 9px;
-  margin-top: 8px;
-  color: #444;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 6px;
 }
-
-.other .meta { justify-content: flex-start; }
-.me .meta { justify-content: flex-end; }
 
 .timestamp {
-  color: #444;
+  font-size: 11px;
+  color: #8a8a8a;
 }
 
-/* Status indicators — ASCII style */
-.status {
-  font-size: 9px;
-  font-weight: bold;
+.ticks {
+  font-size: 11px;
+  color: #8a8a8a;
+  letter-spacing: -1px;
 }
 
-.statusSent { color: #444; }
-.statusDelivered { color: #22c55e; }
-.statusRead { color: #22c55e; font-weight: bold; }
-.statusError { color: #ef4444; }
-
-/* Error state */
-.message.error .bubble {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.08);
+.ticksRead {
+  color: #60a5fa;
 }
 
-.message.error .text { color: #fca5a5; }
-.message.error .meta { color: #ef4444; }
-
-/* Hover effect for interactivity */
-.message:hover .bubble {
-  border-color: #444;
+.ticksError {
+  color: #ef4444;
 }
 
-/* Focus for a11y */
-.message:focus-visible {
-  outline: 2px solid #22c55e;
-  outline-offset: 2px;
-}
-
-/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  .message { transition: none !important; }
+  .message {
+    animation: none !important;
+  }
 }

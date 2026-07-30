@@ -9,77 +9,62 @@ type CommentDeleteProps = {
   onSuccess?: () => void;
 };
 
-const CommentDelete = ({ 
-  commentId, 
-  postId, 
-  onSuccess 
+const CommentDelete = ({
+  commentId,
+  postId,
+  onSuccess,
 }: CommentDeleteProps) => {
   const [showConfirm, setShowConfirm] = useState(false);
-  
-  const { 
-    handleDelete, 
-    isLoading, 
-    error, 
-    resetError 
-  } = useCommentDelete({ commentId, postId });
+
+  const { handleDelete, isLoading, error, resetError } = useCommentDelete({
+    commentId,
+    postId,
+  });
 
   const handleConfirm = useCallback(async () => {
-    await handleDelete();
-    if (!error) {
+    const ok = await handleDelete();
+    if (ok) {
       setShowConfirm(false);
       onSuccess?.();
     }
-  }, [handleDelete, error, onSuccess]);
+  }, [handleDelete, onSuccess]);
 
   const handleCancel = useCallback(() => {
     setShowConfirm(false);
     resetError();
   }, [resetError]);
 
-  // ASCII-иконки
-  const ICONS = {
-    trash: "[🗑]",
-    cross: "[×]",
-    warning: "[!]",
-    check: "[✓]",
-  };
-
   if (showConfirm) {
     return (
-      <div className={style.container}>
-        <div className={style.confirmBox}>
-          <p className={style.confirmText}>
-            {ICONS.warning} Удалить комментарий? {ICONS.warning}
+      <div className={style.confirmPanel} role="dialog" aria-label="Подтверждение удаления">
+        <p className={style.confirmText}>Удалить комментарий?</p>
+
+        {error && (
+          <p className={style.errorMessage} role="alert">
+            {error}
           </p>
-          
-          {error && (
-            <div className={style.errorAscii} role="alert">
-              <span className={style.errorIcon}>{ICONS.cross}</span>
-              <span className={style.errorMessage}>{error}</span>
-            </div>
-          )}
-          
-          <div className={style.confirmActions}>
-            <Button
-              variant="danger"
-              size="sm"
-              loading={isLoading}
-              onClick={handleConfirm}
-              className={style.confirmBtn}
-            >
-              Да, удалить
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={isLoading}
-              onClick={handleCancel}
-              className={style.cancelBtn}
-            >
-              Отмена
-            </Button>
-          </div>
+        )}
+
+        <div className={style.confirmActions}>
+          <Button
+            variant="danger"
+            size="sm"
+            loading={isLoading}
+            onClick={handleConfirm}
+            className={style.confirmBtn}
+          >
+            Да, удалить
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={isLoading}
+            onClick={handleCancel}
+            className={style.cancelBtn}
+          >
+            Отмена
+          </Button>
         </div>
       </div>
     );
@@ -98,7 +83,7 @@ const CommentDelete = ({
       aria-label="Удалить комментарий"
       title="Удалить комментарий"
     >
-      {ICONS.trash}
+      Удалить
     </Button>
   );
 };

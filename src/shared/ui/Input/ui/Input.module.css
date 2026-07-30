@@ -4,78 +4,107 @@
   flex-direction: column;
   gap: 8px;
   width: fit-content;
-  font-family: 'Courier New', Courier, monospace;
 }
 
-.wrapper_fullWidth { width: 100%; }
+.wrapper_fullWidth {
+  width: 100%;
+}
 
-/* Label — terminal prompt style */
 .label {
-  font-size: 13px;
-  font-weight: 400;
-  color: #22c55e;
-  margin-bottom: 4px;
-  letter-spacing: 0.5px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 0;
+  letter-spacing: 0;
 }
 
-/* Base input — terminal input box */
 .input {
   width: 100%;
-  padding: 10px 14px;
-  font-size: 13px;
-  line-height: 1.6;
-  color: #e5e5e5;
-  background: #0f0f0f;
-  border: 1px solid #333;
-  border-radius: 0;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  height: 48px;
+  margin: 0;
+  padding: 12px 16px;
   box-sizing: border-box;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--color-text);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition:
+    border-color var(--duration-fast) ease,
+    background var(--duration-fast) ease;
+}
+
+textarea.input {
+  height: auto;
+  min-height: 72px;
+  resize: vertical;
 }
 
 .input::placeholder {
-  color: #555;
-  font-style: italic;
+  color: var(--color-text-muted);
+  font-style: normal;
+}
+
+.input:hover:not(:disabled) {
+  border-color: #3a3a3a;
 }
 
 .input:focus {
-  border-color: #22c55e;
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+  border-color: var(--color-focus);
+  box-shadow: none;
 }
 
 .input:disabled {
-  background: #1a1a1a;
-  color: #555;
-  border-color: #222;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  border-color: #333;
   cursor: not-allowed;
+  opacity: 0.55;
 }
 
-/* Sizes */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-text);
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface-elevated) inset;
+  transition: background-color 99999s ease-in-out 0s;
+}
+
 .input_sm {
+  height: 40px;
   padding: 8px 12px;
-  font-size: 12px;
-}
-
-.input_lg {
-  padding: 12px 16px;
   font-size: 14px;
 }
 
-/* Variants */
+.input_md {
+  height: 48px;
+  padding: 12px 16px;
+  font-size: 16px;
+}
+
+.input_lg {
+  height: 56px;
+  padding: 14px 18px;
+  font-size: 18px;
+}
+
 .input_danger {
-  border-color: #ef4444;
+  border-color: var(--color-danger);
 }
 
 .input_danger:focus {
-  border-color: #ef4444;
+  border-color: var(--color-danger);
   box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
 }
 
-/* Icon container */
 .inputWrapper {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .icon {
@@ -83,43 +112,49 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
-  font-size: 11px;
+  color: var(--color-text-muted);
+  font-size: 14px;
   pointer-events: none;
 }
 
-.icon_left { left: 12px; }
+.icon_left {
+  left: 14px;
+}
 
 .icon_right {
-  right: 12px;
+  right: 14px;
   pointer-events: auto;
   cursor: pointer;
-  color: #666;
+  color: var(--color-text-muted);
   background: transparent;
   border: none;
   padding: 4px;
-  transition: color 0.2s ease;
+  transition: color var(--duration-fast) ease;
 }
 
-.icon_right:hover { color: #22c55e; }
+.icon_right:hover {
+  color: var(--color-text);
+}
 
-.icon_left + .input { padding-left: 32px; }
-.input + .icon_right { padding-right: 32px; }
+.icon_left + .input {
+  padding-left: 44px;
+}
 
-/* Error & helper messages */
+.inputWrapper:has(.icon_right) .input {
+  padding-right: 44px;
+}
+
 .error {
-  font-size: 11px;
-  color: #ef4444;
+  font-size: 12px;
+  color: var(--color-danger);
 }
 
 .helper {
-  font-size: 11px;
-  color: #666;
-  font-style: italic;
+  font-size: 12px;
+  color: var(--color-text-muted);
 }
 
-/* Focus accessibility */
 .input:focus-visible {
-  outline: 2px solid #22c55e;
-  outline-offset: 1px;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }

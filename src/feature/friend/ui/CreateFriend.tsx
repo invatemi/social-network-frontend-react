@@ -15,18 +15,17 @@ type CreateFriendProps = {
 /**
  * CreateFriend — кнопка управления дружбой
  */
-const CreateFriend = ({ 
-  targetUserId, 
-  initialStatus = 'none',
+const CreateFriend = ({
+  targetUserId,
+  initialStatus = "none",
   isRequestReceiver = false,
   className,
   currentUserId,
 }: CreateFriendProps): ReactElement => {
-  
-  const { 
-    status, 
+  const {
+    status,
     isFollowing,
-    isLoading, 
+    isLoading,
     error,
     handleAddFriend,
     handleCancelRequest,
@@ -37,42 +36,42 @@ const CreateFriend = ({
   } = useCreateFriend(targetUserId, initialStatus, undefined, currentUserId);
 
   const buttonText = useMemo(() => {
-    if (status === 'friends') return '[friends]';
-    if (status === 'pending') {
-      if (isRequestReceiver) return '[accept]';
-      return '[pending]';
+    if (status === "friends") return "В друзьях";
+    if (status === "pending") {
+      if (isRequestReceiver) return "Принять";
+      return "Заявка отправлена";
     }
-    if (isFollowing) return '[following]';
-    return '[add_friend]';
+    if (isFollowing) return "Вы подписаны";
+    return "Добавить в друзья";
   }, [status, isFollowing, isRequestReceiver]);
 
   const renderButton = () => {
     if (isLoading) {
       return (
-        <Button variant="secondary" size="sm" disabled className={className}>
-          {`[loading...]`}
+        <Button variant="secondary" size="sm" loading disabled className={className}>
+          Загрузка
         </Button>
       );
     }
 
     if (error) {
       return (
-        <Button 
-          variant="secondary" 
-          size="sm" 
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => window.location.reload()}
           className={`${className} ${style.error}`}
         >
-          {`! retry`}
+          Повторить
         </Button>
       );
     }
 
-    if (status === 'friends') {
+    if (status === "friends") {
       return (
-        <Button 
-          variant="secondary" 
-          size="sm" 
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={handleRemoveFriend}
           className={`${className} ${style.friends}`}
         >
@@ -81,11 +80,11 @@ const CreateFriend = ({
       );
     }
 
-    if (status === 'pending' && !isRequestReceiver) {
+    if (status === "pending" && !isRequestReceiver) {
       return (
-        <Button 
-          variant="secondary" 
-          size="sm" 
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={handleCancelRequest}
           className={`${className} ${style.pending}`}
         >
@@ -94,33 +93,33 @@ const CreateFriend = ({
       );
     }
 
-    if (status === 'pending' && isRequestReceiver) {
+    if (status === "pending" && isRequestReceiver) {
       return (
         <div className={`${className} ${style.requestGroup}`}>
-          <Button 
-            variant="success" 
-            size="sm" 
+          <Button
+            variant="success"
+            size="sm"
             onClick={handleAcceptRequest}
             className={style.accept}
           >
-            {`[OK]`}
+            Принять
           </Button>
-          <Button 
-            variant="danger" 
-            size="sm" 
+          <Button
+            variant="danger"
+            size="sm"
             onClick={handleDeclineRequest}
             className={style.decline}
           >
-            {`[X]`}
+            Отклонить
           </Button>
         </div>
       );
     }
 
     return (
-      <Button 
-        variant="secondary" 
-        size="sm" 
+      <Button
+        variant="secondary"
+        size="sm"
         onClick={isFollowing ? handleUnfollow : handleAddFriend}
         className={`${className} ${style.add}`}
       >

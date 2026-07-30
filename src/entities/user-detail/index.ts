@@ -1,6 +1,0 @@
-export { default as ChangePasswordCard } from "./ui/ChangePasswordCard/ChangePasswordCard"
-export { default as DescriptionCard } from "./ui/DescriptionCard/DescriptionCard"
-export { default as EmailCard } from "./ui/EmailCard/EmailCard"
-export { default as LocationCard } from "./ui/LocationCard/LocationCard"
-export { default as PasswordConfirmCard } from "./ui/PasswordConfirmCard/PasswordConfirmCard"
-export { default as UsernameCard } from "./ui/UsernameCard/UsernameCard"

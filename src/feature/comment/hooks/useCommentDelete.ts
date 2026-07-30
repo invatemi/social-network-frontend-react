@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useDeleteCommentMutation } from "@/entities/comment/api";
 
 export type UseCommentDeleteReturn = {
-  handleDelete: () => Promise<void>;
+  handleDelete: () => Promise<boolean>;
   isLoading: boolean;
   error: string | null;
   resetError: () => void;
@@ -19,12 +19,13 @@ export const useCommentDelete = (
   const handleDelete = useCallback(async () => {
     if (!commentId || !postId) {
       setError("Ошибка: не указан ID комментария или поста");
-      return;
+      return false;
     }
 
     try {
       setError(null);
       await deleteComment({ commentId, postId }).unwrap();
+      return true;
     } catch (err) {
       const error = err as {
         data?: { error?: { message?: string; code?: string }; message?: string; code?: string };
@@ -40,6 +41,7 @@ export const useCommentDelete = (
       else if (error?.data?.message) message = error.data.message;
 
       setError(message);
+      return false;
     }
   }, [commentId, postId, deleteComment]);
 

@@ -5,21 +5,28 @@ import style from "./FollowerList.module.css";
 /**
  * FollowerList — список подписчиков
  */
-const FollowerList = ({ followers }: FollowerListProps) => {
+const FollowerList = ({
+  followers,
+  onMessageClick,
+  emptyTitle = "Нет подписок",
+}: FollowerListProps) => {
   if (followers.length === 0) {
     return (
       <div className={style.empty}>
-        <span className={style.emptyIcon}>{`[∅]`}</span>
-        <p>{`// no_followers`}</p>
-        <span className={style.emptyHint}>{`> publish_content_to_attract`}</span>
+        <p className={style.emptyTitle}>{emptyTitle}</p>
+        <span className={style.emptyHint}>Попробуйте изменить поиск или фильтр</span>
       </div>
     );
   }
 
   return (
-    <div className={style.grid}>
+    <div className={style.list}>
       {followers.map((follower) => (
-        <FollowerCard key={follower.id} {...follower} />
+        <FollowerCard
+          key={follower.id}
+          {...follower}
+          onMessageClick={onMessageClick}
+        />
       ))}
     </div>
   );

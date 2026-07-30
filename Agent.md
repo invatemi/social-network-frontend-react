@@ -37,7 +37,10 @@ docs/
 ├── auth/
 │   ├── overview.md
 │   └── instructions.md
-└── messaging/
+├── messaging/
+│   ├── overview.md
+│   └── instructions.md
+└── photos/
     ├── overview.md
     └── instructions.md
 ```
@@ -107,8 +110,15 @@ docs/
 
 | Файл | Описание |
 |------|----------|
-| [docs/messaging/overview.md](docs/messaging/overview.md) | Чаты, сообщения, socket-события, useMessagePage. |
-| [docs/messaging/instructions.md](docs/messaging/instructions.md) | Создание чата, отправка, infinite scroll, troubleshooting WS. |
+| [docs/messaging/overview.md](docs/messaging/overview.md) | Чаты, MessagesView, socket, useMessagePage, визуальные токены. |
+| [docs/messaging/instructions.md](docs/messaging/instructions.md) | Сценарии, CreateChat labeled, тесты Vitest, troubleshooting WS. |
+
+### photos
+
+| Файл | Описание |
+|------|----------|
+| [docs/photos/overview.md](docs/photos/overview.md) | Галерея /photos, PhotosView, локальные preview. |
+| [docs/photos/instructions.md](docs/photos/instructions.md) | Upload UI-only, группировка по годам, тесты. |
 
 ## Инфраструктура (вне `/docs`)
 
@@ -123,7 +133,11 @@ docs/
 
 ## Стек (кратко)
 
-React 19 · TypeScript · Vite 8 · React Router 7 · Redux Toolkit · RTK Query · Socket.IO Client · Zod · CSS Modules · Headless UI
+React 19 · TypeScript · Vite 8 · React Router 7 · Redux Toolkit · RTK Query · Socket.IO Client · Zod · CSS Modules · Headless UI · Vitest
+
+## UI-система
+
+Единая тёмная flat-тема: токены в `src/app/style/index.css`, Inter (Google Fonts), shared UI-kit (`Button`, `Input`, `Spinner`, icons). Auth — flat card без Three.js. Документация токенов: [docs/shared/overview.md](docs/shared/overview.md).
 
 ## URL и порты по умолчанию
 

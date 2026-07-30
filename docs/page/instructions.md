@@ -47,19 +47,48 @@ export const ExamplePage = () => {
 
 ### MessagePage
 
-- Хук `useMessagePage` — оркестрация чатов, сообщений, socket
-- `chatId` из URL params
+- Хук `useMessagePage` — оркестрация чатов, сообщений, socket, **sync с `/messages/:chatId`**
+- Layout-shell: `src/page/shared/MessagesView/` (как `PeopleRelationsView` для друзей)
+- Idle: список чатов + labeled CTA «Новый чат»; active: 3 колонки (список / тред / `ChatDetailsPanel`)
 - См. также [docs/messaging/](../messaging/overview.md)
+
+### PhotoPage
+
+- Роут `/photos`; сайдбар «Фото» → `/photos` (профиль остаётся на `/user`)
+- Layout-shell: `src/page/shared/PhotosView/`
+- Хук `usePhotoPage` — локальные object URL, группировка по годам; **без server persistence**
+- См. также [docs/photos/](../photos/overview.md)
+
+### FriendPage / FollowerPage
+
+Общий shell: `src/page/shared/PeopleRelationsView/` (поиск, табы Все/Онлайн, правое сабменю).
+
+- `/friends`, `/friends/:userId?` — друзья; `?section=requests` — входящие заявки (только без `userId`)
+- `/followers`, `/followers/:userId?` — подписки
+- Online-фильтр — клиентский, через `presenceSlice`
+- Поиск — клиентский по `username`
+- Карточки: `FriendCard` / `FollowerCard` (online-dot, «Написать сообщение» → createChat)
+
+Страницы визуально близнецы; отличаются данными и `activeSection` сабменю.
 
 ## Бизнес-правила
 
 - Protected pages не рендерятся до `isAuthInitialized` и `isAuthenticated`.
 - `PublicPage` использует `userId` из `useParams`.
-- `FriendPage` / `FollowerPage` — опциональный `userId` в URL.
+- `FriendPage` / `FollowerPage` — опциональный `userId` в URL; `section=requests` не использовать вместе с `:userId`.
 
 ## Тесты
 
-Тесты для page отсутствуют.
+```bash
+npm test
+```
+
+- `src/page/shared/MessagesView/MessagesView.test.tsx`
+- `src/page/MessagePage/lib/useMessagePage.test.ts`
+- `src/page/shared/PhotosView/PhotosView.test.tsx`
+- `src/page/PhotoPage/lib/usePhotoPage.test.ts`
+
+Остальные page-слайсы без тестов.
 
 ## Troubleshooting
 

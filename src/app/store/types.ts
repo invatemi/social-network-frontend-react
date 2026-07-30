@@ -10,8 +10,13 @@ type AuthState = {
   isAuthInitialized: boolean;
 };
 
+type PresenceState = {
+  byUserId: Record<string, boolean>;
+};
+
 export type RootState = {
   auth: AuthState;
+  presence: PresenceState;
   [baseApi.reducerPath]: ReturnType<typeof baseApi.reducer>;
 };
 

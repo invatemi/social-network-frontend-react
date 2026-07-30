@@ -89,6 +89,77 @@ export const patchPostInCaches = (
   }
 };
 
+/** Оптимистичный toggle лайка; возвращает предыдущие значения для отката. */
+export const optimisticToggleLikeInCaches = (
+  dispatch: AppDispatch,
+  state: PostCacheState,
+  postId: number
+): { likesCount: number; isLiked: boolean } | null => {
+  const api = getPostApiClient();
+  let snapshot: { likesCount: number; isLiked: boolean } | null = null;
+
+  const apply = (posts: CachePost[]) => {
+    const post = posts.find((item) => item.id === postId);
+    if (!post) return;
+    if (!snapshot) {
+      snapshot = { likesCount: post.likesCount, isLiked: Boolean(post.isLiked) };
+    }
+    const nextLiked = !post.isLiked;
+    post.isLiked = nextLiked;
+    post.likesCount = Math.max(0, post.likesCount + (nextLiked ? 1 : -1));
+  };
+
+  for (const args of api.util.selectCachedArgsForQuery(state, 'getFeedPosts')) {
+    dispatch(
+      api.util.updateQueryData('getFeedPosts', args, (draft) => {
+        apply(draft.posts);
+      }) as Parameters<AppDispatch>[0]
+    );
+  }
+
+  for (const args of api.util.selectCachedArgsForQuery(state, 'getPosts')) {
+    dispatch(
+      api.util.updateQueryData('getPosts', args, (draft) => {
+        apply(draft.posts);
+      }) as Parameters<AppDispatch>[0]
+    );
+  }
+
+  return snapshot;
+};
+
+/** Сдвигает commentsCount в кэше ленты/постов (для мгновенной анимации счётчика). */
+export const bumpCommentsCountInCaches = (
+  dispatch: AppDispatch,
+  state: PostCacheState,
+  postId: number,
+  delta: number
+): void => {
+  const api = getPostApiClient();
+
+  const bump = (posts: CachePost[]) => {
+    const post = posts.find((item) => item.id === postId);
+    if (!post) return;
+    post.commentsCount = Math.max(0, post.commentsCount + delta);
+  };
+
+  for (const args of api.util.selectCachedArgsForQuery(state, 'getFeedPosts')) {
+    dispatch(
+      api.util.updateQueryData('getFeedPosts', args, (draft) => {
+        bump(draft.posts);
+      }) as Parameters<AppDispatch>[0]
+    );
+  }
+
+  for (const args of api.util.selectCachedArgsForQuery(state, 'getPosts')) {
+    dispatch(
+      api.util.updateQueryData('getPosts', args, (draft) => {
+        bump(draft.posts);
+      }) as Parameters<AppDispatch>[0]
+    );
+  }
+};
+
 export const removePostFromCaches = (
   dispatch: AppDispatch,
   state: PostCacheState,

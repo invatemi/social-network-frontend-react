@@ -1,20 +1,12 @@
-/* Base list — terminal search results */
 .userList {
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding: 8px;
-  background: #0f0f0f;
-  font-family: 'Courier New', Courier, monospace;
+  background: var(--color-surface);
 }
 
-/* Focus for a11y */
 .userList:focus-visible {
-  outline: 2px solid #22c55e;
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
-}
-
-/* Reduced motion preference */
-@media (prefers-reduced-motion: reduce) {
-  .userList { transition: none !important; }
 }

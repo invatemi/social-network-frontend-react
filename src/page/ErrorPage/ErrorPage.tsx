@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { PageLayout } from "@/shared";
+import { Button, PageLayout } from "@/shared";
 import style from "./ErrorPage.module.css";
 
 /**
@@ -16,18 +16,18 @@ const ErrorPage = (): ReactElement => {
       hideFooter={true}
       hideAside={true}
     >
-      <span className={style.errorCode}>{`[404]`}</span>
-      <h1 className={style.title}>{`> page_not_found`}</h1>
+      <span className={style.errorCode}>404</span>
+      <h1 className={style.title}>Страница не найдена</h1>
       <p className={style.description}>
-        {`// requested_page_removed_or_unavailable`}
+        Запрашиваемая страница удалена или недоступна.
       </p>
       <div className={style.actions}>
-        <button className={style.btnHome} onClick={goHome}>
-          {`[home]`}
-        </button>
-        <button className={style.btnBack} onClick={goBack}>
-          {`[<] back`}
-        </button>
+        <Button variant="primary" size="md" onClick={goHome}>
+          На главную
+        </Button>
+        <Button variant="secondary" size="md" onClick={goBack}>
+          Назад
+        </Button>
       </div>
     </PageLayout>
   );

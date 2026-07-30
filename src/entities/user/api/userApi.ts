@@ -9,6 +9,7 @@ type UserDto = {
   username?: string;
   email: string;
   avatarUrl?: string | null;
+  coverUrl?: string | null;
   bio?: string | null;
   location?: string | null;
   createdAt?: string;
@@ -27,7 +28,7 @@ type UserProfileResponseDto = UserDto | {
 };
 
 type UpdateProfileRequest = Partial<
-  Pick<UserProfile, "username" | "email" | "avatarUrl" | "bio" | "location">
+  Pick<UserProfile, "username" | "email" | "avatarUrl" | "coverUrl" | "bio" | "location">
 >;
 
 type UpdateProfileDtoResponse = {
@@ -67,6 +68,7 @@ const normalizeUserProfile = (user: UserDto): UserProfile => ({
   username: user.username ?? user.name ?? user.email,
   email: user.email,
   avatarUrl: user.avatarUrl ?? null,
+  coverUrl: user.coverUrl ?? null,
   bio: user.bio ?? "",
   location: user.location ?? "",
   memberSince: user.createdAt,
@@ -88,6 +90,7 @@ const toUpdateProfileBody = (profile: UpdateProfileRequest) => ({
   ...(profile.username !== undefined ? { name: profile.username } : {}),
   ...(profile.email !== undefined ? { email: profile.email } : {}),
   ...(profile.avatarUrl !== undefined ? { avatarUrl: profile.avatarUrl } : {}),
+  ...(profile.coverUrl !== undefined ? { coverUrl: profile.coverUrl } : {}),
   ...(profile.bio !== undefined ? { bio: profile.bio } : {}),
   ...(profile.location !== undefined ? { location: profile.location } : {}),
 });
@@ -149,7 +152,7 @@ export const userApi = baseApi.injectEndpoints({
         user: normalizeUserProfile(response.user),
         changedFields: response.changedFields ?? [],
       }),
-      invalidatesTags: ["User"],
+      invalidatesTags: ["User", "UserMe", "Photos"],
       
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {

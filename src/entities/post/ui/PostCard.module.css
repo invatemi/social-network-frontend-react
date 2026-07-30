@@ -1,19 +1,16 @@
-/* Base card — terminal post block */
 .postCard {
-  background: #111;
-  border: 1px solid #333;
-  border-radius: 0;
+  background: #101010;
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
   padding: 16px;
-  margin-bottom: 16px;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Inter', sans-serif;
   transition: border-color 0.2s ease;
 }
 
 .postCard:hover {
-  border-color: #444;
+  border-color: #3a3a3a;
 }
 
-/* Header */
 .postHeader {
   display: flex;
   justify-content: space-between;
@@ -22,15 +19,12 @@
   gap: 12px;
 }
 
-/* Delete button */
 .deleteButton {
   opacity: 0;
-  transition: opacity 0.2s ease;
-  font-size: 9px !important;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  color: #888 !important;
+  height: auto !important;
   padding: 4px 8px !important;
-  border-radius: 0 !important;
-  color: #666 !important;
-  border-color: #444 !important;
 }
 
 .postCard:hover .deleteButton {
@@ -39,11 +33,9 @@
 
 .deleteButton:hover {
   color: #ef4444 !important;
-  border-color: #ef4444 !important;
-  background: rgba(239, 68, 68, 0.1) !important;
+  background: transparent !important;
 }
 
-/* Author info */
 .authorInfo {
   display: flex;
   align-items: center;
@@ -59,10 +51,10 @@
 .authorAvatarPlaceholder {
   width: 40px;
   height: 40px;
-  border: 1px solid #333;
+  border: 1px solid #2a2a2a;
   object-fit: cover;
   display: block;
-  border-radius: 0;
+  border-radius: 50%;
 }
 
 .authorAvatarPlaceholder {
@@ -70,9 +62,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  font-weight: bold;
-  color: #666;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
 }
 
 .authorDetails {
@@ -82,39 +74,32 @@
 }
 
 .authorName {
-  font-weight: 400;
-  color: #e5e5e5;
-  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  font-size: 15px;
 }
 
-.postDate {
-  font-size: 10px;
-  color: #555;
-}
-
-/* Content */
 .postContent {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .postText {
-  color: #999;
-  line-height: 1.6;
+  color: #fff;
+  line-height: 1.55;
   white-space: pre-wrap;
-  font-size: 12px;
+  font-size: 15px;
+  margin: 0;
 }
 
-/* Gallery */
 .postGallery {
-  margin-bottom: 16px;
-  border: 1px solid #333;
-  border-radius: 0;
+  margin-bottom: 14px;
+  border-radius: 14px;
   overflow: hidden;
 }
 
 .postImageSingle {
   width: 100%;
-  max-height: 400px;
+  max-height: 420px;
   object-fit: cover;
   display: block;
 }
@@ -130,94 +115,152 @@
   width: 100%;
   aspect-ratio: 1;
   object-fit: cover;
-  border: 1px solid #222;
 }
 
 .postImageMore {
   position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background: #0f0f0f;
-  color: #666;
-  padding: 4px 8px;
-  border: 1px solid #333;
-  border-radius: 0;
-  font-size: 10px;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(16, 16, 16, 0.9);
+  color: #fff;
+  padding: 6px 10px;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-/* Footer actions */
 .postFooter {
   display: flex;
-  gap: 16px;
-  padding-top: 12px;
-  border-top: 1px solid #222;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-.actionButton {
-  font-size: 10px !important;
-  padding: 4px 8px !important;
-  border-radius: 0 !important;
-  color: #666 !important;
-  border-color: #444 !important;
-  background: transparent !important;
-  gap: 6px !important;
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 
-.actionButton:hover {
-  color: #22c55e !important;
-  border-color: #22c55e !important;
-  background: rgba(34, 197, 94, 0.08) !important;
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #929292;
+  transition: opacity 0.2s ease, transform 0.15s ease;
 }
 
-.actionButton.liked {
-  color: #ef4444 !important;
-  border-color: #ef4444 !important;
+.iconButton:hover:not(:disabled) {
+  opacity: 0.85;
 }
 
-.actionButton.liked:hover {
-  background: rgba(239, 68, 68, 0.1) !important;
+.iconButton:active:not(:disabled) {
+  transform: scale(0.94);
 }
 
-/* ASCII icons */
-.iconAscii {
-  font-size: 9px;
-  font-weight: bold;
-  color: inherit;
-  letter-spacing: 0.5px;
+.iconButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
-.iconAscii.liked {
-  color: #ef4444;
+.iconButtonActive svg path {
+  fill: #cfcfcf;
 }
 
-/* Animations — minimal */
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+.liked svg path {
+  fill: #ef4444;
 }
 
-.animating {
-  animation: pulse 0.4s ease-in-out;
+.likeIconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
 }
 
-/* Focus for a11y */
-.postCard:focus-visible,
-.authorInfo:focus-visible,
-.actionButton:focus-visible {
-  outline: 2px solid #22c55e;
+.likeIcon {
+  transform-origin: center;
+  transition: transform 0.15s ease;
+}
+
+.likeBurst .likeIcon {
+  animation: likePop 0.32s ease;
+}
+
+@keyframes likePop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.footerTime {
+  font-size: 13px;
+  color: #888;
+  white-space: nowrap;
+}
+
+.commentsSection {
+  background: #0c0c0c;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.commentsSectionToggle {
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.commentsSectionToggle:hover {
+  border-color: #3a3a3a;
+}
+
+.commentsSectionToggle:focus-visible {
+  outline: 2px solid #a8a8a8;
   outline-offset: 2px;
 }
 
-/* Reduced motion preference */
-@media (prefers-reduced-motion: reduce) {
-  .postCard, .deleteButton, .actionButton {
-    transition: none !important;
-  }
-  .animating { animation: none !important; }
+.postCard:focus-visible,
+.authorInfo:focus-visible,
+.iconButton:focus-visible {
+  outline: 2px solid #a8a8a8;
+  outline-offset: 2px;
 }
 
-/* Responsive */
+@media (prefers-reduced-motion: reduce) {
+  .postCard,
+  .deleteButton,
+  .iconButton,
+  .likeIcon {
+    transition: none !important;
+  }
+
+  .likeBurst .likeIcon {
+    animation: none !important;
+  }
+}
+
 @media (max-width: 640px) {
-  .deleteButton { opacity: 1; }
-  .postFooter { gap: 12px; }
+  .deleteButton {
+    opacity: 1;
+  }
+
+  .actions {
+    gap: 14px;
+  }
 }

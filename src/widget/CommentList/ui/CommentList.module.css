@@ -1,121 +1,162 @@
-/* Base container — terminal comment section */
-.commentList {
-  background: #111;
-  border: 1px solid #333;
-  border-radius: 0;
+﻿.commentList {
+  display: block;
   overflow: hidden;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Inter', sans-serif;
 }
 
-/* Header with prompt */
-.title {
+.commentList.animating {
+  transition: height 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: height;
+}
+
+.measure {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 16px 12px;
-  margin: 0;
-  font-size: 14px;
-  font-weight: 400;
-  color: #e5e5e5;
-  border-bottom: 1px solid #222;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.prompt {
-  color: #22c55e;
-  font-weight: bold;
-  animation: blink 1.5s infinite;
-}
-
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
-.count {
-  margin-left: auto;
-  font-size: 11px;
-  color: #555;
-}
-
-/* Comments list */
 .list {
-  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.listExpanded {
+  max-height: 360px;
+}
+
+.listCollapsed {
+  max-height: none;
+}
+
+.listScrollable {
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }
 
-/* Empty state */
+.formWrap {
+  flex-shrink: 0;
+}
+
+.item {
+  opacity: 1;
+}
+
+.itemLeaving {
+  animation: commentLeave 0.34s ease forwards;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.extraItem {
+  opacity: 0;
+  animation: commentIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform-origin: top;
+}
+
+.extraItemClosing {
+  animation: commentOut 0.32s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+@keyframes commentIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes commentOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes commentLeave {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 200px;
+    margin-bottom: 0;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+    max-height: 0;
+    margin-bottom: -14px;
+  }
+}
+
 .empty {
-  padding: 24px 16px;
-  text-align: center;
-  color: #555;
-  font-size: 11px;
-  font-style: italic;
+  padding: 4px 0 8px;
+  color: #888;
+  font-size: 14px;
 }
 
-/* Loading state — ASCII style */
+.empty p {
+  margin: 0;
+}
+
 .loading {
-  padding: 24px 16px;
-  text-align: center;
-  color: #555;
+  padding: 4px 0 8px;
+  color: #888;
+  font-size: 14px;
 }
 
-.spinnerAscii {
-  font-size: 11px;
-  color: #22c55e;
-  animation: blink 0.4s infinite;
-}
-
-/* Error state */
 .error {
-  padding: 24px 16px;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 4px 0 8px;
   color: #ef4444;
-  font-size: 11px;
+  font-size: 14px;
 }
 
-.retryBtn {
-  margin-top: 12px;
-  padding: 6px 16px;
-  background: transparent;
-  border: 1px solid #ef4444;
-  border-radius: 0;
-  color: #ef4444;
-  font-family: inherit;
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.error p {
+  margin: 0;
 }
 
-.retryBtn:hover {
-  background: rgba(239, 68, 68, 0.1);
-}
-
-/* Scrollbar — terminal style */
-.list::-webkit-scrollbar {
+.listScrollable::-webkit-scrollbar {
   width: 6px;
 }
 
-.list::-webkit-scrollbar-track {
-  background: #111;
+.listScrollable::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.list::-webkit-scrollbar-thumb {
+.listScrollable::-webkit-scrollbar-thumb {
   background: #333;
-  border-radius: 0;
+  border-radius: 8px;
 }
 
-.list::-webkit-scrollbar-thumb:hover {
-  background: #444;
+.listScrollable::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
-/* Focus for a11y */
-.retryBtn:focus-visible {
-  outline: 2px solid #22c55e;
-  outline-offset: 2px;
-}
-
-/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  .prompt, .spinnerAscii { animation: none !important; }
-  .retryBtn { transition: none !important; }
+  .commentList.animating {
+    transition: none;
+  }
+
+  .extraItem,
+  .extraItemClosing,
+  .itemLeaving {
+    opacity: 1;
+    animation: none;
+  }
+
+  .listScrollable {
+    scroll-behavior: auto;
+  }
 }

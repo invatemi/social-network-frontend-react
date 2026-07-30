@@ -9,6 +9,6 @@ export type FollowerCardProps = {
   id: number;
   username: string;
   avatarUrl: string | null;
-  followedSince: string;
+  followedSince?: string;
   onMessageClick?: (userId: number) => void;
 };

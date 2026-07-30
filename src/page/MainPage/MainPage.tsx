@@ -26,24 +26,27 @@ const MainPage = (): ReactElement => {
   return (
     <PageLayout
       isLoading={isLoading}
-      error={error ? "! feed_load_error" : null}
+      error={error ? "Не удалось загрузить ленту" : null}
       onRetry={refetch}
       hideFooter={true}
+      mainClassName={style.main}
+      contentClassName={style.container}
     >
       <div className={style.feedContainer}>
+        <h1 className={style.feedTitle}>Лента новостей</h1>
+
         {!isLoading && (!data || data.posts.length === 0) && (
           <div className={style.empty}>
-            <span className={style.emptyIcon}>{`[∅]`}</span>
-            <p>{`// feed_is_empty`}</p>
+            <p className={style.emptyTitle}>Лента пуста</p>
             <span className={style.emptyHint}>
-              {`> follow_users_or_add_friends`}
+              Подпишитесь на пользователей или добавьте друзей, чтобы видеть посты
             </span>
           </div>
         )}
 
         {data && data.posts.length > 0 && (
-          <PostList 
-            posts={data.posts} 
+          <PostList
+            posts={data.posts}
             isLoading={isFetching}
             hasMore={data.hasMore}
             onLoadMore={handleLoadMore}

@@ -27,7 +27,7 @@
 | notifications | notificationsApi (app/store) |
 | profile | userApi, friendApi, followersApi |
 | user | searchApi |
-| user-detail | userApi |
+| user-detail | userApi, codeApi (password) |
 
 ## Основные сценарии
 
@@ -64,6 +64,13 @@ useSocket('message:new', (message) => {
 - `useGetUserProfileQuery` (свой профиль)
 - Данные друзей/подписчиков при необходимости
 
+### Profile settings (user-detail)
+
+- `ProfileMenu` — popover у кнопки в `AsidePageNav` (logout, настройки, добавить аккаунт)
+- `SettingsModal` — редактирование никнейма/email/статуса/локации, аватар, смена пароля
+- `ProfileSettingsProvider` — единый `openSettings()` для aside и ProfileView
+- Устаревшие роуты `/user/settings` и `/user/settings/password` редиректят на `/user`
+
 ## Бизнес-правила
 
 - Rate limit на auth/register — countdown перед повторной отправкой.
@@ -72,7 +79,8 @@ useSocket('message:new', (message) => {
 
 ## Тесты
 
-Тесты для feature отсутствуют.
+- `ProfileMenu.test.tsx` — открытие/закрытие меню, переход в настройки
+- `SettingsModal.test.tsx` — поля профиля, overlay, шаг смены пароля
 
 ## Troubleshooting
 

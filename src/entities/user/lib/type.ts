@@ -1,38 +1,12 @@
-export type InfoCardProps = {
-  email?: string;
-  location?: string;
-  memberSince?: string;
-};
-
-export type ProfileCardProps = {
-  avatarUrl: string | null | undefined;
-  username: string;
-  bio?: string;
-  initial: string;
-  isEditable: boolean;
-  isOnline?: boolean;
-};
-
-export type StatsCardProps = {
-  postsCount: number;
-  followersCount: number;
-  followingCount: number;
-  targetUserId?: number;
-};
-
 /**
  * Профиль пользователя в приложении.
- * 
- * @description
- * Используется для отображения данных пользователя в профилях, карточках,
- * настройках и других компонентах. Содержит как обязательные поля (ид, имя, email),
- * так и опциональные метаданные (био, локация, статистика, статус дружбы).
  */
 export type UserProfile = {
   id: number;
   username: string;
   email: string;
   avatarUrl?: string | null;
+  coverUrl?: string | null;
   bio?: string;
   location?: string;
   memberSince?: string;
