@@ -1,6 +1,6 @@
 /**
  * Пропсы для компонента отправки сообщения в чате.
- * 
+ *
  * @description
  * Предоставляет интерфейс для управления полем ввода и отправкой сообщения:
  * валидация, ограничение длины, состояние загрузки, обработка ошибок
@@ -10,7 +10,11 @@ export type MessageSendProps = {
   chatId: number;
   value?: string;
   onChange?: (value: string) => void;
-  onSend: (chatId: number, text: string) => Promise<void> | void;
+  onSend: (
+    chatId: number,
+    text: string,
+    files?: File[]
+  ) => Promise<void> | void;
   isLoading?: boolean;
   disabled?: boolean;
   placeholder?: string;
@@ -18,4 +22,6 @@ export type MessageSendProps = {
   error?: string;
   className?: string;
   autoFocus?: boolean;
+  /** Вызывается при изменении высоты поля (рост/сжатие вверх) */
+  onComposerHeightChange?: () => void;
 };

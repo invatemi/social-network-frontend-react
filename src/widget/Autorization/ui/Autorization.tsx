@@ -4,6 +4,7 @@ import { useAppDispatch } from "@/app/store/hooks";
 import { setAuth } from "@/app/store/slices/authSlice";
 import { useLoginMutation } from "@/app/store/api/authApi";
 import { Button, Input, useToast } from "@/shared";
+import { EmailIcon, LockIcon } from "@/shared/ui";
 import { useRateLimitCountdown } from "@/shared/hooks";
 import { handleRateLimitError } from "@/shared/lib/api/handleRateLimitError";
 import { getRateLimitMessage } from "@/shared/lib/api/parseRateLimitError";
@@ -43,10 +44,12 @@ const Autorization = () => {
   const { isBlocked, startCountdown } = useRateLimitCountdown();
   const [formData, setFormData] = useState<AuthFormData>({ email: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [credentialsInvalid, setCredentialsInvalid] = useState(false);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setCredentialsInvalid(false);
     if (errors[name]) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -59,6 +62,7 @@ const Autorization = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
+    setCredentialsInvalid(false);
 
     const clientResult = authSchema.safeParse(formData);
     if (!clientResult.success) {
@@ -95,7 +99,7 @@ const Autorization = () => {
         });
         setErrors(formatted);
       } else {
-        setErrors({ global: data?.message || "AUTH_ERROR" });
+        setCredentialsInvalid(true);
       }
     }
   };
@@ -120,6 +124,8 @@ const Autorization = () => {
               value={formData.email}
               onChange={handleChange}
               error={errors.email}
+              variant={credentialsInvalid && !errors.email ? "danger" : undefined}
+              leftIcon={<EmailIcon />}
               fullWidth
             />
           </div>
@@ -134,6 +140,8 @@ const Autorization = () => {
               value={formData.password}
               onChange={handleChange}
               error={errors.password}
+              variant={credentialsInvalid && !errors.password ? "danger" : undefined}
+              leftIcon={<LockIcon />}
               fullWidth
             />
           </div>

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Link } from "react-router-dom";
 import { MessageCard } from "@/entities";
 import { MessageSend } from "@/feature";
 import { useAppSelector } from "@/app/store/hooks";
@@ -12,6 +13,8 @@ import {
 } from "../lib";
 import style from "./MessageList.module.css";
 
+const BOTTOM_STICK_THRESHOLD_PX = 72;
+
 /**
  * MessageList — список сообщений
  */
@@ -24,6 +27,7 @@ const MessageList = ({
   className = "",
 }: MessageListProps) => {
   const [messageText, setMessageText] = useState("");
+  const stickToBottomRef = useRef(true);
   const presenceOnline = useAppSelector(
     (state) => state.presence.byUserId[String(recipient.userId)] === true
   );
@@ -34,7 +38,9 @@ const MessageList = ({
     isLoading,
     isLoadingMore,
     observerTarget,
+    messagesContainerRef,
     handleSendMessage: handleSendFromHook,
+    scrollToBottom,
   } = useMessageList({
     chatId,
     initialMessages,
@@ -42,11 +48,38 @@ const MessageList = ({
   });
 
   const initial = recipient.username.charAt(0).toUpperCase();
+  const profilePath = recipient.userId > 0 ? `/user/${recipient.userId}` : null;
 
-  const handleSend = async (_chatId: number, text: string) => {
-    await handleSendFromHook(text);
+  const handleSend = async (_chatId: number, text: string, files?: File[]) => {
+    await handleSendFromHook(text, files);
     setMessageText("");
+    stickToBottomRef.current = true;
   };
+
+  const updateStickToBottom = useCallback(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const gap =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    stickToBottomRef.current = gap <= BOTTOM_STICK_THRESHOLD_PX;
+  }, [messagesContainerRef]);
+
+  const keepLastMessageVisible = useCallback(() => {
+    if (!stickToBottomRef.current) return;
+    scrollToBottom("auto");
+  }, [scrollToBottom]);
+
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    container.addEventListener("scroll", updateStickToBottom, {
+      passive: true,
+    });
+    return () => {
+      container.removeEventListener("scroll", updateStickToBottom);
+    };
+  }, [messagesContainerRef, updateStickToBottom, isLoading]);
 
   if (isLoading) {
     return (
@@ -57,6 +90,34 @@ const MessageList = ({
       </div>
     );
   }
+
+  const profileContent = (
+    <>
+      <div className={style.avatarWrapper}>
+        {recipient.avatarUrl ? (
+          <img src={recipient.avatarUrl} alt="" className={style.avatar} />
+        ) : (
+          <div className={style.avatarPlaceholder}>{initial}</div>
+        )}
+        <span
+          className={[style.onlineDot, isOnline ? style.online : style.offline]
+            .filter(Boolean)
+            .join(" ")}
+        />
+      </div>
+
+      <div className={style.userInfo}>
+        <span className={style.username}>{recipient.username}</span>
+        {recipient.email ? (
+          <span className={style.email}>{recipient.email}</span>
+        ) : (
+          <span className={style.email}>
+            {isOnline ? "Онлайн" : "Не в сети"}
+          </span>
+        )}
+      </div>
+    </>
+  );
 
   return (
     <div className={`${style.container} ${className}`}>
@@ -72,36 +133,20 @@ const MessageList = ({
           </button>
         ) : null}
 
-        <div className={style.avatarWrapper}>
-          {recipient.avatarUrl ? (
-            <img
-              src={recipient.avatarUrl}
-              alt=""
-              className={style.avatar}
-            />
-          ) : (
-            <div className={style.avatarPlaceholder}>{initial}</div>
-          )}
-          <span
-            className={[style.onlineDot, isOnline ? style.online : style.offline]
-              .filter(Boolean)
-              .join(" ")}
-          />
-        </div>
-
-        <div className={style.userInfo}>
-          <span className={style.username}>{recipient.username}</span>
-          {recipient.email ? (
-            <span className={style.email}>{recipient.email}</span>
-          ) : (
-            <span className={style.email}>
-              {isOnline ? "Онлайн" : "Не в сети"}
-            </span>
-          )}
-        </div>
+        {profilePath ? (
+          <Link
+            to={profilePath}
+            className={style.profileLink}
+            aria-label={`Профиль ${recipient.username}`}
+          >
+            {profileContent}
+          </Link>
+        ) : (
+          <div className={style.profileLink}>{profileContent}</div>
+        )}
       </div>
 
-      <div className={style.messagesContainer}>
+      <div ref={messagesContainerRef} className={style.messagesContainer}>
         {isLoadingMore ? (
           <div className={style.loadMoreIndicator}>Загрузка истории...</div>
         ) : null}
@@ -139,6 +184,7 @@ const MessageList = ({
                   timestamp={formatMessageTime(message.createdAt)}
                   status={message.status === "error" ? "sent" : message.status}
                   isError={message.isError}
+                  attachments={message.attachments}
                 />
               </div>
             );
@@ -156,6 +202,7 @@ const MessageList = ({
         placeholder="Сообщение"
         maxLength={2000}
         autoFocus
+        onComposerHeightChange={keepLastMessageVisible}
       />
     </div>
   );

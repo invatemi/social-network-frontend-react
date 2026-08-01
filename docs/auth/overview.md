@@ -17,7 +17,7 @@
 
 ## UI
 
-Flat dark auth без Three.js: centered card (`--color-surface`), dark Input/Button, logo. Страницы `AutorizationPage` / `RegistrationPage` через `PageLayout` (без aside/footer по необходимости).
+Flat dark auth без Three.js: centered card (`--color-surface`), dark Input/Button, logo. Поля с `leftIcon` (`EmailIcon` / `LockIcon` / `UserFaceIcon`). Ошибка — красные border, SVG и текст (`--color-danger`); совпадение паролей — зелёный индикатор (`--color-success`). Страницы `AutorizationPage` / `RegistrationPage` через `PageLayout` (без aside/footer по необходимости).
 
 ## Участвующие модули (сквозной flow)
 

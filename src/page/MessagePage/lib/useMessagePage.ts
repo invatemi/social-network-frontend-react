@@ -5,9 +5,11 @@ import {
   useGetMessagesQuery,
   useSendMessageMutation,
   useDeleteChatMutation,
+  useLazyGetMessageUploadUrlQuery,
   ChatData,
   MessageData,
 } from "@/entities/message/api/messagesApi";
+import { uploadMessageAttachments } from "@/feature/message/lib";
 import { joinChatRoom, leaveChatRoom } from "@/app/lib/socket";
 import { useSocket } from "@/feature/socket";
 import { env } from "@/shared/config/env";
@@ -24,7 +26,7 @@ export type UseMessagePageReturn = {
   isLoadingMessages: boolean;
   handleChatSelect: (chatId: number) => void;
   handleCloseChat: () => void;
-  handleSendMessage: (text: string) => Promise<void>;
+  handleSendMessage: (text: string, files?: File[]) => Promise<void>;
   handleLoadMessages: (before?: string) => Promise<MessageData[]>;
   handleDeleteChat: () => Promise<void>;
   isMobileSidebarOpen: boolean;
@@ -66,6 +68,7 @@ export const useMessagePage = (
 
   const [sendMessage, { isLoading: isSending }] = useSendMessageMutation();
   const [deleteChat] = useDeleteChatMutation();
+  const [fetchUploadUrl] = useLazyGetMessageUploadUrlQuery();
 
   const activeChatIdRef = useRef(activeChatId);
 
@@ -79,10 +82,24 @@ export const useMessagePage = (
 
   useSocket("message:new", (message: MessageData) => {
     if (message.chatId === activeChatIdRef.current) {
-      refetchMessages();
+      // Opening messages marks read on backend; keep sidebar badge at 0 for open chat
+      void refetchMessages().then(() => {
+        void refetchChats();
+      });
+      return;
     }
     refetchChats();
   });
+
+  useSocket(
+    "chat:read",
+    (data: { chatId: number; readerId: number; lastReadAt: string }) => {
+      if (data.chatId === activeChatIdRef.current) {
+        // Cache patch handled in socket.ts; keep list in sync
+        void refetchMessages();
+      }
+    }
+  );
 
   useSocket(
     "chat:created",
@@ -138,20 +155,38 @@ export const useMessagePage = (
   }, [navigate]);
 
   const handleSendMessage = useCallback(
-    async (text: string) => {
-      if (!activeChatId || !text.trim()) return;
+    async (text: string, files?: File[]) => {
+      if (!activeChatId) return;
+      const content = text.trim();
+      const hasFiles = Boolean(files && files.length > 0);
+      if (!content && !hasFiles) return;
 
       try {
+        const attachments = hasFiles
+          ? await uploadMessageAttachments(
+              activeChatId,
+              files!,
+              async (args) =>
+                fetchUploadUrl({
+                  chatId: args.chatId,
+                  contentType: args.contentType,
+                  fileName: args.fileName,
+                  sizeBytes: args.sizeBytes,
+                }).unwrap()
+            )
+          : undefined;
+
         await sendMessage({
           chatId: activeChatId,
-          content: text.trim(),
+          content,
+          attachments,
         }).unwrap();
       } catch (error) {
         console.error("Failed to send message:", error);
         throw error;
       }
     },
-    [activeChatId, sendMessage]
+    [activeChatId, sendMessage, fetchUploadUrl]
   );
 
   const handleLoadMessages = useCallback(

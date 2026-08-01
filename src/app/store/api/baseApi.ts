@@ -40,6 +40,7 @@ export const baseApi = createApi({
     "Chats",
     "Messages",
     "Message",
+    "ChatAttachments",
     "Photos",
     "PhotoComments",
   ],

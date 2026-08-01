@@ -86,6 +86,12 @@ export type SocketUserLeft = {
   userId: number;
 };
 
+export type SocketChatRead = {
+  chatId: number;
+  readerId: number;
+  lastReadAt: string;
+};
+
 // ==================== PRIVATE FUNCTIONS ====================
 
 const registerSocketHandlers = (activeSocket: Socket, dispatch: AppDispatch): void => {
@@ -285,6 +291,35 @@ const registerSocketHandlers = (activeSocket: Socket, dispatch: AppDispatch): vo
       { type: 'Messages', id: `CHAT_${message.chatId}` },
       { type: 'Chats', id: 'LIST' }
     ]));
+  });
+
+  activeSocket.on('chat:read', (data: SocketChatRead) => {
+    const lastReadMs = new Date(data.lastReadAt).getTime();
+    if (!Number.isFinite(lastReadMs)) return;
+
+    const patchMessages = (limit: number) => {
+      dispatch(
+        messagesApi.util.updateQueryData(
+          'getMessages',
+          { chatId: data.chatId, limit },
+          (draft) => {
+            for (const msg of draft) {
+              if (
+                msg.author.id !== data.readerId &&
+                new Date(msg.createdAt).getTime() <= lastReadMs
+              ) {
+                msg.isRead = true;
+              }
+            }
+          }
+        )
+      );
+    };
+
+    patchMessages(env.messages.defaultMessageLimit);
+    if (env.messages.defaultMessageLimit !== 50) {
+      patchMessages(50);
+    }
   });
 
   activeSocket.on('chat:deleted', (data: SocketChatEvent) => {

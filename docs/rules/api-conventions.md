@@ -65,7 +65,7 @@
 | `Comments` | Комментарии к посту |
 | `Auth` | Сессия |
 | `Friends`, `FriendStatus` | Друзья и статусы |
-| `Chat`, `Chats`, `Messages`, `Message` | Мессенджер |
+| `Chat`, `Chats`, `Messages`, `Message`, `ChatAttachments` | Мессенджер |
 
 ### Маппинг API-модулей → backend prefix
 

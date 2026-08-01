@@ -9,18 +9,6 @@
   border-radius: 16px;
   font-family: "Inter", sans-serif;
   overflow: hidden;
-  animation: panelIn 0.42s var(--ease) both;
-}
-
-@keyframes panelIn {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 6px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
 }
 
 .header {
@@ -47,6 +35,27 @@
 
 .backButton:hover {
   background: rgba(255, 255, 255, 0.06);
+}
+
+.profileLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 10px;
+  outline: none;
+  transition: opacity 0.2s var(--ease);
+}
+
+.profileLink:hover {
+  opacity: 0.85;
+}
+
+.profileLink:focus-visible {
+  box-shadow: 0 0 0 2px #555;
 }
 
 .avatarWrapper {
@@ -116,10 +125,19 @@
 .messagesContainer {
   flex: 1;
   overflow-y: auto;
+  overflow-anchor: none;
   padding: 16px;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.messagesContainer::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .dateSeparator {
@@ -159,9 +177,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .container,
   .backButton {
-    animation: none !important;
     transition: none !important;
   }
 }

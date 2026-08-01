@@ -3,18 +3,6 @@
   display: flex;
   margin-bottom: 10px;
   font-family: "Inter", sans-serif;
-  animation: msgIn 0.35s var(--ease) both;
-}
-
-@keyframes msgIn {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 4px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
 }
 
 .me {
@@ -26,51 +14,130 @@
 }
 
 .bubble {
+  display: inline-block;
   max-width: min(72%, 520px);
-  padding: 12px 14px 8px;
-  border-radius: 14px;
-  background: #1c1c1c;
-  border: 1px solid #2a2a2a;
+  padding: 8px 12px;
+  border-radius: 16px;
+  background: rgba(32, 32, 32, 1);
+  border: none;
+  vertical-align: top;
+  line-height: 1.4;
 }
 
 .me .bubble {
-  background: #222;
-  border-color: #333;
+  background: rgba(53, 53, 53, 1);
 }
 
 .error .bubble {
-  border-color: #7f1d1d;
+  border: 1px solid #7f1d1d;
 }
 
 .text {
   color: #f0f0f0;
   font-size: 14px;
-  line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-.meta {
+.attachmentsImages {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  flex-direction: column;
   gap: 6px;
-  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
+.imageLink {
+  display: block;
+  border-radius: 10px;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.image {
+  display: block;
+  max-width: 100%;
+  max-height: 280px;
+  width: auto;
+  height: auto;
+  object-fit: cover;
+}
+
+.attachmentsFiles {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fileLink {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  text-decoration: none;
+}
+
+.fileLink:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.fileName {
+  font-size: 13px;
+  color: #e8e8e8;
+  word-break: break-all;
+}
+
+.fileSize {
+  font-size: 11px;
+  color: #8a8a8a;
+}
+
+/* Короткие: текст + время + ticks в одну строку */
+.meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  white-space: nowrap;
+  vertical-align: bottom;
+  line-height: 1;
+  position: relative;
+  top: -1px;
 }
 
 .timestamp {
   font-size: 11px;
   color: #8a8a8a;
+  letter-spacing: 0.01em;
 }
 
 .ticks {
-  font-size: 11px;
-  color: #8a8a8a;
-  letter-spacing: -1px;
+  display: inline-flex;
+  align-items: center;
+  color: #696969;
+  line-height: 0;
 }
 
-.ticksRead {
-  color: #60a5fa;
+.tickIcon {
+  display: block;
+  color: #696969;
+}
+
+.tickIcon :global(.message-check-second) {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  animation: checkDraw 0.45s var(--ease) forwards;
+}
+
+@keyframes checkDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 .ticksError {
@@ -78,7 +145,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .message {
+  .tickIcon :global(.message-check-second) {
     animation: none !important;
+    stroke-dashoffset: 0;
   }
 }

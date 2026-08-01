@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { getSocket } from '@/app/lib/socket';
 import { FeedPost } from '@/entities/post/api/postApi';
-import { SocketMessage, SocketChatEvent, SocketUserLeft } from '@/app/lib/socket';
+import { SocketMessage, SocketChatEvent, SocketUserLeft, SocketChatRead } from '@/app/lib/socket';
 import { env } from '@/shared/config/env';
 
 /**
@@ -84,6 +84,7 @@ export type SocketEvents = {
   // Чаты
   'message:new': SocketMessage;
   'chat:deleted': SocketChatEvent;
+  'chat:read': SocketChatRead;
   'user:left': SocketUserLeft;
 
   'chat:created': {

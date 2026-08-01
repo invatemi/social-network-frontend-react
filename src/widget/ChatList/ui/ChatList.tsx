@@ -83,7 +83,9 @@ const ChatList = ({
                     lastMessageTime={
                       lastMessageTime ? formatChatTime(lastMessageTime) : ""
                     }
-                    unreadCount={chat.unreadCount}
+                    unreadCount={
+                      activeChatId === chat.chatId ? 0 : chat.unreadCount
+                    }
                     isOnline={isOnline}
                     onClick={handleChatClick}
                     isActive={activeChatId === chat.chatId}

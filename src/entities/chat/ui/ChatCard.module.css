@@ -2,6 +2,7 @@
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --duration: 0.4s;
 
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -19,6 +20,17 @@
 
 .card.active {
   background: rgba(255, 255, 255, 0.08);
+}
+
+.card.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: #22c55e;
 }
 
 .avatarWrapper {
@@ -50,7 +62,7 @@
 .onlineDot {
   position: absolute;
   top: 0;
-  left: 0;
+  right: 0;
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -94,11 +106,19 @@
   min-width: 0;
 }
 
-.unreadDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+.unreadBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
   background: #ef4444;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
   flex-shrink: 0;
 }
 

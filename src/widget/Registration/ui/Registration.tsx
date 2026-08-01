@@ -5,6 +5,7 @@ import { setAuth } from "@/app/store/slices/authSlice";
 import { useRegisterMutation } from "@/app/store/api/authApi";
 import { fetchUserProfileWithRetry } from "@/entities/user/api";
 import { Input, Button, useToast } from "@/shared";
+import { EmailIcon, LockIcon, UserFaceIcon } from "@/shared/ui";
 import { useRateLimitCountdown } from "@/shared/hooks";
 import { handleRateLimitError } from "@/shared/lib/api/handleRateLimitError";
 import { getRateLimitMessage } from "@/shared/lib/api/parseRateLimitError";
@@ -48,6 +49,12 @@ const Registration = (): ReactElement => {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const bothPasswordsFilled =
+    formData.password.length > 0 && formData.confirmPassword.length > 0;
+  const passwordsMatch =
+    bothPasswordsFilled && formData.password === formData.confirmPassword;
+  const passwordsMismatch = bothPasswordsFilled && !passwordsMatch;
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -106,6 +113,18 @@ const Registration = (): ReactElement => {
     }
   };
 
+  const passwordError = errors.password;
+  const confirmError = errors.confirmPassword;
+  const passwordVariant =
+    !passwordError && (passwordsMatch || passwordsMismatch) ? "success" : undefined;
+  const confirmVariant = confirmError
+    ? undefined
+    : passwordsMatch
+      ? "success"
+      : passwordsMismatch
+        ? "danger"
+        : undefined;
+
   return (
     <div className={style.authWrapper}>
       <div className={style.authCard}>
@@ -128,6 +147,7 @@ const Registration = (): ReactElement => {
               placeholder="Email"
               disabled={isLoading || isBlocked}
               autoComplete="email"
+              leftIcon={<EmailIcon />}
               fullWidth
             />
           </div>
@@ -144,6 +164,7 @@ const Registration = (): ReactElement => {
               placeholder="Username"
               disabled={isLoading || isBlocked}
               autoComplete="username"
+              leftIcon={<UserFaceIcon />}
               fullWidth
             />
           </div>
@@ -156,10 +177,12 @@ const Registration = (): ReactElement => {
               type="password"
               value={formData.password}
               onChange={handleChange}
-              error={errors.password}
+              error={passwordError}
+              variant={passwordVariant}
               placeholder="Password"
               disabled={isLoading || isBlocked}
               autoComplete="new-password"
+              leftIcon={<LockIcon />}
               fullWidth
             />
           </div>
@@ -172,10 +195,12 @@ const Registration = (): ReactElement => {
               type="password"
               value={formData.confirmPassword}
               onChange={handleChange}
-              error={errors.confirmPassword}
+              error={confirmError}
+              variant={confirmVariant}
               placeholder="Confirm password"
               disabled={isLoading || isBlocked}
               autoComplete="new-password"
+              leftIcon={<LockIcon />}
               fullWidth
             />
           </div>

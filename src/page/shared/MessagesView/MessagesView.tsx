@@ -9,6 +9,8 @@ export type MessagesViewProps = {
   sidebarList: ReactNode;
   thread?: ReactNode;
   details?: ReactNode;
+  /** Ключ активного чата — перезапускает мягкий fade при смене диалога */
+  contentKey?: string | number | null;
 };
 
 /**
@@ -22,6 +24,7 @@ const MessagesView = ({
   sidebarList,
   thread,
   details,
+  contentKey,
 }: MessagesViewProps): ReactElement => {
   return (
     <div
@@ -58,10 +61,18 @@ const MessagesView = ({
 
       {hasActiveChat ? (
         <>
-          <section className={style.thread} data-testid="messages-thread">
+          <section
+            key={`thread-${contentKey ?? "active"}`}
+            className={style.thread}
+            data-testid="messages-thread"
+          >
             {thread}
           </section>
-          <div className={style.details} data-testid="messages-details">
+          <div
+            key={`details-${contentKey ?? "active"}`}
+            className={style.details}
+            data-testid="messages-details"
+          >
             {details}
           </div>
         </>

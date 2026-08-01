@@ -1,9 +1,10 @@
 .root {
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --duration: 0.42s;
+  --duration: 0.34s;
 
   display: grid;
-  gap: 16px;
+  grid-template-rows: minmax(0, 1fr);
+  column-gap: 0;
   width: 100%;
   max-width: none;
   margin: 0;
@@ -15,17 +16,20 @@
   );
   min-height: 520px;
   font-family: "Inter", sans-serif;
+  transition:
+    grid-template-columns var(--duration) var(--ease),
+    column-gap var(--duration) var(--ease);
 }
 
 .rootIdle {
-  /* Список чатов сразу у левого края main (рядом с AsidePageNav) */
-  grid-template-columns: minmax(280px, 360px);
+  /* Три трека: боковая колонка + свёрнутые тред/детали */
+  grid-template-columns: minmax(280px, 360px) 0fr 0fr;
   justify-content: start;
 }
 
 .rootActive {
-  /* Тред занимает всё оставшееся место */
   grid-template-columns: minmax(260px, 320px) minmax(0, 1fr) minmax(220px, 280px);
+  column-gap: 16px;
   justify-content: stretch;
 }
 
@@ -39,18 +43,6 @@
   background: #141414;
   border: 1px solid #222;
   border-radius: 16px;
-  animation: panelIn var(--duration) var(--ease) both;
-}
-
-@keyframes panelIn {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 8px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
 }
 
 .sidebarHeader {
@@ -73,6 +65,9 @@
   min-width: 0;
   min-height: 0;
   height: 100%;
+  overflow: hidden;
+  opacity: 0;
+  animation: paneIn 0.28s var(--ease) forwards;
 }
 
 .thread {
@@ -80,17 +75,36 @@
   flex-direction: column;
 }
 
+.details {
+  animation-delay: 0.05s;
+}
+
+@keyframes paneIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .overlay {
   display: none;
 }
 
 @media (max-width: 1100px) {
+  .rootIdle {
+    grid-template-columns: minmax(240px, 300px) 0fr 0fr;
+  }
+
   .rootActive {
-    grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+    grid-template-columns: minmax(240px, 300px) minmax(0, 1fr) 0fr;
+    column-gap: 16px;
   }
 
   .details {
     display: none;
+    animation: none;
   }
 }
 
@@ -98,6 +112,8 @@
   .rootIdle,
   .rootActive {
     grid-template-columns: 1fr;
+    column-gap: 0;
+    transition: none;
   }
 
   .rootActive .sidebarHiddenMobile {
@@ -113,6 +129,11 @@
     max-height: calc(100vh - 24px);
   }
 
+  .thread,
+  .details {
+    animation-delay: 0s;
+  }
+
   .overlay {
     display: block;
     position: fixed;
@@ -123,7 +144,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sidebar {
+  .root {
+    transition: none;
+  }
+
+  .thread,
+  .details {
+    opacity: 1;
     animation: none !important;
   }
 }

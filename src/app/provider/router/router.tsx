@@ -50,8 +50,7 @@ export const AppRouter = () => {
         <Route path="/user/:userId" element={<PublicPage />} />
         <Route path="/friends/:userId?" element={<FriendPage />} />
         <Route path="/followers/:userId?" element={<FollowerPage />} />
-        <Route path="/messages" element={<MessagePage />} />
-        <Route path="/messages/:chatId" element={<MessagePage />} />
+        <Route path="/messages/:chatId?" element={<MessagePage />} />
         <Route path="/photos" element={<PhotoPage />} />
       </Route>
 

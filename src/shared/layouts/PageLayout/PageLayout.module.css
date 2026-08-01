@@ -31,7 +31,7 @@
 
 .pageEnter {
   opacity: 0;
-  transform: translate3d(0, 14px, 0);
+  transform: translateY(14px);
   transition:
     opacity 0.48s var(--ease-out),
     transform 0.48s var(--ease-out);
@@ -40,7 +40,12 @@
 
 .pageEnterVisible {
   opacity: 1;
-  transform: translate3d(0, 0, 0);
+  transform: none;
+}
+
+.pageEnterSettled {
+  transform: none;
+  transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

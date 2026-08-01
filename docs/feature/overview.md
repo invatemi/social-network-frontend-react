@@ -19,7 +19,7 @@
 | `comment` | `src/feature/comment/` | CommentForm, useCommentForm | Создание/удаление комментария |
 | `chat` | `src/feature/chat/` | CreateChatButton, CreateChatModal | Создание чата |
 | `friend` | `src/feature/friend/` | CreateFriend, useCreateFriend | Заявка в друзья |
-| `message` | `src/feature/message/` | MessageSend | Отправка сообщения |
+| `message` | `src/feature/message/` | MessageSend | Отправка текста и вложений (скрепка) |
 | `notifications` | `src/feature/notifications/` | NotificationButton, Modal, Item | In-app уведомления |
 | `post` | `src/feature/post/` | CreatePost, useCreatePost | Создание поста |
 | `profile` | `src/feature/profile/` | useUserProfile | Агрегация профиля |

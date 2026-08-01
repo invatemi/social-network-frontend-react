@@ -13,17 +13,19 @@
 
 1. Пользователь на `/registration`.
 2. Widget `Registration` валидирует форму (Zod).
-3. `POST /api/auth/register` с `credentials: "include"`.
-4. Ответ: `{ accessToken, user }` + Set-Cookie refresh.
-5. `dispatch(setAuth({ accessToken, user }))`.
-6. Navigate на защищённую страницу (обычно `/`).
+3. Live-индикатор паролей: оба поля непустые → совпадают — оба `success` (зелёный); не совпадают — password `success`, confirmPassword danger.
+4. `POST /api/auth/register` с `credentials: "include"`.
+5. Ответ: `{ accessToken, user }` + Set-Cookie refresh.
+6. `dispatch(setAuth({ accessToken, user }))`.
+7. Navigate на защищённую страницу (обычно `/`).
 
 ### Вход
 
 1. Пользователь на `/autorization`.
 2. Widget `Autorization` → `useLoginMutation`.
-3. При успехе: `setAuth` → navigate (из `location.state.from` или `/`).
-4. `App.tsx` вызывает `initSocket(accessToken)`.
+3. При неверных credentials (без field `errors`) поля email и password только краснеют (без текста ошибки).
+4. При успехе: `setAuth` → navigate (из `location.state.from` или `/`).
+5. `App.tsx` вызывает `initSocket(accessToken)`.
 
 ### Bootstrap при старте
 
@@ -68,6 +70,9 @@
 - [ ] Истёкший access + валидный refresh → запросы проходят без logout
 - [ ] Истёкший refresh → logout, редирект на `/autorization`
 - [ ] Rate limit → Toast + countdown на форме
+- [ ] Неверный логин → красные border/иконки/текст у email и password (без AUTH_ERROR)
+- [ ] Регистрация: несовпадение паролей → confirm красный, password зелёный; совпадение → оба зелёные
+- [ ] Auth-поля показывают leftIcon (email / lock / user face)
 
 ## Troubleshooting
 

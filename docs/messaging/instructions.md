@@ -2,79 +2,48 @@
 
 ## Локальный запуск
 
-1. Backend с message-service и notifications-service запущен (`docker compose` в backend-репо).
-2. `CORS_ORIGINS` / `SOCKET_CORS_ORIGIN` включают Vite origin (`http://localhost:5173`).
-3. `VITE_API_URL=http://localhost:8080`, `VITE_WS_URL=http://localhost:3005`.
-4. Авторизоваться и перейти на `/messages`.
+1. Backend: message-service + notifications-service + MinIO (`docker compose` в backend-репо).
+2. `CORS_ORIGINS` / `SOCKET_CORS_ORIGIN` включают Vite origin; MinIO CORS для PUT с Vite.
+3. `VITE_API_URL` (KrakenD), `VITE_WS_URL` (notifications, обычно `:3005`).
+4. Авторизоваться → `/messages`.
 
-## Основные сценарии
+## Сценарии
 
-### Открыть мессенджер
+### Inbox
 
-1. `/messages` — `MessagesView` в idle: заголовок «Сообщения», CTA «Новый чат», `ChatList`.
-2. `useGetChatsQuery` загружает чаты.
-3. `MessagePage` только оркестрирует данные и передаёт слоты в `MessagesView`.
+`/messages` — idle: «Сообщения», «Новый чат», `ChatList` + поиск.
 
-### Выбрать чат
+### Открыть чат
 
-1. Клик по `ChatCard` → `handleChatSelect` → `navigate(/messages/:chatId)`.
-2. `MessagesView` переходит в active (три колонки; на mobile — тред + back).
-3. `joinChatRoom` + `useGetMessagesQuery`.
-4. Правая панель: `ChatDetailsPanel` (профиль; Фото — mint grid placeholder; Файлы — empty).
+Клик → `/messages/:chatId` → `getMessages` (бэкенд ставит `lastReadAt`) → invalidate `Chats` → unread сбрасывается.
+Правая панель загружает `GET /chats/:id/attachments?kind=image|file`.
 
-### URL sync
+### Отправить текст
 
-- `useParams().chatId` → `activeChatId`.
-- Закрытие / back → `/messages`.
-- Переход «Написать сообщение» с Friend/Follower открывает чат по URL.
+`MessageSend` → `POST /send` → socket `message:new` → refetch.
+Поле ввода авто-растёт вверх без scrollbar (весь черновик виден), высота анимируется.
 
-### Отправить сообщение
+### Отправить вложение
 
-1. `MessageSend` → `handleSendMessage`.
-2. Пузыри: входящие слева, исходящие справа; read ticks при `isRead`.
+1. Кнопка-скрепка слева от textarea → выбор файлов/фото (до 5, ≤20 MB).
+2. Превью над формой; можно убрать файл.
+3. Send → `GET .../upload-url` → PUT в MinIO → `POST /send` с `attachments`.
+4. В треде: preview фото / ссылка на файл; в панели «Фото»/«Файлы» — агрегаты чата.
 
-### Создать чат
+### Открыть профиль собеседника
 
-1. `CreateChatButton` с `variant="labeled"` → CreateChatModal.
-2. Выбор друга → `useCreateChatMutation` → navigate на новый чат.
-3. Компактный `variant="icon"` (дефолт) доступен для других мест.
+Клик по аватару / имени / email в шапке треда или в правой панели → `/user/:userId`.
 
-## MessagesView
+### Создать
 
-Shell в `src/page/shared/MessagesView/`:
-
-| Prop | Назначение |
-|------|------------|
-| `hasActiveChat` | idle vs active grid |
-| `isMobileSidebarOpen` / `onCloseMobileSidebar` | overlay на mobile |
-| `sidebarHeader` / `sidebarList` | заголовок + список |
-| `thread` / `details` | тред и правая панель (только active) |
-
-## useMessagePage
-
-- RTK Query + socket listeners
-- Sync `activeChatId` с URL
-- `handleCloseChat` для mobile back
-
-## Бизнес-правила
-
-- Protected route.
-- Активный чат = `/messages/:chatId`.
-- Вложений в message API нет — секции медиа только UI placeholder.
-
-## Тесты
-
-```bash
-npm test
-```
-
-Покрывают `MessagesView` (layout) и `useMessagePage` (URL/navigate). Моки: RTK Query, router, socket.
+`CreateChatModal` (друзья) или Friend/Follower page → `POST /chats` (flat `ChatData`) → navigate.
 
 ## Troubleshooting
 
 | Проблема | Действие |
 |----------|----------|
-| Чат не открывается с FriendPage | Проверить URL sync в `useMessagePage` |
-| Нет realtime | Socket, `chat:join`, `VITE_WS_URL`, `SOCKET_CORS_ORIGIN` |
-| Нет email в шапке | Public profile API / privacy email |
-| Overlay не закрывается | `onCloseMobileSidebar` в `MessagesView` |
+| Нет realtime | `VITE_WS_URL`, `SOCKET_CORS_ORIGIN`, `chat:join` |
+| Unread не сбрасывается | GET messages должен пройти; смотреть network |
+| Пустой create | ответ create должен быть flat с `chatId` |
+| Upload падает | MinIO CORS/`S3_UPLOAD_ENDPOINT`, JWT на upload-url, размер ≤20 MB |
+| Панель пустая после send | invalidate `ChatAttachments`; проверить `kind` image vs file |

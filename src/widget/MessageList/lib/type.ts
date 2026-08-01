@@ -1,4 +1,8 @@
-import { MessageData as BackendMessageData, ChatData as BackendChatData } from "@/entities/message/api/messagesApi";
+import {
+  MessageData as BackendMessageData,
+  ChatData as BackendChatData,
+  MessageAttachmentData,
+} from "@/entities/message/api/messagesApi";
 
 /**
  *  Адаптированные данные сообщения для UI
@@ -6,14 +10,15 @@ import { MessageData as BackendMessageData, ChatData as BackendChatData } from "
  */
 export type UIMessageData = {
   messageId: number;
-  sender: 'me' | 'other';
+  sender: "me" | "other";
   senderName?: string;
   text: string;
   createdAt: string;
-  status: 'sent' | 'delivered' | 'read' | 'error';
+  status: "sent" | "delivered" | "read" | "error";
   isError?: boolean;
   avatarUrl?: string | null;
-  timestamp: any
+  timestamp: any;
+  attachments?: MessageAttachmentData[];
 };
 
 /**
@@ -34,7 +39,7 @@ export type MessageListProps = {
   };
   initialMessages?: UIMessageData[];
   onLoadMessages?: (chatId: number, page: number) => Promise<BackendMessageData[]>;
-  onSendMessage?: (chatId: number, text: string) => Promise<void>;
+  onSendMessage?: (chatId: number, text: string, files?: File[]) => Promise<void>;
   onBack?: () => void;
   className?: string;
 };
@@ -45,13 +50,14 @@ export type UseMessageListReturn = {
   isLoadingMore: boolean;
   hasMore: boolean;
   observerTarget: React.RefObject<HTMLDivElement | null>;
-  handleSendMessage: (text: string) => Promise<void>;
-  scrollToBottom: () => void;
+  messagesContainerRef: React.RefObject<HTMLDivElement | null>;
+  handleSendMessage: (text: string, files?: File[]) => Promise<void>;
+  scrollToBottom: (behavior?: ScrollBehavior) => void;
 };
 
 export type UseMessageListProps = {
   chatId: number;
   initialMessages?: UIMessageData[];
   onLoadMessages?: (chatId: number, page: number) => Promise<BackendMessageData[]>;
-  onSendMessage?: (chatId: number, text: string) => Promise<void>;
+  onSendMessage?: (chatId: number, text: string, files?: File[]) => Promise<void>;
 };

@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, type TransitionEvent } from "react";
 import { useLocation } from "react-router-dom";
 import { Footerlayouts } from "../Footerlayouts";
 import { AsidePageNav, Spinner, Button } from "@/shared/ui";
@@ -22,6 +22,18 @@ export type PageLayoutProps = {
 };
 
 /**
+ * Ключ анимации входа: игнорирует числовые сегменты URL
+ * (/messages/12 → /messages), чтобы смена ресурса внутри страницы
+ * не мигала контентом заново.
+ */
+const getPageEnterKey = (pathname: string): string => {
+  const normalized = pathname
+    .replace(/\/\d+(?=\/|$)/g, "")
+    .replace(/\/+$/, "");
+  return normalized || "/";
+};
+
+/**
  * PageLayout - основной лейаут страницы
  */
 const PageLayout = ({
@@ -39,12 +51,15 @@ const PageLayout = ({
   centerContent = false,
 }: PageLayoutProps) => {
   const location = useLocation();
-  const [prevPathname, setPrevPathname] = useState(location.pathname);
+  const enterKey = getPageEnterKey(location.pathname);
+  const [prevEnterKey, setPrevEnterKey] = useState(enterKey);
   const [contentVisible, setContentVisible] = useState(false);
+  const [enterSettled, setEnterSettled] = useState(false);
 
-  if (location.pathname !== prevPathname) {
-    setPrevPathname(location.pathname);
+  if (enterKey !== prevEnterKey) {
+    setPrevEnterKey(enterKey);
     setContentVisible(false);
+    setEnterSettled(false);
   }
 
   useEffect(() => {
@@ -61,16 +76,34 @@ const PageLayout = ({
       cancelAnimationFrame(frame1);
       cancelAnimationFrame(frame2);
     };
-  }, [location.pathname, contentVisible]);
+  }, [enterKey, contentVisible]);
+
+  useEffect(() => {
+    if (!contentVisible || enterSettled) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setEnterSettled(true);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => setEnterSettled(true), 700);
+    return () => window.clearTimeout(timeoutId);
+  }, [contentVisible, enterSettled]);
 
   const enterClassName = [
     style.pageEnter,
     contentVisible ? style.pageEnterVisible : "",
+    enterSettled ? style.pageEnterSettled : "",
     centerContent ? style.centeredMain : "",
   ]
     .filter(Boolean)
     .join(" ");
 
+  const handleEnterTransitionEnd = (event: TransitionEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    if (event.propertyName !== "transform" && event.propertyName !== "opacity") return;
+    setEnterSettled(true);
+  };
   if (isLoading) {
     return (
       <div className={`${style.page} ${pageClassName}`}>
@@ -120,7 +153,11 @@ const PageLayout = ({
         {!hideAside && <AsidePageNav />}
 
         <main className={`${style.main} ${mainClassName}`}>
-          <div key={location.pathname} className={enterClassName}>
+          <div
+            key={enterKey}
+            className={enterClassName}
+            onTransitionEnd={handleEnterTransitionEnd}
+          >
             {(title || subtitle) && !centerContent && (
               <header className={style.pageHeader}>
                 {title && <h1 className={style.pageTitle}>{title}</h1>}

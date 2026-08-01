@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
 import { useInfiniteScroll } from './useInfiniteScroll';
 import { 
   UseMessageListReturn, 
@@ -23,6 +23,7 @@ const formatMessageForUI = (
   timestamp: msg.createdAt,
   status: msg.isRead ? 'read' : 'sent',
   isError: false,
+  attachments: msg.attachments ?? [],
 });
 
 export const useMessageList = ({
@@ -33,29 +34,47 @@ export const useMessageList = ({
 }: UseMessageListProps): UseMessageListReturn => {
   const currentUserId = (window as any).currentUserId || 0;
   
-  const [messages, setMessages] = useState<UIMessageData[]>(() => {
-    return initialMessages;
-  });
-  
-  useEffect(() => {
-    if (initialMessages.length > 0) {
-      setMessages(initialMessages);
-    }
-  }, [initialMessages]);
-
+  const [messages, setMessages] = useState<UIMessageData[]>(() => initialMessages);
   const [isLoading, setIsLoading] = useState(initialMessages.length === 0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const prevMessagesLength = useRef(initialMessages.length);
+  const isPrependingRef = useRef(false);
+  const pendingScrollRef = useRef<ScrollBehavior | null>(
+    initialMessages.length > 0 ? 'auto' : null
+  );
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    if (behavior === 'smooth') {
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+      return;
+    }
+
+    container.scrollTop = container.scrollHeight;
   }, []);
 
-  // Загрузка сообщений через API
+  // Сброс при смене чата — сразу к концу переписки
+  useEffect(() => {
+    prevMessagesLength.current = 0;
+    isPrependingRef.current = false;
+    pendingScrollRef.current = 'auto';
+    setPage(1);
+    setHasMore(true);
+    setIsLoading(initialMessages.length === 0);
+    setMessages(initialMessages);
+  }, [chatId]);
+
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
+
+  // Загрузка сообщений через API (если нет initialMessages)
   useEffect(() => {
     const loadMessages = async () => {
       if (onLoadMessages && initialMessages.length === 0) {
@@ -67,6 +86,7 @@ export const useMessageList = ({
           );
           
           setMessages(formatted);
+          pendingScrollRef.current = 'auto';
           setHasMore(loaded.length === env.messages.messageListPageSize);
         } catch (error) {
           console.error('Failed to load messages:', error);
@@ -81,13 +101,40 @@ export const useMessageList = ({
     loadMessages();
   }, [chatId, onLoadMessages, initialMessages.length, currentUserId]);
 
-  // Авто-скролл при новых сообщениях
-  useEffect(() => {
-    if (messages.length > prevMessagesLength.current) {
-      setTimeout(scrollToBottom, env.messages.scrollToBottomDelayMs);
+  // Авто-скролл до paint — пользователь сразу видит конец переписки
+  useLayoutEffect(() => {
+    if (isLoading || messages.length === 0) return;
+
+    if (isPrependingRef.current) {
+      isPrependingRef.current = false;
+      prevMessagesLength.current = messages.length;
+      return;
     }
+
+    const lengthGrew = messages.length > prevMessagesLength.current;
+    const isInitialFill = prevMessagesLength.current === 0 && messages.length > 0;
+    const behavior =
+      pendingScrollRef.current ??
+      (isInitialFill ? 'auto' : lengthGrew ? 'smooth' : null);
     prevMessagesLength.current = messages.length;
-  }, [messages.length, scrollToBottom]);
+
+    if (!behavior) return;
+
+    pendingScrollRef.current = null;
+
+    if (behavior === 'auto') {
+      scrollToBottom('auto');
+      // Повтор после layout панелей (grid/fade), иначе можно остаться у начала
+      requestAnimationFrame(() => scrollToBottom('auto'));
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      scrollToBottom('smooth');
+    }, env.messages.scrollToBottomDelayMs);
+
+    return () => window.clearTimeout(timer);
+  }, [messages, isLoading, scrollToBottom]);
 
   // Загрузка старых сообщений
   const handleLoadMore = useCallback(async () => {
@@ -102,6 +149,7 @@ export const useMessageList = ({
         const formatted = loaded.map((msg) => 
           formatMessageForUI(msg, currentUserId)
         );
+        isPrependingRef.current = true;
         setMessages((prev) => [...formatted, ...prev]);
         setPage(nextPage);
         setHasMore(loaded.length === env.messages.messageListPageSize);
@@ -121,13 +169,13 @@ export const useMessageList = ({
     isLoading: isLoadingMore,
   });
 
-  // Отправка сообщения
   const handleSendMessage = useCallback(
-    async (text: string) => {
-      if (!onSendMessage || !text.trim()) return;
+    async (text: string, files?: File[]) => {
+      if (!onSendMessage) return;
+      if (!text.trim() && (!files || files.length === 0)) return;
 
       try {
-        await onSendMessage(chatId, text.trim());
+        await onSendMessage(chatId, text.trim(), files);
       } catch (error) {
         console.error('Failed to send message:', error);
         throw error;
@@ -142,6 +190,7 @@ export const useMessageList = ({
     isLoadingMore,
     hasMore,
     observerTarget,
+    messagesContainerRef,
     handleSendMessage,
     scrollToBottom,
   };

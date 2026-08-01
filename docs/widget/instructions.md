@@ -27,6 +27,9 @@
 
 - Zod-валидация в `lib/`
 - `useLoginMutation` / `useRegisterMutation`
+- `leftIcon`: `EmailIcon`, `LockIcon`, `UserFaceIcon` (из `@/shared/ui`)
+- Login fail без field errors → подсветка email + password без текста ошибки
+- Registration: live match паролей (success / danger на `Input`, без текста при live-mismatch)
 - При успехе: `setAuth` → navigate
 - Rate limit: Toast + countdown
 

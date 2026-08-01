@@ -63,13 +63,21 @@ flowchart TB
 | Группа | Примеры |
 |--------|---------|
 | Цвета | `--color-bg` `#0a0a0a`, `--color-surface` `#101010`, `--color-surface-elevated` `#141414`, `--color-border` `#222`, `--color-text` / `--color-text-muted` |
-| Semantic | `--color-success`, `--color-warning`, `--color-danger`, `--color-focus` |
+| Semantic | `--color-success` `rgba(118, 255, 147, 1)`, `--color-warning`, `--color-danger` `rgba(255, 104, 104, 1)`, `--color-focus` |
 | Radius | `--radius-sm/md/lg/xl` (10–20px) |
 | Motion | `--ease-out` `cubic-bezier(0.22, 1, 0.36, 1)`, `--duration` / `--duration-fast` |
 | Layout | `--layout-inset-*`, `--layout-main-padding-*` |
 | Font | `--font-sans` Inter |
 
 Компоненты должны использовать `var(--*)`, без Courier/ASCII UI и без hardcoded terminal-эстетики.
+
+## Input
+
+`shared/ui/Input`: `leftIcon` / `rightIcon`, `error`, `variant` (`primary` | `secondary` | `danger` | `success`).
+
+- Проп `error` автоматически включает danger-стиль (border, цвет текста, иконка) + shake-анимация.
+- `variant="success"` — зелёные border / текст / иконка (пока нет `error`).
+- Цвет иконки через `currentColor` от `.icon`.
 
 ## UI-тема
 

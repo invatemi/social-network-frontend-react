@@ -34,9 +34,11 @@
 
 ## Иконки действий
 
-Общие SVG: `src/shared/ui/icons/` (`UploadIcon`, `SearchIcon`, `LoadingIcon`, `CloseIcon`, `TrashIcon`, …).
+Общие SVG: `src/shared/ui/icons/` (`UploadIcon`, `SearchIcon`, `LoadingIcon`, `CloseIcon`, `TrashIcon`, `EmailIcon`, `LockIcon`, `UserFaceIcon`, …). Импорт: `@/shared/ui` или `@/shared/ui/icons`.
 
-Доменные иконки (лайк/коммент/nav) могут оставаться локальными, но action UI (upload, search, loading) — из shared.
+Auth-поля используют `leftIcon` у `Input` (`EmailIcon`, `LockIcon`, `UserFaceIcon`). Fill основных path — `currentColor` (цвет от состояния поля); у `UserFaceIcon` глаза/рот остаются `#121212`.
+
+Доменные иконки (лайк/коммент/nav) могут оставаться локальными, но action UI (upload, search, loading, auth) — из shared.
 
 ## Layouts
 

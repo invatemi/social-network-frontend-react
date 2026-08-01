@@ -9,7 +9,7 @@ import {
 } from 'react';
 
 export type InputSize = 'sm' | 'md' | 'lg';
-export type InputVariant = 'primary' | 'secondary' | 'danger';
+export type InputVariant = 'primary' | 'secondary' | 'danger' | 'success';
 export type InputAs = 'input' | 'textarea';
 
 // Общие обработчики событий для обоих типов

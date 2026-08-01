@@ -17,9 +17,9 @@
   --color-text-muted: #888;
   --color-accent: #fff;
   --color-accent-contrast: #1a1a1a;
-  --color-success: #22c55e;
+  --color-success: rgba(118, 255, 147, 1);
   --color-warning: #eab308;
-  --color-danger: #ef4444;
+  --color-danger: rgba(255, 104, 104, 1);
   --color-focus: #a8a8a8;
 
   --radius-sm: 10px;

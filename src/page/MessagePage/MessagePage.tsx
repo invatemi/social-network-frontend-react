@@ -56,14 +56,15 @@ const MessagePage = (): ReactElement => {
         createdAt: msg.createdAt,
         status,
         isError: false,
+        attachments: msg.attachments ?? [],
       } satisfies UIMessageData;
     });
   }, [messages, currentUserId]);
 
   const handleSendMessageForList = useCallback(
-    async (listChatId: number, text: string): Promise<void> => {
+    async (listChatId: number, text: string, files?: File[]): Promise<void> => {
       if (listChatId !== activeChatId) return;
-      await handleSendMessage(text);
+      await handleSendMessage(text, files);
     },
     [activeChatId, handleSendMessage]
   );
@@ -97,6 +98,7 @@ const MessagePage = (): ReactElement => {
         hasActiveChat={hasActiveChat}
         isMobileSidebarOpen={isMobileSidebarOpen}
         onCloseMobileSidebar={closeMobileSidebar}
+        contentKey={activeChatId}
         sidebarHeader={
           <>
             <span className={style.sidebarTitle}>Сообщения</span>
@@ -138,6 +140,7 @@ const MessagePage = (): ReactElement => {
         details={
           hasActiveChat && activeChat ? (
             <ChatDetailsPanel
+              chatId={activeChatId!}
               userId={activeChat.participant?.userId ?? 0}
               username={recipientUsername}
               avatarUrl={recipientAvatar}

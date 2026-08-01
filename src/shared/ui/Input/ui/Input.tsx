@@ -25,11 +25,14 @@ const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>(({
   ...restProps
 }, ref) => {
   const isTextarea = Component === 'textarea';
+  const isDanger = !!error || variant === 'danger';
+  const isSuccess = !error && variant === 'success';
 
   const inputClasses = [
     styles.input,
     styles[`input_${size}`],
-    variant === 'danger' && styles.input_danger,
+    isDanger && styles.input_danger,
+    isSuccess && styles.input_success,
     disabled && styles.input_disabled,
     className,
   ].filter(Boolean).join(' ');
@@ -67,7 +70,7 @@ const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>(({
           className={inputClasses}
           id={id}
           disabled={disabled}
-          aria-invalid={!!error}
+          aria-invalid={isDanger}
           aria-describedby={error ? `${id}-error` : helperText ? `${id}-helper` : undefined}
           {...(componentProps as any)}
         />

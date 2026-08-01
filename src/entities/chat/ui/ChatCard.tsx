@@ -17,6 +17,8 @@ const ChatCard = ({
 }: ChatCardProps) => {
   const initial = username.charAt(0).toUpperCase();
   const handleClick = () => onClick?.(chatId);
+  const unreadLabel =
+    unreadCount > 99 ? "99+" : unreadCount > 0 ? String(unreadCount) : null;
 
   return (
     <div
@@ -48,11 +50,13 @@ const ChatCard = ({
         <div className={style.header}>
           <span className={style.username}>
             {username}
-            {unreadCount > 0 ? (
+            {unreadLabel ? (
               <span
-                className={style.unreadDot}
+                className={style.unreadBadge}
                 aria-label={`${unreadCount} непрочитанных`}
-              />
+              >
+                {unreadLabel}
+              </span>
             ) : null}
           </span>
           <span className={style.time}>{lastMessageTime}</span>

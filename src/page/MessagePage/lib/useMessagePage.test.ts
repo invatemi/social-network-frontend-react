@@ -29,6 +29,11 @@ vi.mock("@/entities/message/api/messagesApi", () => ({
   }),
   useSendMessageMutation: () => [vi.fn(), { isLoading: false }],
   useDeleteChatMutation: () => [vi.fn()],
+  useLazyGetMessageUploadUrlQuery: () => [vi.fn()],
+}));
+
+vi.mock("@/feature/message/lib", () => ({
+  uploadMessageAttachments: vi.fn(),
 }));
 
 vi.mock("@/app/lib/socket", () => ({
