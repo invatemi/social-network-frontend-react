@@ -40,7 +40,9 @@ const CreateChatModal = ({
   useEffect(() => {
     if (!isOpen) return;
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !isCreatingChat) onClose();
+      if (e.key !== "Escape" || isCreatingChat) return;
+      e.preventDefault();
+      onClose();
     };
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);

@@ -37,7 +37,7 @@ npm run preview
 ### Bootstrap сессии при старте
 
 1. `AuthBootstrap` вызывает `POST /api/auth/refresh` (cookie).
-2. При успехе — `setAccessToken`, затем `getUserProfile`.
+2. При успехе — `setAccessToken`, затем `getUserProfile`, затем `getAccounts`.
 3. `setAuthInitialized(true)` — рендер роутера.
 4. `App.tsx` при наличии token вызывает `initSocket(token, dispatch)`.
 
@@ -45,9 +45,13 @@ npm run preview
 
 `ProtectedRoute` проверяет `isAuthInitialized` и `isAuthenticated`. При отсутствии auth — редирект на `/autorization` с `state.from`.
 
+### Switch / add account
+
+`applyAccountSession` (`app/store/lib`) обновляет auth + accounts и вызывает `baseApi.util.resetApiState()`. Socket переподключается по новому `accessToken` в `App.tsx`.
+
 ### Logout
 
-`authSlice.logout()` очищает state и вызывает `disconnectSocket()`.
+`authSlice.logout()` очищает state (включая accounts) и вызывает `disconnectSocket()`. При vault с оставшимися аккаунтами logout API может вернуть `switched: true` — тогда сессию применяют без полного logout.
 
 ## Как добавить RTK endpoint в app/store/api
 
@@ -68,8 +72,10 @@ npm run preview
 | `post:deleted` | remove from cache |
 | `comment:created`, `comment:deleted` | patch/invalidate Comments |
 | `notification:friend_*` | invalidate Friends, User |
-| `message:new`, `chat:*` | invalidate Messages, Chats |
-| `user:online`, `user:offline` | invalidate User |
+| `message:new` | `updateQueryData` messages + chats (без refetch storm) |
+| `message:updated` / `message:deleted` / `chat:read` | cache patch |
+| `chat:created` / `chat:deleted` | invalidate Chats |
+| `user:online`, `user:offline` | только `presenceSlice` (без invalidate User) |
 
 Полный список — `src/app/lib/socket.ts`.
 

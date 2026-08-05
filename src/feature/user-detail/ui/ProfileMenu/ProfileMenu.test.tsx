@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import ProfileMenu from "./ProfileMenu";
 
 const openSettingsMock = vi.fn();
+const openAddAccountMock = vi.fn();
 const navigateMock = vi.fn();
 const logoutRequestMock = vi.fn();
 const dispatchMock = vi.fn();
@@ -13,7 +14,19 @@ vi.mock("../../ProfileSettingsProvider", () => ({
     isOpen: false,
     openSettings: openSettingsMock,
     closeSettings: vi.fn(),
+    isAddAccountOpen: false,
+    openAddAccount: openAddAccountMock,
+    closeAddAccount: vi.fn(),
   }),
+}));
+
+vi.mock("@/entities/user/api", () => ({
+  fetchUserProfileWithRetry: vi.fn(),
+}));
+
+vi.mock("@/app/store/lib/applyAccountSession", () => ({
+  applyAccountSession: vi.fn(),
+  hydrateAccounts: vi.fn(),
 }));
 
 vi.mock("react-router-dom", async () => {
@@ -41,10 +54,13 @@ vi.mock("@/app/store/slices/authSlice", () => ({
 describe("ProfileMenu", () => {
   beforeEach(() => {
     openSettingsMock.mockReset();
+    openAddAccountMock.mockReset();
     navigateMock.mockReset();
     logoutRequestMock.mockReset();
     dispatchMock.mockReset();
-    logoutRequestMock.mockReturnValue({ unwrap: () => Promise.resolve() });
+    logoutRequestMock.mockReturnValue({
+      unwrap: () => Promise.resolve({ message: "Logged out successfully", switched: false }),
+    });
   });
 
   const renderMenu = () =>
@@ -87,6 +103,15 @@ describe("ProfileMenu", () => {
     await waitFor(() => {
       expect(screen.queryByTestId("profile-menu")).not.toBeInTheDocument();
     });
+  });
+
+  it("opens add account modal from menu", async () => {
+    renderMenu();
+    fireEvent.click(screen.getByTestId("profile-menu-trigger"));
+    expect(await screen.findByTestId("profile-menu")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Добавить аккаунт"));
+
+    expect(openAddAccountMock).toHaveBeenCalledTimes(1);
   });
 
   it("closes on Escape", async () => {

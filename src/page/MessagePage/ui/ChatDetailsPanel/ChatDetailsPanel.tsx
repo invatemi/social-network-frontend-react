@@ -1,6 +1,9 @@
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useGetUserPublicProfileQuery } from "@/entities/user/api";
 import { useGetChatAttachmentsQuery } from "@/entities/message/api/messagesApi";
+import type { PhotoItem } from "@/entities/photo";
+import { PhotoModal } from "@/feature";
 import { useAppSelector } from "@/app/store/hooks";
 import style from "./ChatDetailsPanel.module.css";
 
@@ -30,6 +33,7 @@ const ChatDetailsPanel = ({
   email: emailProp,
   isOnline: isOnlineProp = false,
 }: ChatDetailsPanelProps) => {
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const presenceOnline = useAppSelector(
     (state) => state.presence.byUserId[String(userId)] === true
   );
@@ -47,6 +51,18 @@ const ChatDetailsPanel = ({
   const { data: files = [] } = useGetChatAttachmentsQuery(
     { chatId, kind: "file", limit: 50 },
     { skip: !chatId }
+  );
+
+  const viewerPhotos = useMemo<PhotoItem[]>(
+    () =>
+      photos.map((photo) => ({
+        id: photo.id,
+        url: photo.url,
+        createdAt: photo.createdAt ?? new Date(0).toISOString(),
+        year: 0,
+        userId: 0,
+      })),
+    [photos]
   );
 
   const displayName = profile?.username || username;
@@ -93,21 +109,20 @@ const ChatDetailsPanel = ({
         <h3 className={style.sectionTitle}>Фото</h3>
         {photos.length > 0 ? (
           <div className={style.photosGrid}>
-            {photos.map((photo) => (
-              <a
+            {photos.map((photo, index) => (
+              <button
                 key={photo.id}
-                href={photo.url}
-                target="_blank"
-                rel="noreferrer"
+                type="button"
                 className={style.photoLink}
-                aria-label={photo.fileName}
+                onClick={() => setViewerIndex(index)}
+                aria-label={photo.fileName || "Открыть изображение"}
               >
                 <img
                   src={photo.url}
                   alt={photo.fileName}
                   className={style.photoImage}
                 />
-              </a>
+              </button>
             ))}
           </div>
         ) : (
@@ -139,6 +154,16 @@ const ChatDetailsPanel = ({
           <p className={style.emptyHint}>Пока нет файлов</p>
         )}
       </section>
+
+      {viewerIndex != null && viewerPhotos[viewerIndex] ? (
+        <PhotoModal
+          photos={viewerPhotos}
+          index={viewerIndex}
+          onClose={() => setViewerIndex(null)}
+          onIndexChange={setViewerIndex}
+          variant="media"
+        />
+      ) : null}
     </aside>
   );
 };

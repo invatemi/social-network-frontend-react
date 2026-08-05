@@ -9,6 +9,11 @@
   gap: 16px;
 }
 
+.postRow {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 360px;
+}
+
 .title {
   font-family: 'Inter', sans-serif;
   font-size: 20px;

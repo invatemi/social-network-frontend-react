@@ -2,7 +2,9 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactElement,
   type ReactNode,
@@ -25,15 +27,27 @@ const DEFAULT_DURATION_MS = 5000;
 
 export function ToastProvider({ children }: { children: ReactNode }): ReactElement {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const timersRef = useRef<Set<number>>(new Set());
+
+  useEffect(() => {
+    return () => {
+      for (const timer of timersRef.current) {
+        window.clearTimeout(timer);
+      }
+      timersRef.current.clear();
+    };
+  }, []);
 
   const showToast = useCallback((message: string, durationMs = DEFAULT_DURATION_MS) => {
     const id = Date.now() + Math.random();
 
     setToasts((current) => [...current.slice(-1), { id, message }]);
 
-    window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
+      timersRef.current.delete(timer);
       setToasts((current) => current.filter((toast) => toast.id !== id));
     }, durationMs);
+    timersRef.current.add(timer);
   }, []);
 
   const value = useMemo(() => ({ showToast }), [showToast]);

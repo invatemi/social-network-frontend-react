@@ -1,0 +1,40 @@
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1301;
+  pointer-events: none;
+}
+
+.item {
+  position: fixed;
+  /* Не перехватывать клики по «пустой» ширине строки — только пузырь в multi */
+  pointer-events: none;
+  margin: 0;
+  animation: floatIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.itemInteractive :global([data-message-bubble]) {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.item :global([data-reply-quote]) {
+  pointer-events: auto;
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item {
+    animation: none;
+  }
+}

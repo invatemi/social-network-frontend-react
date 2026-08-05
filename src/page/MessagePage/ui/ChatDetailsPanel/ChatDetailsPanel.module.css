@@ -9,6 +9,14 @@
   border-radius: 16px;
   font-family: "Inter", sans-serif;
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.panel::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .profile {
@@ -128,7 +136,19 @@
   border-radius: 12px;
   overflow: hidden;
   display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
   background: #1a1a1a;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.photoLink:focus-visible {
+  outline: 2px solid #555;
+  outline-offset: 2px;
 }
 
 .photoImage {

@@ -1,7 +1,7 @@
-import { ChatCard } from "@/entities";
-import { useAppSelector } from "@/app/store/hooks";
-import { formatChatTime, ChatListProps } from "../lib";
+import { useCallback } from "react";
+import { ChatListProps } from "../lib";
 import { useChatList } from "../hooks/useChatList";
+import ChatListItem from "./ChatListItem";
 import style from "./ChatList.module.css";
 
 /**
@@ -13,13 +13,15 @@ const ChatList = ({
   activeChatId = null,
   className = "",
 }: ChatListProps) => {
-  const presence = useAppSelector((state) => state.presence.byUserId);
   const { groupedChats, searchQuery, setSearchQuery, isLoading } =
     useChatList(chats);
 
-  const handleChatClick = (chatId: number) => {
-    onChatSelect?.(chatId);
-  };
+  const handleChatSelect = useCallback(
+    (chatId: number) => {
+      onChatSelect?.(chatId);
+    },
+    [onChatSelect]
+  );
 
   if (isLoading) {
     return (
@@ -56,42 +58,14 @@ const ChatList = ({
         ) : (
           Object.entries(groupedChats).map(([group, groupChats]) => (
             <div key={group} className={style.section}>
-              {groupChats.map((chat) => {
-                const username = chat.isGroup
-                  ? chat.chatName || "Групповой чат"
-                  : chat.participant?.username || "Собеседник";
-
-                const avatarUrl = chat.isGroup
-                  ? null
-                  : chat.participant?.avatarUrl || null;
-
-                const userId = chat.participant?.userId;
-                const isOnline =
-                  (userId != null && presence[String(userId)] === true) ||
-                  (chat.participant?.isOnline ?? false);
-
-                const lastMessageTime =
-                  chat.lastMessage?.createdAt || chat.lastMessageAt || null;
-
-                return (
-                  <ChatCard
-                    key={chat.chatId}
-                    chatId={chat.chatId}
-                    avatarUrl={avatarUrl}
-                    username={username}
-                    lastMessage={chat.lastMessage?.content || ""}
-                    lastMessageTime={
-                      lastMessageTime ? formatChatTime(lastMessageTime) : ""
-                    }
-                    unreadCount={
-                      activeChatId === chat.chatId ? 0 : chat.unreadCount
-                    }
-                    isOnline={isOnline}
-                    onClick={handleChatClick}
-                    isActive={activeChatId === chat.chatId}
-                  />
-                );
-              })}
+              {groupChats.map((chat) => (
+                <ChatListItem
+                  key={chat.chatId}
+                  chat={chat}
+                  isActive={activeChatId === chat.chatId}
+                  onChatSelect={handleChatSelect}
+                />
+              ))}
             </div>
           ))
         )}

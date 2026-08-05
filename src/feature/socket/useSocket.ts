@@ -1,7 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { getSocket } from '@/app/lib/socket';
 import { FeedPost } from '@/entities/post/api/postApi';
-import { SocketMessage, SocketChatEvent, SocketUserLeft, SocketChatRead } from '@/app/lib/socket';
+import {
+  SocketMessage,
+  SocketMessageDeleted,
+  SocketChatEvent,
+  SocketUserLeft,
+  SocketChatRead,
+} from '@/app/lib/socket';
 import { env } from '@/shared/config/env';
 
 /**
@@ -83,6 +89,8 @@ export type SocketEvents = {
   
   // Чаты
   'message:new': SocketMessage;
+  'message:updated': SocketMessage;
+  'message:deleted': SocketMessageDeleted;
   'chat:deleted': SocketChatEvent;
   'chat:read': SocketChatRead;
   'user:left': SocketUserLeft;

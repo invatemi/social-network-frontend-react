@@ -8,17 +8,26 @@ import {
  *  Адаптированные данные сообщения для UI
  * (отличается от BackendMessageData структурой)
  */
+export type UIMessageReplyPreview = {
+  messageId: number;
+  authorName: string;
+  text: string;
+  createdAt: string;
+};
+
 export type UIMessageData = {
   messageId: number;
   sender: "me" | "other";
   senderName?: string;
   text: string;
   createdAt: string;
+  editedAt?: string | null;
   status: "sent" | "delivered" | "read" | "error";
   isError?: boolean;
   avatarUrl?: string | null;
   timestamp: any;
   attachments?: MessageAttachmentData[];
+  replyTo?: UIMessageReplyPreview | null;
 };
 
 /**
@@ -30,6 +39,7 @@ export type UIChatData = BackendChatData & {
 
 export type MessageListProps = {
   chatId: number;
+  currentUserId?: number;
   recipient: {
     userId: number;
     username: string;
@@ -39,7 +49,12 @@ export type MessageListProps = {
   };
   initialMessages?: UIMessageData[];
   onLoadMessages?: (chatId: number, page: number) => Promise<BackendMessageData[]>;
-  onSendMessage?: (chatId: number, text: string, files?: File[]) => Promise<void>;
+  onSendMessage?: (
+    chatId: number,
+    text: string,
+    files?: File[],
+    options?: { replyToId?: number }
+  ) => Promise<void>;
   onBack?: () => void;
   className?: string;
 };
@@ -49,15 +64,32 @@ export type UseMessageListReturn = {
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
+  /** Id сообщений, исчезнувших из props (socket/API) — нужна exit-анимация у наблюдателя */
+  pendingRemoteExitIds: number[];
+  releaseRetainedMessages: (ids: number[]) => void;
   observerTarget: React.RefObject<HTMLDivElement | null>;
   messagesContainerRef: React.RefObject<HTMLDivElement | null>;
-  handleSendMessage: (text: string, files?: File[]) => Promise<void>;
+  handleSendMessage: (
+    text: string,
+    files?: File[],
+    options?: { replyToId?: number }
+  ) => Promise<void>;
   scrollToBottom: (behavior?: ScrollBehavior) => void;
+  updateStickToBottom: () => void;
+  stickToBottomRef: React.MutableRefObject<boolean>;
 };
 
 export type UseMessageListProps = {
   chatId: number;
+  currentUserId: number;
   initialMessages?: UIMessageData[];
+  /** Локальный delete уже в exit — не ставить в pendingRemoteExitIds */
+  localExitingIds?: number[];
   onLoadMessages?: (chatId: number, page: number) => Promise<BackendMessageData[]>;
-  onSendMessage?: (chatId: number, text: string, files?: File[]) => Promise<void>;
+  onSendMessage?: (
+    chatId: number,
+    text: string,
+    files?: File[],
+    options?: { replyToId?: number }
+  ) => Promise<void>;
 };

@@ -22,6 +22,8 @@ export type PhotoModalProps = {
   canDelete?: boolean;
   ownerName?: string;
   ownerAvatarUrl?: string | null;
+  /** `media` — только картинка (без лайков/комментариев), для чата */
+  variant?: "social" | "media";
 };
 
 /**
@@ -35,11 +37,13 @@ const PhotoModal = ({
   canDelete = false,
   ownerName,
   ownerAvatarUrl,
+  variant = "social",
 }: PhotoModalProps) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   const gradientId = useId().replace(/:/g, "");
   const currentUserId = useAppSelector((state) => state.auth.user?.id);
   const photo = photos[index];
+  const isSocial = variant === "social";
 
   const [commentText, setCommentText] = useState("");
   const [likeBurst, setLikeBurst] = useState(false);
@@ -47,7 +51,7 @@ const PhotoModal = ({
   const [localLikes, setLocalLikes] = useState(photo?.likesCount ?? 0);
 
   const { data: comments = [], isLoading: commentsLoading } =
-    useGetPhotoCommentsQuery(photo?.id ?? 0, { skip: !photo });
+    useGetPhotoCommentsQuery(photo?.id ?? 0, { skip: !photo || !isSocial });
   const [toggleLike, { isLoading: isLiking }] = useTogglePhotoLikeMutation();
   const [createComment, { isLoading: isSending }] =
     useCreatePhotoCommentMutation();
@@ -55,11 +59,11 @@ const PhotoModal = ({
   const [deletePhoto, { isLoading: isDeleting }] = useDeletePhotoMutation();
 
   useEffect(() => {
-    if (!photo) return;
+    if (!photo || !isSocial) return;
     setLocalLiked(photo.isLiked ?? false);
     setLocalLikes(photo.likesCount ?? 0);
     setCommentText("");
-  }, [photo?.id, photo?.isLiked, photo?.likesCount]);
+  }, [photo?.id, photo?.isLiked, photo?.likesCount, isSocial]);
 
   useEffect(() => {
     if (!likeBurst) return;
@@ -74,6 +78,7 @@ const PhotoModal = ({
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        e.preventDefault();
         onClose();
         return;
       }
@@ -162,15 +167,28 @@ const PhotoModal = ({
     >
       <div
         ref={dialogRef}
-        className={style.modal}
+        className={[style.modal, !isSocial ? style.modalMedia : ""]
+          .filter(Boolean)
+          .join(" ")}
         role="dialog"
         aria-modal="true"
         aria-label="Просмотр фотографии"
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         data-testid="photo-modal"
+        data-variant={variant}
       >
         <div className={style.mediaPane}>
+          {!isSocial ? (
+            <button
+              type="button"
+              className={style.closeBtn}
+              onClick={onClose}
+              aria-label="Закрыть"
+            >
+              ×
+            </button>
+          ) : null}
           {hasPrev && (
             <button
               type="button"
@@ -194,133 +212,140 @@ const PhotoModal = ({
           )}
         </div>
 
-        <aside className={style.sidePane}>
-          <header className={style.sideHeader}>
-            <div className={style.owner}>
-              {ownerAvatarUrl ? (
-                <img
-                  src={ownerAvatarUrl}
-                  alt=""
-                  className={style.ownerAvatar}
-                />
-              ) : (
-                <div className={style.ownerAvatarPlaceholder}>{initial}</div>
-              )}
-              <div className={style.ownerMeta}>
-                <span className={style.ownerName}>{displayName}</span>
-                <time className={style.date}>{formatDate(photo.createdAt)}</time>
+        {isSocial ? (
+          <aside className={style.sidePane}>
+            <header className={style.sideHeader}>
+              <div className={style.owner}>
+                {ownerAvatarUrl ? (
+                  <img
+                    src={ownerAvatarUrl}
+                    alt=""
+                    className={style.ownerAvatar}
+                  />
+                ) : (
+                  <div className={style.ownerAvatarPlaceholder}>{initial}</div>
+                )}
+                <div className={style.ownerMeta}>
+                  <span className={style.ownerName}>{displayName}</span>
+                  <time className={style.date}>
+                    {formatDate(photo.createdAt)}
+                  </time>
+                </div>
               </div>
-            </div>
-            {canDelete && (
+              {canDelete && (
+                <button
+                  type="button"
+                  className={style.deletePhotoBtn}
+                  onClick={handleDeletePhoto}
+                  disabled={isDeleting}
+                >
+                  Удалить
+                </button>
+              )}
+            </header>
+
+            <div className={style.actions}>
               <button
                 type="button"
-                className={style.deletePhotoBtn}
-                onClick={handleDeletePhoto}
-                disabled={isDeleting}
+                className={[
+                  style.actionBtn,
+                  localLiked ? style.liked : "",
+                  likeBurst ? style.likeBurst : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                onClick={handleLike}
+                disabled={isLiking || !currentUserId}
+                aria-label={localLiked ? "Убрать лайк" : "Поставить лайк"}
               >
-                Удалить
+                <LikeIcon filled={localLiked || likeBurst} />
+                <RollingCount value={localLikes} />
               </button>
-            )}
-          </header>
-
-          <div className={style.actions}>
-            <button
-              type="button"
-              className={[
-                style.actionBtn,
-                localLiked ? style.liked : "",
-                likeBurst ? style.likeBurst : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              onClick={handleLike}
-              disabled={isLiking || !currentUserId}
-              aria-label={localLiked ? "Убрать лайк" : "Поставить лайк"}
-            >
-              <LikeIcon filled={localLiked || likeBurst} />
-              <RollingCount value={localLikes} />
-            </button>
-            <div className={style.actionBtn} aria-hidden>
-              <CommentIcon />
-              <RollingCount value={comments.length} />
-            </div>
-          </div>
-
-          <div className={style.comments} data-testid="photo-comments">
-            {commentsLoading && (
-              <div className={style.commentsLoading}>
-                <Spinner />
+              <div className={style.actionBtn} aria-hidden>
+                <CommentIcon />
+                <RollingCount value={comments.length} />
               </div>
-            )}
-            {!commentsLoading && comments.length === 0 && (
-              <p className={style.commentsEmpty}>Пока нет комментариев</p>
-            )}
-            {!commentsLoading &&
-              comments.map((comment) => {
-                const isOwner =
-                  currentUserId === comment.userId ||
-                  currentUserId === photo.userId;
-                return (
-                  <article key={comment.id} className={style.comment}>
-                    <div className={style.commentAvatarWrap}>
-                      {comment.author.avatarUrl ? (
-                        <img
-                          src={comment.author.avatarUrl}
-                          alt=""
-                          className={style.commentAvatar}
-                        />
-                      ) : (
-                        <div className={style.commentAvatarPlaceholder}>
-                          {comment.author.username.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div className={style.commentBody}>
-                      <div className={style.commentTop}>
-                        <span className={style.commentAuthor}>
-                          {comment.author.username}
-                        </span>
-                        {isOwner && (
-                          <button
-                            type="button"
-                            className={style.commentDelete}
-                            onClick={() => handleDeleteComment(comment.id)}
-                            aria-label="Удалить комментарий"
-                          >
-                            Удалить
-                          </button>
+            </div>
+
+            <div className={style.comments} data-testid="photo-comments">
+              {commentsLoading && (
+                <div className={style.commentsLoading}>
+                  <Spinner />
+                </div>
+              )}
+              {!commentsLoading && comments.length === 0 && (
+                <p className={style.commentsEmpty}>Пока нет комментариев</p>
+              )}
+              {!commentsLoading &&
+                comments.map((comment) => {
+                  const isOwner =
+                    currentUserId === comment.userId ||
+                    currentUserId === photo.userId;
+                  return (
+                    <article key={comment.id} className={style.comment}>
+                      <div className={style.commentAvatarWrap}>
+                        {comment.author.avatarUrl ? (
+                          <img
+                            src={comment.author.avatarUrl}
+                            alt=""
+                            className={style.commentAvatar}
+                          />
+                        ) : (
+                          <div className={style.commentAvatarPlaceholder}>
+                            {comment.author.username.charAt(0).toUpperCase()}
+                          </div>
                         )}
                       </div>
-                      <p className={style.commentText}>{comment.content}</p>
-                    </div>
-                  </article>
-                );
-              })}
-          </div>
-
-          <form className={style.commentForm} onSubmit={handleSubmitComment}>
-            <div className={style.inputBar}>
-              <input
-                className={style.input}
-                type="text"
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Комментарий"
-                disabled={isSending || !currentUserId}
-                maxLength={2000}
-                aria-label="Текст комментария"
-              />
-              <button
-                type="submit"
-                className={style.sendButton}
-                disabled={isSending || !commentText.trim() || !currentUserId}
-                aria-label="Отправить комментарий"
-              >
-                <SendIcon gradientId={gradientId} className={style.sendIcon} />
-              </button>
+                      <div className={style.commentBody}>
+                        <div className={style.commentTop}>
+                          <span className={style.commentAuthor}>
+                            {comment.author.username}
+                          </span>
+                          {isOwner && (
+                            <button
+                              type="button"
+                              className={style.commentDelete}
+                              onClick={() => handleDeleteComment(comment.id)}
+                              aria-label="Удалить комментарий"
+                            >
+                              Удалить
+                            </button>
+                          )}
+                        </div>
+                        <p className={style.commentText}>{comment.content}</p>
+                      </div>
+                    </article>
+                  );
+                })}
             </div>
-          </form>
-        </aside>
+
+            <form className={style.commentForm} onSubmit={handleSubmitComment}>
+              <div className={style.inputBar}>
+                <input
+                  className={style.input}
+                  type="text"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="Комментарий"
+                  disabled={isSending || !currentUserId}
+                  maxLength={2000}
+                  aria-label="Текст комментария"
+                />
+                <button
+                  type="submit"
+                  className={style.sendButton}
+                  disabled={isSending || !commentText.trim() || !currentUserId}
+                  aria-label="Отправить комментарий"
+                >
+                  <SendIcon
+                    gradientId={gradientId}
+                    className={style.sendIcon}
+                  />
+                </button>
+              </div>
+            </form>
+          </aside>
+        ) : null}
       </div>
     </div>,
     document.body

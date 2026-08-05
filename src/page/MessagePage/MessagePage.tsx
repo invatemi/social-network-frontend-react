@@ -2,7 +2,7 @@ import { ReactElement, useMemo, useCallback } from "react";
 import { PageLayout } from "@/shared";
 import { ChatList } from "@/widget/ChatList";
 import { MessageList } from "@/widget/MessageList";
-import type { UIMessageData } from "@/widget/MessageList/lib";
+import { formatMessageForUI } from "@/widget/MessageList/lib";
 import { useMessagePage } from "./lib/useMessagePage";
 import { CreateChatButton } from "@/feature/chat";
 import { ChatDetailsPanel } from "./ui/ChatDetailsPanel";
@@ -35,36 +35,19 @@ const MessagePage = (): ReactElement => {
   );
 
   const uiMessages = useMemo(() => {
-    if (!messages || messages.length === 0) return [];
-
-    return messages.map((msg) => {
-      const sender = (msg.author.id === currentUserId ? "me" : "other") as
-        | "me"
-        | "other";
-      const status = (msg.isRead ? "read" : "sent") as "read" | "sent";
-
-      return {
-        messageId: msg.id,
-        sender,
-        senderName: msg.author.username,
-        avatarUrl: msg.author.avatarUrl,
-        text: msg.content,
-        timestamp: new Date(msg.createdAt).toLocaleTimeString("ru-RU", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        createdAt: msg.createdAt,
-        status,
-        isError: false,
-        attachments: msg.attachments ?? [],
-      } satisfies UIMessageData;
-    });
+    if (!messages || messages.length === 0 || !currentUserId) return [];
+    return messages.map((msg) => formatMessageForUI(msg, currentUserId));
   }, [messages, currentUserId]);
 
   const handleSendMessageForList = useCallback(
-    async (listChatId: number, text: string, files?: File[]): Promise<void> => {
+    async (
+      listChatId: number,
+      text: string,
+      files?: File[],
+      options?: { replyToId?: number }
+    ): Promise<void> => {
       if (listChatId !== activeChatId) return;
-      await handleSendMessage(text, files);
+      await handleSendMessage(text, files, options);
     },
     [activeChatId, handleSendMessage]
   );
@@ -123,6 +106,7 @@ const MessagePage = (): ReactElement => {
           hasActiveChat && activeChat ? (
             <MessageList
               chatId={activeChatId!}
+              currentUserId={currentUserId ?? 0}
               recipient={{
                 userId: activeChat.participant?.userId ?? 0,
                 username: recipientUsername,

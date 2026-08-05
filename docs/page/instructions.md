@@ -66,8 +66,10 @@ export const ExamplePage = () => {
 - `/friends`, `/friends/:userId?` — друзья; `?section=requests` — входящие заявки (только без `userId`)
 - `/followers`, `/followers/:userId?` — подписки
 - Online-фильтр — клиентский, через `presenceSlice`
-- Поиск — клиентский по `username`
-- Карточки: `FriendCard` / `FollowerCard` (online-dot, «Написать сообщение» → createChat)
+- Поиск на своей `/friends` (без `:userId`, не в заявках): debounce + `useFriendsPeopleSearch` → два блока — подходящие друзья (клиентский filter по `username`) и «Другие пользователи» (`GET /api/users/search`, без себя и уже известных друзей) с `CreateFriend`
+- На `/friends/:userId`, `?section=requests` и `/followers` — поиск по-прежнему клиентский по `username`
+- Карточки: `FriendCard` / `FollowerCard` (online-dot, «Написать сообщение» → createChat); блок других — `PeopleSearchCard` + `CreateFriend`
+- UI поиска: `src/page/FriendPage/ui/FriendsSearchResults/`
 
 Страницы визуально близнецы; отличаются данными и `activeSection` сабменю.
 
@@ -87,6 +89,8 @@ npm test
 - `src/page/MessagePage/lib/useMessagePage.test.ts`
 - `src/page/shared/PhotosView/PhotosView.test.tsx`
 - `src/page/PhotoPage/lib/usePhotoPage.test.ts`
+- `src/page/FriendPage/lib/useFriendsPeopleSearch.test.ts`
+- `src/page/FriendPage/ui/FriendsSearchResults/FriendsSearchResults.test.tsx`
 
 Остальные page-слайсы без тестов.
 

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "@/app/store/hooks";
 import { setAuth } from "@/app/store/slices/authSlice";
 import { useLoginMutation } from "@/app/store/api/authApi";
+import { fetchUserProfileWithRetry } from "@/entities/user/api";
 import { Button, Input, useToast } from "@/shared";
 import { EmailIcon, LockIcon } from "@/shared/ui";
 import { useRateLimitCountdown } from "@/shared/hooks";
@@ -80,6 +81,7 @@ const Autorization = () => {
         accessToken: result.accessToken,
         user: result.user,
       }));
+      await fetchUserProfileWithRetry(dispatch);
       navigate("/");
     } catch (err: unknown) {
       if (handleRateLimitError(err, { startCountdown, showToast })) {

@@ -42,6 +42,41 @@ export const TrashIcon = ({ size = 16, ...props }: IconProps) => (
   </svg>
 );
 
+export const CopyIcon = ({ size = 16, ...props }: IconProps) => (
+  <svg {...defaults(size)} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <rect x="9" y="9" width="11" height="11" rx="2" />
+    <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+  </svg>
+);
+
+export const LinkIcon = ({ size = 16, ...props }: IconProps) => (
+  <svg {...defaults(size)} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M10 13a5 5 0 0 0 7.07 0l1.41-1.41a5 5 0 0 0-7.07-7.07L10 5.93" />
+    <path d="M14 11a5 5 0 0 0-7.07 0L5.52 12.41a5 5 0 0 0 7.07 7.07L14 18.07" />
+  </svg>
+);
+
+export const ForwardIcon = ({ size = 16, ...props }: IconProps) => (
+  <svg {...defaults(size)} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M15 14l5-5-5-5" />
+    <path d="M4 19v-2a5 5 0 0 1 5-5h11" />
+  </svg>
+);
+
+export const ReplyIcon = ({ size = 16, ...props }: IconProps) => (
+  <svg {...defaults(size)} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M9 14l-5-5 5-5" />
+    <path d="M20 19v-2a5 5 0 0 0-5-5H4" />
+  </svg>
+);
+
+export const MoreCircleIcon = ({ size = 16, ...props }: IconProps) => (
+  <svg {...defaults(size)} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M8 12h.01M12 12h.01M16 12h.01" />
+  </svg>
+);
+
 export const SendIcon = ({ size = 16, ...props }: IconProps) => (
   <svg {...defaults(size)} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M22 2L11 13" />

@@ -39,7 +39,7 @@ app → page → widget → feature → entities → shared
 
 ```mermaid
 flowchart LR
-  Browser[Browser SPA] -->|HTTP VITE_API_URL| KrakenD[KrakenD :8080]
+  Browser[Browser SPA] -->|HTTP VITE_API_URL| KrakenD[KrakenD :8088]
   Browser -->|WebSocket VITE_WS_URL| Notif[notifications-service :3005]
 
   KrakenD --> Auth[auth-service]

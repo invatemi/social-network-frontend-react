@@ -6,7 +6,11 @@ import {
   setAuthInitialized,
   selectIsAuthInitialized,
 } from "@/app/store/slices/authSlice";
-import { useRefreshTokensMutation } from "@/app/store/api/authApi";
+import {
+  useRefreshTokensMutation,
+  useLazyGetAccountsQuery,
+} from "@/app/store/api/authApi";
+import { hydrateAccounts } from "@/app/store/lib/applyAccountSession";
 import { useLazyGetUserProfileQuery } from "@/entities/user/api";
 import { Spinner } from "@/shared/ui";
 
@@ -19,6 +23,7 @@ export const AuthBootstrap = ({ children }: AuthBootstrapProps) => {
   const isAuthInitialized = useAppSelector(selectIsAuthInitialized);
   const [refreshTokens] = useRefreshTokensMutation();
   const [fetchUserProfile] = useLazyGetUserProfileQuery();
+  const [fetchAccounts] = useLazyGetAccountsQuery();
 
   useEffect(() => {
     if (isAuthInitialized) {
@@ -36,6 +41,13 @@ export const AuthBootstrap = ({ children }: AuthBootstrapProps) => {
         } catch {
           // Access token restored; profile can load later on protected pages.
         }
+
+        try {
+          const accountsResult = await fetchAccounts().unwrap();
+          await hydrateAccounts(dispatch, accountsResult.accounts);
+        } catch {
+          // Single-account session without vault is fine.
+        }
       } catch {
         // No valid refresh cookie — user stays unauthenticated.
       } finally {
@@ -44,7 +56,13 @@ export const AuthBootstrap = ({ children }: AuthBootstrapProps) => {
     };
 
     void bootstrap();
-  }, [dispatch, fetchUserProfile, isAuthInitialized, refreshTokens]);
+  }, [
+    dispatch,
+    fetchAccounts,
+    fetchUserProfile,
+    isAuthInitialized,
+    refreshTokens,
+  ]);
 
   if (!isAuthInitialized) {
     return (

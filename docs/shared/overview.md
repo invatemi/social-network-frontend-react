@@ -10,7 +10,7 @@
 - Layouts (`PageLayout`, `Footerlayouts`)
 - Конфигурация окружения (`config/env.ts`)
 - Утилиты (rate limit, friend button config)
-- Общие хуки (`usePostSubscription`, `useRateLimitCountdown`)
+- Общие хуки (`useRateLimitCountdown`, `useWindowedRange`, `usePrefersReducedMotion`, `useEnterAnimation`)
 
 **Не входит:** доменные типы, API endpoints, бизнес-логика сущностей.
 
@@ -29,7 +29,7 @@
 | `config/` | `src/shared/config/env.ts` | Валидация всех `VITE_*` |
 | `layouts/` | `src/shared/layouts/` | PageLayout, Footer |
 | `ui/` | `src/shared/ui/` | Button, Input, Spinner, AsidePageNav, Toast, icons |
-| `hooks/` | `src/shared/hooks/` | usePostSubscription, useRateLimitCountdown |
+| `hooks/` | `src/shared/hooks/` | useRateLimitCountdown, useWindowedRange, animation helpers |
 | `lib/` | `src/shared/lib/` | friendButtonConfig, api/parseRateLimitError, handleRateLimitError |
 
 ## Связи
@@ -52,7 +52,7 @@ flowchart TB
 - Layouts: `PageLayout`, `Footerlayouts`
 - UI: `Button`, `Input`, `Spinner`, `AsidePageNav`, `ToastProvider`, `useToast`
 - Lib: `getFriendButtonConfig`
-- Hooks: `usePostSubscription`
+- Hooks: `useRateLimitCountdown`, `useWindowedRange`, `usePrefersReducedMotion`
 
 Иконки: `@/shared/ui/icons` (или через `shared/ui`). Config (`env`) — напрямую: `@/shared/config/env`.
 

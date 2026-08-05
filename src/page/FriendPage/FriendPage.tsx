@@ -12,6 +12,8 @@ import {
 } from "@/entities/friend/api";
 import { useCreateChatMutation } from "@/entities/message/api/messagesApi";
 import { Button } from "@/shared/ui";
+import { useFriendsPeopleSearch } from "./lib";
+import { FriendsSearchResults } from "./ui/FriendsSearchResults";
 import style from "./FriendPage.module.css";
 
 type FilterTab = "all" | "online";
@@ -27,6 +29,7 @@ const FriendPage = (): ReactElement => {
 
   const [searchParams] = useSearchParams();
   const isRequests = searchParams.get("section") === "requests" && !targetId;
+  const isOwnFriendsPage = !targetId && !isRequests;
 
   const navigate = useNavigate();
   const currentUser = useAppSelector(selectUser);
@@ -42,6 +45,17 @@ const FriendPage = (): ReactElement => {
   });
   const [acceptFriendRequest, acceptState] = useAcceptFriendRequestMutation();
   const [createChat] = useCreateChatMutation();
+
+  const friendIds = useMemo(() => friends.map((f) => f.id), [friends]);
+  const {
+    isSearchActive,
+    otherUsers,
+    isOthersLoading,
+  } = useFriendsPeopleSearch(search, {
+    enabled: isOwnFriendsPage,
+    currentUserId: currentUser?.id,
+    friendIds,
+  });
 
   const query = search.trim().toLowerCase();
 
@@ -106,6 +120,31 @@ const FriendPage = (): ReactElement => {
     : error;
   const onRetry = isRequests ? () => requestsQuery.refetch() : refetch;
 
+  const renderFriendsContent = () => {
+    if (isSearchActive) {
+      return (
+        <FriendsSearchResults
+          friends={filteredFriends}
+          otherUsers={otherUsers}
+          isOthersLoading={isOthersLoading}
+          onMessageClick={handleMessage}
+          currentUserId={currentUser?.id}
+          friendsEmptyTitle={
+            tab === "online" ? "Нет друзей онлайн по запросу" : "Нет друзей по запросу"
+          }
+        />
+      );
+    }
+
+    return (
+      <FriendList
+        friends={filteredFriends}
+        onMessageClick={handleMessage}
+        emptyTitle={tab === "online" ? "Нет друзей онлайн" : "Нет друзей"}
+      />
+    );
+  };
+
   return (
     <PageLayout
       isLoading={pageLoading}
@@ -163,13 +202,7 @@ const FriendPage = (): ReactElement => {
             </ul>
           )
         ) : (
-          <FriendList
-            friends={filteredFriends}
-            onMessageClick={handleMessage}
-            emptyTitle={
-              tab === "online" ? "Нет друзей онлайн" : "Нет друзей"
-            }
-          />
+          renderFriendsContent()
         )}
       </PeopleRelationsView>
     </PageLayout>

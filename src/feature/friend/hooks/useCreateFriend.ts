@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { 
   FriendStatus, 
@@ -81,7 +81,16 @@ export const useCreateFriend = (
   const [unfollowUser, unfollowUserState] = useUnfollowUserMutation();
   
   const [error, setError] = useState<string | null>(null);
+  const refetchTimerRef = useRef<number | null>(null);
   const status = statusData?.status || initialStatus;
+
+  useEffect(() => {
+    return () => {
+      if (refetchTimerRef.current != null) {
+        window.clearTimeout(refetchTimerRef.current);
+      }
+    };
+  }, []);
   const isActionLoading =
     sendFriendRequestState.isLoading ||
     acceptFriendRequestState.isLoading ||
@@ -142,8 +151,12 @@ export const useCreateFriend = (
       syncFriendStatus(result);
       invalidateUserCaches();
 
-      setTimeout(() => {
-        refetchStatus();
+      if (refetchTimerRef.current != null) {
+        window.clearTimeout(refetchTimerRef.current);
+      }
+      refetchTimerRef.current = window.setTimeout(() => {
+        refetchTimerRef.current = null;
+        void refetchStatus();
       }, env.ui.friendStatusRefetchDelayMs);
       
       return result;

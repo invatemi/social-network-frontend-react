@@ -1,0 +1,118 @@
+.menu {
+  --menu-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --menu-duration: 0.22s;
+  --stagger: 0.025s;
+  --menu-surface: linear-gradient(
+    165deg,
+    rgba(22, 22, 22, 0.98) 0%,
+    rgba(14, 14, 14, 0.98) 100%
+  );
+
+  position: fixed;
+  z-index: 1302;
+  min-width: 228px;
+  max-width: min(280px, calc(100vw - 24px));
+  box-sizing: border-box;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 22px;
+  background: var(--menu-surface);
+  border: 1px solid rgba(42, 42, 42, 0.9);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    12px 8px 40px rgba(0, 0, 0, 0.45),
+    0 20px 48px rgba(0, 0, 0, 0.35);
+  color: #f2f2f2;
+  font-family: "Inter", sans-serif;
+  animation: menuIn var(--menu-duration) var(--menu-ease) both;
+}
+
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 12px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  animation: menuItemIn 0.28s var(--menu-ease) both;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+@keyframes menuItemIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 4px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.item:hover,
+.item:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  outline: none;
+}
+
+.item:active {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.destructive {
+  color: #ff6b63;
+}
+
+.destructive:hover,
+.destructive:focus-visible {
+  background: rgba(255, 69, 58, 0.12);
+}
+
+.icon {
+  flex-shrink: 0;
+  opacity: 0.88;
+  color: currentColor;
+}
+
+.count {
+  margin: 0 0 2px;
+  padding: 6px 12px 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.divider {
+  height: 1px;
+  margin: 4px 8px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu,
+  .item {
+    animation: none;
+  }
+}

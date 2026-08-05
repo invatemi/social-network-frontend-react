@@ -60,12 +60,31 @@ export type SocketMessage = {
   id: number;
   content: string;
   createdAt: string;
+  editedAt?: string | null;
+  forwardedFromId?: number | null;
+  replyToId?: number | null;
+  replyTo?: {
+    id: number;
+    content: string;
+    createdAt: string;
+    author: {
+      id: number;
+      username: string;
+      avatarUrl: string | null;
+    };
+  } | null;
   chatId: number;
   author: {
     id: number;
     username: string;
     avatarUrl: string | null;
   };
+  attachments?: unknown[];
+};
+
+export type SocketMessageDeleted = {
+  id: number;
+  chatId: number;
 };
 
 export type SocketChatCreated = {
@@ -272,12 +291,10 @@ const registerSocketHandlers = (activeSocket: Socket, dispatch: AppDispatch): vo
 
   activeSocket.on('user:online', ({ userId }: { userId: number }) => {
     dispatch(setUserOnline(userId));
-    dispatch(userApi.util.invalidateTags([{ type: 'User', id: userId }, 'User', 'UserMe']));
   });
 
   activeSocket.on('user:offline', ({ userId }: { userId: number }) => {
     dispatch(setUserOffline(userId));
-    dispatch(userApi.util.invalidateTags([{ type: 'User', id: userId }, 'User', 'UserMe']));
   });
 
   activeSocket.on('presence:status', (data: { statuses?: Record<string, boolean> }) => {
@@ -287,10 +304,145 @@ const registerSocketHandlers = (activeSocket: Socket, dispatch: AppDispatch): vo
   });
 
   activeSocket.on('message:new', (message: SocketMessage) => {
-    dispatch(messagesApi.util.invalidateTags([
-      { type: 'Messages', id: `CHAT_${message.chatId}` },
-      { type: 'Chats', id: 'LIST' }
-    ]));
+    const currentUserId = store.getState().auth.user?.id;
+    const messageData = {
+      id: message.id,
+      chatId: message.chatId,
+      content: message.content,
+      createdAt: message.createdAt,
+      editedAt: message.editedAt ?? null,
+      forwardedFromId: message.forwardedFromId ?? null,
+      replyToId: message.replyToId ?? null,
+      replyTo: message.replyTo ?? null,
+      isRead: false,
+      author: message.author,
+      attachments: (message.attachments ?? []) as never[],
+    };
+
+    const patchMessages = (limit: number) => {
+      dispatch(
+        messagesApi.util.updateQueryData(
+          'getMessages',
+          { chatId: message.chatId, limit },
+          (draft) => {
+            if (draft.some((item) => item.id === message.id)) return;
+            draft.push(messageData as (typeof draft)[number]);
+          }
+        )
+      );
+    };
+
+    patchMessages(env.messages.defaultMessageLimit);
+    if (env.messages.defaultMessageLimit !== 50) {
+      patchMessages(50);
+    }
+
+    const openMessages = messagesApi.endpoints.getMessages.select({
+      chatId: message.chatId,
+      limit: env.messages.defaultMessageLimit,
+    })(store.getState());
+    const isChatOpen = Boolean(openMessages.data);
+
+    let chatFound = false;
+    dispatch(
+      messagesApi.util.updateQueryData(
+        'getChats',
+        { limit: 50, offset: 0 },
+        (draft) => {
+          const idx = draft.findIndex((c) => c.chatId === message.chatId);
+          if (idx < 0) return;
+          chatFound = true;
+          const [chat] = draft.splice(idx, 1);
+          chat.lastMessageAt = message.createdAt;
+          chat.lastMessage = {
+            content: message.content,
+            createdAt: message.createdAt,
+            author: message.author,
+          };
+          if (currentUserId && message.author.id !== currentUserId && !isChatOpen) {
+            chat.unreadCount = (chat.unreadCount ?? 0) + 1;
+          } else if (isChatOpen) {
+            chat.unreadCount = 0;
+          }
+          draft.unshift(chat);
+        }
+      )
+    );
+
+    if (!chatFound) {
+      dispatch(messagesApi.util.invalidateTags([{ type: 'Chats', id: 'LIST' }]));
+    }
+
+    if (message.attachments && message.attachments.length > 0) {
+      dispatch(
+        messagesApi.util.invalidateTags([
+          { type: 'ChatAttachments', id: `CHAT_${message.chatId}` },
+          { type: 'ChatAttachments', id: `${message.chatId}_image` },
+          { type: 'ChatAttachments', id: `${message.chatId}_file` },
+        ])
+      );
+    }
+  });
+
+  activeSocket.on('message:updated', (message: SocketMessage) => {
+    const patchMessages = (limit: number) => {
+      dispatch(
+        messagesApi.util.updateQueryData(
+          'getMessages',
+          { chatId: message.chatId, limit },
+          (draft) => {
+            const target = draft.find((item) => item.id === message.id);
+            if (!target) return;
+            target.content = message.content;
+            target.editedAt = message.editedAt ?? target.editedAt;
+            if (message.attachments !== undefined) {
+              target.attachments = message.attachments as typeof target.attachments;
+            }
+          }
+        )
+      );
+    };
+
+    patchMessages(env.messages.defaultMessageLimit);
+    if (env.messages.defaultMessageLimit !== 50) {
+      patchMessages(50);
+    }
+    dispatch(
+      messagesApi.util.invalidateTags([
+        { type: 'Chats', id: 'LIST' },
+        { type: 'ChatAttachments', id: `CHAT_${message.chatId}` },
+        { type: 'ChatAttachments', id: `${message.chatId}_image` },
+        { type: 'ChatAttachments', id: `${message.chatId}_file` },
+      ])
+    );
+  });
+
+  activeSocket.on('message:deleted', (data: SocketMessageDeleted) => {
+    const patchMessages = (limit: number) => {
+      dispatch(
+        messagesApi.util.updateQueryData(
+          'getMessages',
+          { chatId: data.chatId, limit },
+          (draft) => {
+            const index = draft.findIndex((item) => item.id === data.id);
+            if (index >= 0) draft.splice(index, 1);
+          }
+        )
+      );
+    };
+
+    patchMessages(env.messages.defaultMessageLimit);
+    if (env.messages.defaultMessageLimit !== 50) {
+      patchMessages(50);
+    }
+    dispatch(
+      messagesApi.util.invalidateTags([
+        { type: 'Chats', id: 'LIST' },
+        { type: 'ChatAttachments', id: `CHAT_${data.chatId}` },
+        { type: 'ChatAttachments', id: `${data.chatId}_image` },
+        { type: 'ChatAttachments', id: `${data.chatId}_file` },
+      ])
+    );
   });
 
   activeSocket.on('chat:read', (data: SocketChatRead) => {
@@ -379,13 +531,12 @@ export const initSocket = (token: string, dispatch: AppDispatch): Socket | null 
   if (!isInitialized) {
     registerSocketHandlers(socket, dispatch);
     registerConnectionStatusHandlers(socket, dispatch);
+    socket.on('connect_error', (err: Error) => {
+      console.error('[Socket] Connection error:', err.message);
+      setConnectionStatus('disconnected');
+    });
     isInitialized = true;
   }
-
-  socket.on('connect_error', (err: Error) => {
-    console.error('[Socket] Connection error:', err.message);
-    setConnectionStatus('disconnected');
-  });
 
   return socket;
 };

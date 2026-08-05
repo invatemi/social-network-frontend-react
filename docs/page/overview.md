@@ -22,7 +22,7 @@
 | `/registration` | RegistrationPage | нет | Registration widget |
 | `/user` | UserPage | да | ProfileView, CreatePost, PostList |
 | `/user/:userId` | PublicPage | да | ProfileView, CreateFriend |
-| `/friends/:userId?` | FriendPage | да | PeopleRelationsView + FriendList |
+| `/friends/:userId?` | FriendPage | да | PeopleRelationsView + FriendList; на своей `/friends` — FriendsSearchResults (друзья + поиск людей) |
 | `/followers/:userId?` | FollowerPage | да | PeopleRelationsView + FollowerList |
 | `/messages` | MessagePage | да | MessagesView + ChatList, useMessagePage |
 | `/messages/:chatId` | MessagePage | да | то же + MessageList + ChatDetailsPanel |
@@ -67,6 +67,7 @@ flowchart TB
 | `src/page/PhotoPage/` | «Мои фотографии» + `usePhotoPage` |
 | `src/page/shared/MessagesView/` | Layout-shell idle ↔ 3 колонки |
 | `src/page/shared/PhotosView/` | Layout-shell галереи по годам |
+| `src/page/FriendPage/` | Друзья; `useFriendsPeopleSearch` + `FriendsSearchResults` |
 | `src/page/shared/PeopleRelationsView/` | Shell Friend/Follower |
 | `src/page/shared/ProfileView/` | Shell профиля |
 | `src/page/index.ts` | Public API всех страниц |

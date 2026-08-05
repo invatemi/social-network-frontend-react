@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PostCardProps } from "../lib";
 import { Button } from "@/shared";
 import { CommentList } from "@/widget/CommentList";
 import { useToggleLikeMutation } from "@/entities/post/api/postApi";
-import { usePostSubscription } from "@/shared/hooks/usePostSubscription";
 import { CommentIcon, LikeIcon, RepostIcon } from "./icons";
 import RollingCount from "./RollingCount";
 import style from "./PostCard.module.css";
@@ -15,10 +14,9 @@ import style from "./PostCard.module.css";
 const PostCard = ({ post, onLike, currentUserId, onDelete }: PostCardProps) => {
   const navigate = useNavigate();
   const [commentsExpanded, setCommentsExpanded] = useState(false);
+  const [commentsMounted, setCommentsMounted] = useState(false);
   const [likeBurst, setLikeBurst] = useState(false);
   const [toggleLike, { isLoading: isLiking }] = useToggleLikeMutation();
-
-  usePostSubscription(post?.id ?? 0);
 
   useEffect(() => {
     if (!likeBurst) return;
@@ -195,6 +193,7 @@ const PostCard = ({ post, onLike, currentUserId, onDelete }: PostCardProps) => {
         onClick={(e) => {
           const target = e.target as HTMLElement;
           if (target.closest("button, a, input, textarea, [role='dialog']")) return;
+          setCommentsMounted(true);
           setCommentsExpanded((prev) => !prev);
         }}
         onKeyDown={(e) => {
@@ -202,6 +201,7 @@ const PostCard = ({ post, onLike, currentUserId, onDelete }: PostCardProps) => {
           const target = e.target as HTMLElement;
           if (target.closest("button, a, input, textarea, [role='dialog']")) return;
           e.preventDefault();
+          setCommentsMounted(true);
           setCommentsExpanded((prev) => !prev);
         }}
         role="button"
@@ -209,13 +209,20 @@ const PostCard = ({ post, onLike, currentUserId, onDelete }: PostCardProps) => {
         aria-expanded={commentsExpanded}
         aria-label={commentsExpanded ? "Скрыть комментарии" : "Открыть комментарии"}
       >
-        <CommentList
-          postId={post.id}
-          expanded={commentsExpanded}
-        />
+        {commentsMounted || commentsExpanded ? (
+          <CommentList postId={post.id} expanded={commentsExpanded} />
+        ) : (
+          <div className={style.commentsPreview}>
+            <span>
+              {post.commentsCount > 0
+                ? `${post.commentsCount} комментариев`
+                : "Комментарии"}
+            </span>
+          </div>
+        )}
       </div>
     </article>
   );
 };
 
-export default PostCard;
+export default memo(PostCard);

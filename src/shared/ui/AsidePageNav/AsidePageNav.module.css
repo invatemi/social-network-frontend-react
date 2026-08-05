@@ -232,6 +232,115 @@
   align-items: center;
   gap: 8px;
   padding: 8px 6px 4px;
+  border-radius: 14px;
+  will-change: opacity, transform;
+  transition:
+    opacity 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.25s ease;
+}
+
+.profileActive {
+  opacity: 1;
+}
+
+.profileSecondary {
+  opacity: 0.62;
+}
+
+.profileSecondary:hover {
+  opacity: 1;
+}
+
+.profileHighlighted {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.accountsShell {
+  max-height: 220px;
+  overflow: hidden;
+}
+
+.accounts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 220px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-gutter: stable;
+  transition: opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.accountsOut,
+.accountsIn {
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.accountsOut {
+  opacity: 0;
+}
+
+.accountsIn .profile {
+  transition: none;
+  animation: accountCardIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--enter-index, 0) * 40ms);
+}
+
+.accountsIn .profileSecondary {
+  animation-name: accountCardInSecondary;
+}
+
+@keyframes accountCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes accountCardInSecondary {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 0.62;
+    transform: translateY(0);
+  }
+}
+
+.accountSwitchBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+  border-radius: 14px;
+  cursor: pointer;
+  font: inherit;
+  transition:
+    background-color 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.22s ease,
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.accountSwitchBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.accountSwitchBtn:disabled {
+  cursor: wait;
 }
 
 .profileLink {
@@ -243,7 +352,9 @@
   text-decoration: none;
   color: inherit;
   border-radius: 14px;
-  transition: background-color 0.3s ease, opacity 0.25s ease;
+  transition:
+    background-color 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.22s ease;
 }
 
 .profileLink:hover {
@@ -358,6 +469,7 @@
 
 .navLink:focus-visible,
 .profileLink:focus-visible,
+.accountSwitchBtn:focus-visible,
 .menuButton:focus-visible {
   outline: 2px solid #c7c7c7;
   outline-offset: 2px;
@@ -379,8 +491,17 @@
   .navLink::after,
   .navIcon,
   .badge,
+  .profile,
   .profileLink,
+  .accountSwitchBtn,
+  .avatarWrap,
+  .accounts,
   .menuButton {
     transition: none !important;
+    animation: none !important;
+  }
+
+  .accountsOut {
+    opacity: 0.4;
   }
 }

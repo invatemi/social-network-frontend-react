@@ -38,4 +38,13 @@ export const {
   clearPresence,
 } = presenceSlice.actions;
 
+/** Per-user presence — avoids ChatList re-render on unrelated online/offline. */
+export const selectIsUserOnline = (
+  state: { presence: PresenceState },
+  userId: number | null | undefined
+): boolean =>
+  userId != null && userId > 0
+    ? state.presence.byUserId[String(userId)] === true
+    : false;
+
 export default presenceSlice.reducer;

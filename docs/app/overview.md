@@ -44,7 +44,8 @@ flowchart TB
 |------|------|
 | `src/app/App.tsx` | Provider, Toast, socket lifecycle, AuthBootstrap → Router |
 | `src/app/store/index.ts` | `configureStore`, `setupListeners` |
-| `src/app/store/slices/authSlice.ts` | Состояние сессии |
+| `src/app/store/slices/authSlice.ts` | Состояние сессии + accounts |
+| `src/app/store/lib/applyAccountSession.ts` | Switch/add session apply + RTK reset |
 | `src/app/store/api/baseApi.ts` | Единый RTK Query API |
 | `src/app/store/api/authApi.ts` | login, register, refresh, logout |
 | `src/app/store/api/codeApi.ts` | Сброс пароля |

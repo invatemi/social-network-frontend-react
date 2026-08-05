@@ -1,5 +1,23 @@
 import { baseApi } from "./baseApi";
 import { UserProfile } from "@/entities/user/lib";
+import type { AccountSummary } from "@/app/store/slices/authSlice";
+
+export type AuthUserPayload = {
+  id: number;
+  username: string;
+  email: string;
+  role?: string;
+};
+
+export type AccountSessionResponse = {
+  accessToken: string;
+  user: AuthUserPayload;
+  accounts: AccountSummary[];
+};
+
+export type LogoutResponse =
+  | { message: string; switched: false }
+  | (AccountSessionResponse & { switched: true; message?: string });
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -29,7 +47,7 @@ export const authApi = baseApi.injectEndpoints({
       invalidatesTags: ["User", "Auth"],
     }),
 
-    logout: builder.mutation<{ message: string }, void>({
+    logout: builder.mutation<LogoutResponse, void>({
       query: () => ({
         url: "/api/auth/logout",
         method: "POST",
@@ -45,6 +63,38 @@ export const authApi = baseApi.injectEndpoints({
         credentials: "include",
       }),
     }),
+
+    getAccounts: builder.query<{ accounts: AccountSummary[] }, void>({
+      query: () => ({
+        url: "/api/auth/accounts",
+        method: "GET",
+        credentials: "include",
+      }),
+      providesTags: ["Auth"],
+    }),
+
+    addAccount: builder.mutation<
+      AccountSessionResponse,
+      { email: string; password: string }
+    >({
+      query: (body) => ({
+        url: "/api/auth/accounts/add",
+        method: "POST",
+        body,
+        credentials: "include",
+      }),
+      invalidatesTags: ["User", "Auth"],
+    }),
+
+    switchAccount: builder.mutation<AccountSessionResponse, { userId: number }>({
+      query: (body) => ({
+        url: "/api/auth/accounts/switch",
+        method: "POST",
+        body,
+        credentials: "include",
+      }),
+      invalidatesTags: ["User", "Auth"],
+    }),
   }),
   overrideExisting: false,
 });
@@ -54,4 +104,8 @@ export const {
   useRegisterMutation,
   useRefreshTokensMutation,
   useLogoutMutation,
+  useGetAccountsQuery,
+  useLazyGetAccountsQuery,
+  useAddAccountMutation,
+  useSwitchAccountMutation,
 } = authApi;

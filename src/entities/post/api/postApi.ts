@@ -300,13 +300,18 @@ export const postApi = baseApi.injectEndpoints({
         }
 
         const existingIds = new Set(currentCache.posts.map((post) => post.id));
+        const mergedPosts = [
+          ...currentCache.posts,
+          ...newItems.posts.filter((post) => !existingIds.has(post.id)),
+        ];
+        const maxItems = env.posts.maxFeedItems;
 
         return {
           ...newItems,
-          posts: [
-            ...currentCache.posts,
-            ...newItems.posts.filter((post) => !existingIds.has(post.id)),
-          ],
+          posts:
+            mergedPosts.length > maxItems
+              ? mergedPosts.slice(mergedPosts.length - maxItems)
+              : mergedPosts,
         };
       },
       forceRefetch: ({ currentArg, previousArg }) =>
@@ -316,45 +321,6 @@ export const postApi = baseApi.injectEndpoints({
         result
           ? [...result.posts.map(({ id }) => ({ type: "Posts" as const, id })), "Feed"]
           : ["Feed"],
-      keepUnusedDataFor: env.posts.feedCacheSeconds,
-    }),
-
-    /**
-     * Получает посты от пользователей, на которых подписан текущий пользователь.
-     * @param limit - Количество постов (по умолчанию 20)
-     * @param offset - Смещение для пагинации (по умолчанию 0)
-     * @returns Объект `FeedResponse` со списком постов и флагом `hasMore`
-     */
-    getPostsFromFollowers: builder.query<FeedResponse, { limit?: number; offset?: number }>({
-      query: ({ limit = env.posts.defaultFeedLimit, offset = 0 }) => `/api/posts/from-followers?limit=${limit}&offset=${offset}`,
-      providesTags: (result) => 
-        result ? [...result.posts.map(({ id }) => ({ type: "Posts" as const, id })), "Posts"] : ["Posts"],
-      keepUnusedDataFor: env.posts.feedCacheSeconds,
-    }),
-
-    /**
-     * Получает посты от пользователей, на которых подписан текущий пользователь (альтернативный эндпоинт).
-     * @param limit - Количество постов (по умолчанию 20)
-     * @param offset - Смещение для пагинации (по умолчанию 0)
-     * @returns Объект `FeedResponse` со списком постов и флагом `hasMore`
-     */
-    getPostsFromFollowing: builder.query<FeedResponse, { limit?: number; offset?: number }>({
-      query: ({ limit = env.posts.defaultFeedLimit, offset = 0 }) => `/api/posts/from-following?limit=${limit}&offset=${offset}`,
-      providesTags: (result) => 
-        result ? [...result.posts.map(({ id }) => ({ type: "Posts" as const, id })), "Posts"] : ["Posts"],
-      keepUnusedDataFor: env.posts.feedCacheSeconds,
-    }),
-
-    /**
-     * Получает посты от друзей текущего пользователя.
-     * @param limit - Количество постов (по умолчанию 20)
-     * @param offset - Смещение для пагинации (по умолчанию 0)
-     * @returns Объект `FeedResponse` со списком постов и флагом `hasMore`
-     */
-    getPostsFromFriends: builder.query<FeedResponse, { limit?: number; offset?: number }>({
-      query: ({ limit = env.posts.defaultFeedLimit, offset = 0 }) => `/api/posts/from-friends?limit=${limit}&offset=${offset}`,
-      providesTags: (result) => 
-        result ? [...result.posts.map(({ id }) => ({ type: "Posts" as const, id })), "Posts"] : ["Posts"],
       keepUnusedDataFor: env.posts.feedCacheSeconds,
     }),
   }),
@@ -372,7 +338,4 @@ export const {
   useDeletePostMutation,
   useToggleLikeMutation,
   useGetFeedPostsQuery,
-  useGetPostsFromFollowersQuery,
-  useGetPostsFromFollowingQuery,
-  useGetPostsFromFriendsQuery,
 } = postApi;

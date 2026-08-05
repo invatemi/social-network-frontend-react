@@ -1,7 +1,7 @@
 import { UserProfile } from "../lib";
 import { baseApi } from "@/app/store/api/baseApi";
 import type { AppDispatch } from "@/app/store/types";
-import { updateUser } from "@/app/store/slices/authSlice";
+import { setUser, updateUser } from "@/app/store/slices/authSlice";
 
 type UserDto = {
   id: number;
@@ -249,7 +249,8 @@ const sleep = (ms: number): Promise<void> =>
 
 /**
  * Загружает профиль текущего пользователя с повторными попытками
- * (eventual consistency после регистрации через RabbitMQ).
+ * (eventual consistency после регистрации через RabbitMQ)
+ * и кладёт его в authSlice (включая avatarUrl).
  */
 export const fetchUserProfileWithRetry = async (
   dispatch: AppDispatch,
@@ -258,9 +259,11 @@ export const fetchUserProfileWithRetry = async (
 ): Promise<UserProfile | null> => {
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
-      return await dispatch(
+      const profile = await dispatch(
         userApi.endpoints.getUserProfile.initiate(undefined, { forceRefetch: true })
       ).unwrap();
+      dispatch(setUser(profile));
+      return profile;
     } catch {
       if (attempt === maxAttempts) {
         return null;

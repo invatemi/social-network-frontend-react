@@ -235,6 +235,12 @@
   outline-offset: 2px;
 }
 
+.commentsPreview {
+  padding: 4px 2px;
+  color: #888;
+  font-size: 14px;
+}
+
 .postCard:focus-visible,
 .authorInfo:focus-visible,
 .iconButton:focus-visible {

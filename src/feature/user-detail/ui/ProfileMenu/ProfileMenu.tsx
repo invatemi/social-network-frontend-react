@@ -12,6 +12,11 @@ import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "@/app/store/hooks";
 import { logout } from "@/app/store/slices/authSlice";
 import { useLogoutMutation } from "@/app/store/api/authApi";
+import {
+  applyAccountSession,
+  hydrateAccounts,
+} from "@/app/store/lib/applyAccountSession";
+import { fetchUserProfileWithRetry } from "@/entities/user/api";
 import { useProfileSettings } from "../../ProfileSettingsProvider";
 import style from "./ProfileMenu.module.css";
 
@@ -106,7 +111,7 @@ const ProfileMenu = ({
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [logoutRequest, { isLoading: isLoggingOut }] = useLogoutMutation();
-  const { openSettings } = useProfileSettings();
+  const { openSettings, openAddAccount } = useProfileSettings();
 
   const updatePosition = useCallback(() => {
     const trigger = triggerRef.current;
@@ -161,7 +166,9 @@ const ProfileMenu = ({
   useEffect(() => {
     if (!isMounted) return;
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeMenu();
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      closeMenu();
     };
     const handlePointerDown = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -193,7 +200,14 @@ const ProfileMenu = ({
 
   const handleLogout = async () => {
     try {
-      await logoutRequest().unwrap();
+      const result = await logoutRequest().unwrap();
+      if (result.switched) {
+        applyAccountSession(dispatch, result);
+        await fetchUserProfileWithRetry(dispatch);
+        await hydrateAccounts(dispatch, result.accounts);
+        closeMenu();
+        return;
+      }
     } catch {
       // Clear local session even if server logout fails.
     }
@@ -205,6 +219,11 @@ const ProfileMenu = ({
   const handleOpenSettings = () => {
     closeMenu();
     openSettings();
+  };
+
+  const handleAddAccount = () => {
+    closeMenu();
+    openAddAccount();
   };
 
   const handleTriggerClick = () => {
@@ -285,6 +304,7 @@ const ProfileMenu = ({
             <button
               type="button"
               className={style.addAccount}
+              onClick={handleAddAccount}
               role="menuitem"
             >
               <span>Добавить аккаунт</span>

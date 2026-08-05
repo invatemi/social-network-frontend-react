@@ -7,6 +7,7 @@ import {
   KeyboardEvent,
   ChangeEvent,
 } from "react";
+import type { MessageAttachmentData } from "@/entities/message/api/messagesApi";
 import { CloseIcon, PaperclipIcon } from "@/shared/ui/icons";
 import { MessageSendProps } from "../lib";
 import style from "./MessageSend.module.css";
@@ -22,6 +23,18 @@ type PendingFile = {
   id: string;
   file: File;
   previewUrl: string | null;
+};
+
+const getErrorMessage = (err: unknown, fallback: string): string => {
+  const e = err as {
+    status?: number | string;
+    data?: { message?: string; error?: { message?: string } };
+    message?: string;
+  };
+  if (e?.status === 405) {
+    return "Редактирование недоступно (шлюз). Обновите страницу или перезапустите API.";
+  }
+  return e?.data?.message || e?.data?.error?.message || e?.message || fallback;
 };
 
 /**
@@ -40,10 +53,23 @@ const MessageSend = ({
   className = "",
   autoFocus = false,
   onComposerHeightChange,
+  editing = null,
+  onCancelEdit,
+  onSaveEdit,
+  replying = null,
+  onCancelReply,
 }: MessageSendProps) => {
+  const isEditing = Boolean(editing);
+  const isReplying = Boolean(replying) && !isEditing;
   const [localValue, setLocalValue] = useState(value);
   const [isComposing, setIsComposing] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [keptAttachments, setKeptAttachments] = useState<
+    MessageAttachmentData[]
+  >([]);
+  const [removedAttachmentIds, setRemovedAttachmentIds] = useState<number[]>(
+    []
+  );
   const [localError, setLocalError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -77,6 +103,10 @@ const MessageSend = ({
     (animate: boolean) => {
       const el = textareaRef.current;
       if (!el) return;
+
+      // Пока колонка чата анимируется из 0fr, ширина ещё мала и scrollHeight
+      // раздувается до max-height. ResizeObserver пересчитает при росте ширины.
+      if (el.clientWidth < 32) return;
 
       const reduceMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)"
@@ -127,12 +157,27 @@ const MessageSend = ({
   useLayoutEffect(() => {
     resizeTextarea(true);
     skipAnimateRef.current = false;
-  }, [localValue, pendingFiles.length, resizeTextarea]);
+  }, [localValue, pendingFiles.length, keptAttachments.length, resizeTextarea]);
 
+  // Ширина треда анимируется (grid 0fr → 1fr) при клиентском переходе —
+  // пересчитываем высоту при изменении ширины, иначе остаётся max-height.
   useEffect(() => {
-    const onResize = () => resizeTextarea(false);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    const el = textareaRef.current;
+    if (!el || typeof ResizeObserver === "undefined") {
+      const onResize = () => resizeTextarea(false);
+      window.addEventListener("resize", onResize);
+      return () => window.removeEventListener("resize", onResize);
+    }
+
+    let prevWidth = el.clientWidth;
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width ?? el.clientWidth;
+      if (Math.abs(width - prevWidth) < 0.5) return;
+      prevWidth = width;
+      resizeTextarea(false);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [resizeTextarea]);
 
   useEffect(
@@ -163,6 +208,10 @@ const MessageSend = ({
     onChange?.(newValue);
   };
 
+  const attachmentSlotsUsed = isEditing
+    ? keptAttachments.length + pendingFiles.length
+    : pendingFiles.length;
+
   const handleAttachClick = () => {
     if (disabled || isLoading) return;
     fileInputRef.current?.click();
@@ -175,7 +224,8 @@ const MessageSend = ({
 
     setLocalError(null);
     setPendingFiles((prev) => {
-      const room = MAX_ATTACHMENTS - prev.length;
+      const used = isEditing ? keptAttachments.length + prev.length : prev.length;
+      const room = MAX_ATTACHMENTS - used;
       if (room <= 0) {
         setLocalError(`Можно прикрепить не более ${MAX_ATTACHMENTS} файлов`);
         return prev;
@@ -202,32 +252,99 @@ const MessageSend = ({
     });
   };
 
+  const removeKeptAttachment = (id: number) => {
+    setKeptAttachments((prev) => prev.filter((item) => item.id !== id));
+    setRemovedAttachmentIds((prev) =>
+      prev.includes(id) ? prev : [...prev, id]
+    );
+  };
+
+  useEffect(() => {
+    if (!editing) {
+      setKeptAttachments([]);
+      setRemovedAttachmentIds([]);
+      return;
+    }
+    setLocalValue(editing.text);
+    onChange?.(editing.text);
+    setKeptAttachments(editing.attachments ?? []);
+    setRemovedAttachmentIds([]);
+    clearPendingFiles();
+    textareaRef.current?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync composer when edit target changes
+  }, [editing?.messageId]);
+
+  useEffect(() => {
+    if (!replying || editing) return;
+    textareaRef.current?.focus();
+  }, [replying?.messageId, editing]);
+
   const handleSend = async () => {
     const text = localValue.trim();
     const files = pendingFiles.map((item) => item.file);
+
+    if (isEditing && editing) {
+      const hasContent =
+        Boolean(text) || keptAttachments.length > 0 || files.length > 0;
+      if (!hasContent || isLoading || disabled || isComposing) return;
+      try {
+        setLocalError(null);
+        await onSaveEdit?.(editing.messageId, {
+          content: text,
+          removeAttachmentIds:
+            removedAttachmentIds.length > 0
+              ? removedAttachmentIds
+              : undefined,
+          files: files.length > 0 ? files : undefined,
+        });
+        setLocalValue("");
+        onChange?.("");
+        clearPendingFiles();
+        setKeptAttachments([]);
+        setRemovedAttachmentIds([]);
+        textareaRef.current?.focus();
+      } catch (err) {
+        console.error("Failed to edit message:", err);
+        setLocalError(getErrorMessage(err, "Не удалось сохранить сообщение"));
+      }
+      return;
+    }
+
     if ((!text && files.length === 0) || isLoading || disabled || isComposing) {
       return;
     }
 
     try {
       setLocalError(null);
-      await onSend(chatId, text, files.length > 0 ? files : undefined);
+      await onSend(
+        chatId,
+        text,
+        files.length > 0 ? files : undefined,
+        replying ? { replyToId: replying.messageId } : undefined
+      );
       setLocalValue("");
       onChange?.("");
       clearPendingFiles();
+      onCancelReply?.();
       textareaRef.current?.focus();
     } catch (err) {
       console.error("Failed to send message:", err);
-      setLocalError(
-        err instanceof Error ? err.message : "Не удалось отправить сообщение"
-      );
+      setLocalError(getErrorMessage(err, "Не удалось отправить сообщение"));
     }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey && !isComposing) {
+    // Enter / NumpadEnter — отправка (или сохранение правки); Shift+Enter — новая строка
+    if (
+      (e.key === "Enter" || e.code === "NumpadEnter") &&
+      !e.shiftKey &&
+      !e.altKey &&
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !isComposing
+    ) {
       e.preventDefault();
-      handleSend();
+      void handleSend();
     }
   };
 
@@ -238,16 +355,101 @@ const MessageSend = ({
     isLoading ||
     remainingChars < 0 ||
     isComposing ||
-    (!localValue.trim() && pendingFiles.length === 0);
+    (isEditing
+      ? !localValue.trim() &&
+        keptAttachments.length === 0 &&
+        pendingFiles.length === 0
+      : !localValue.trim() && pendingFiles.length === 0);
+
+  const showPreviewList =
+    pendingFiles.length > 0 || (isEditing && keptAttachments.length > 0);
 
   return (
     <div
-      className={[style.container, displayError ? style.hasError : "", className]
+      className={[
+        style.container,
+        displayError ? style.hasError : "",
+        isEditing ? style.editing : "",
+        isReplying ? style.replying : "",
+        className,
+      ]
         .filter(Boolean)
         .join(" ")}
     >
-      {pendingFiles.length > 0 ? (
-        <ul className={style.previewList} aria-label="Выбранные файлы">
+      {isEditing ? (
+        <div className={style.editBanner}>
+          <span>Редактирование</span>
+          <button
+            type="button"
+            className={style.editCancel}
+            onClick={() => {
+              clearPendingFiles();
+              setKeptAttachments([]);
+              setRemovedAttachmentIds([]);
+              setLocalValue("");
+              onChange?.("");
+              setLocalError(null);
+              onCancelEdit?.();
+            }}
+            disabled={disabled || isLoading}
+          >
+            Отмена
+          </button>
+        </div>
+      ) : null}
+
+      {isReplying && replying ? (
+        <div className={style.replyBanner}>
+          <div className={style.replyBannerBody}>
+            <span className={style.replyBannerLabel}>Ответ</span>
+            <span className={style.replyBannerAuthor}>{replying.authorName}</span>
+            <span className={style.replyBannerText}>
+              {replying.text.trim() || "Вложение"}
+            </span>
+          </div>
+          <button
+            type="button"
+            className={style.editCancel}
+            onClick={() => {
+              setLocalError(null);
+              onCancelReply?.();
+            }}
+            disabled={disabled || isLoading}
+          >
+            Отмена
+          </button>
+        </div>
+      ) : null}
+
+      {showPreviewList ? (
+        <ul className={style.previewList} aria-label="Вложения сообщения">
+          {isEditing
+            ? keptAttachments.map((item) => (
+                <li key={`kept-${item.id}`} className={style.previewItem}>
+                  {item.kind === "image" ? (
+                    <img
+                      src={item.url}
+                      alt=""
+                      className={style.previewThumb}
+                    />
+                  ) : (
+                    <span className={style.previewFileIcon} aria-hidden />
+                  )}
+                  <span className={style.previewName} title={item.fileName}>
+                    {item.fileName}
+                  </span>
+                  <button
+                    type="button"
+                    className={style.previewRemove}
+                    onClick={() => removeKeptAttachment(item.id)}
+                    aria-label={`Убрать ${item.fileName}`}
+                    disabled={disabled || isLoading}
+                  >
+                    <CloseIcon size={14} />
+                  </button>
+                </li>
+              ))
+            : null}
           {pendingFiles.map((item) => (
             <li key={item.id} className={style.previewItem}>
               {item.previewUrl ? (
@@ -298,7 +500,9 @@ const MessageSend = ({
           type="button"
           className={style.attachButton}
           onClick={handleAttachClick}
-          disabled={disabled || isLoading}
+          disabled={
+            disabled || isLoading || attachmentSlotsUsed >= MAX_ATTACHMENTS
+          }
           aria-label="Прикрепить файл"
         >
           <PaperclipIcon size={18} />
@@ -313,18 +517,30 @@ const MessageSend = ({
           onKeyDown={handleKeyDown}
           onCompositionStart={() => setIsComposing(true)}
           onCompositionEnd={() => setIsComposing(false)}
-          placeholder={placeholder}
+          placeholder={
+            isEditing
+              ? "Изменить сообщение"
+              : isReplying
+                ? "Написать ответ"
+                : placeholder
+          }
           maxLength={maxLength}
           rows={1}
           disabled={disabled || isLoading}
-          aria-label="Текст сообщения"
+          aria-label={
+            isEditing
+              ? "Редактирование сообщения"
+              : isReplying
+                ? "Текст ответа"
+                : "Текст сообщения"
+          }
         />
 
         <button
           type="submit"
           className={style.sendButton}
           disabled={isSendDisabled}
-          aria-label="Отправить сообщение"
+          aria-label={isEditing ? "Сохранить сообщение" : "Отправить сообщение"}
         >
           <span className={style.sendIcon} aria-hidden />
         </button>

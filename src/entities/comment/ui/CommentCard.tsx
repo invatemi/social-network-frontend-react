@@ -1,6 +1,8 @@
+import { memo } from "react";
 import { CommentCardProps } from "../lib";
 import { CommentDelete } from "@/feature/comment";
 import { useAppSelector } from "@/app/store/hooks";
+import { selectIsUserOnline } from "@/app/store/slices/presenceSlice";
 import style from "./CommentCard.module.css";
 
 /**
@@ -11,9 +13,8 @@ const CommentCard = ({
   isOwner = false,
   onDeleteSuccess,
 }: CommentCardProps) => {
-  const isOnline = useAppSelector(
-    (state) => state.presence.byUserId[String(comment.author.id)] === true
-  );
+  const authorId = comment.author.id;
+  const isOnline = useAppSelector((state) => selectIsUserOnline(state, authorId));
 
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString("en-US", {
@@ -65,4 +66,4 @@ const CommentCard = ({
   );
 };
 
-export default CommentCard;
+export default memo(CommentCard);

@@ -2,11 +2,20 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { disconnectSocket } from "@/app/lib/socketDisconnect";
 import { UserProfile } from "@/entities/user/lib";
 
+export type AccountSummary = {
+  id: number;
+  username: string;
+  email: string;
+  isActive: boolean;
+  avatarUrl?: string | null;
+};
+
 type AuthState = {
   user: UserProfile | null;
   accessToken: string | null;
   isAuthenticated: boolean;
   isAuthInitialized: boolean;
+  accounts: AccountSummary[];
 };
 
 const initialState: AuthState = {
@@ -14,6 +23,7 @@ const initialState: AuthState = {
   accessToken: null,
   isAuthenticated: false,
   isAuthInitialized: false,
+  accounts: [],
 };
 
 const authSlice = createSlice({
@@ -40,10 +50,25 @@ const authSlice = createSlice({
     setUser: (state, action: PayloadAction<UserProfile>) => {
       state.user = action.payload;
       state.isAuthenticated = true;
+      const accountIndex = state.accounts.findIndex(
+        (account) => account.id === action.payload.id,
+      );
+      if (accountIndex >= 0) {
+        state.accounts[accountIndex] = {
+          ...state.accounts[accountIndex],
+          username: action.payload.username,
+          email: action.payload.email,
+          avatarUrl: action.payload.avatarUrl ?? null,
+        };
+      }
     },
 
     setAuthInitialized: (state, action: PayloadAction<boolean>) => {
       state.isAuthInitialized = action.payload;
+    },
+
+    setAccounts: (state, action: PayloadAction<AccountSummary[]>) => {
+      state.accounts = action.payload;
     },
 
     updateUser: (state, action: PayloadAction<Partial<UserProfile>>) => {
@@ -56,6 +81,7 @@ const authSlice = createSlice({
       state.user = null;
       state.accessToken = null;
       state.isAuthenticated = false;
+      state.accounts = [];
       disconnectSocket();
     },
   },
@@ -68,12 +94,14 @@ export const selectAccessToken = (state: { auth: AuthState }) =>
   state.auth.accessToken;
 export const selectIsAuthInitialized = (state: { auth: AuthState }) =>
   state.auth.isAuthInitialized;
+export const selectAccounts = (state: { auth: AuthState }) => state.auth.accounts;
 
 export const {
   setAuth,
   setAccessToken,
   setUser,
   setAuthInitialized,
+  setAccounts,
   updateUser,
   logout,
 } = authSlice.actions;

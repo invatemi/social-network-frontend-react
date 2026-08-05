@@ -58,6 +58,48 @@
   box-shadow: 0 0 0 2px #555;
 }
 
+.cancelSelect {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #cfcfcf;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.cancelSelect:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.messageRow {
+  --exit-duration: 0.24s;
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  /* no content-visibility — estimated intrinsic size caused scroll jumps */
+  transition:
+    grid-template-rows var(--exit-duration) var(--ease),
+    opacity 0.2s var(--ease),
+    transform var(--exit-duration) var(--ease);
+}
+
+.messageRowInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.messageRow.exiting {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+  pointer-events: none;
+}
+
 .avatarWrapper {
   position: relative;
   width: 44px;
@@ -126,7 +168,7 @@
   flex: 1;
   overflow-y: auto;
   overflow-anchor: none;
-  padding: 16px;
+  padding: 16px 16px 24px;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -177,7 +219,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .backButton {
+  .backButton,
+  .messageRow {
     transition: none !important;
+  }
+
+  .messageRow.exiting {
+    transform: none;
   }
 }

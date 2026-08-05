@@ -1,4 +1,10 @@
-export type { MessageSendProps } from "./types";
+export type {
+  MessageSendProps,
+  MessageSendEditing,
+  MessageSendReplying,
+  MessageSendOptions,
+  MessageSaveEditPayload,
+} from "./types";
 export {
   uploadMessageAttachment,
   uploadMessageAttachments,

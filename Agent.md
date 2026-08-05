@@ -103,8 +103,8 @@ docs/
 
 | Файл | Описание |
 |------|----------|
-| [docs/auth/overview.md](docs/auth/overview.md) | Сквозной flow: login, register, bootstrap, refresh, logout. |
-| [docs/auth/instructions.md](docs/auth/instructions.md) | Сценарии auth, QA-чеклист, troubleshooting CORS/401. |
+| [docs/auth/overview.md](docs/auth/overview.md) | Сквозной flow: login, register, bootstrap, refresh, logout, multi-account vault. |
+| [docs/auth/instructions.md](docs/auth/instructions.md) | Сценарии auth (в т.ч. add/switch), QA-чеклист, troubleshooting CORS/401. |
 
 ### messaging
 
@@ -144,7 +144,7 @@ React 19 · TypeScript · Vite 8 · React Router 7 · Redux Toolkit · RTK Query
 | Компонент | URL |
 |-----------|-----|
 | Vite dev server | http://localhost:5173 |
-| KrakenD API (`VITE_API_URL`) | http://localhost:8080 |
+| KrakenD API (`VITE_API_URL`) | http://localhost:8088 |
 | Socket.IO (`VITE_WS_URL`) | http://localhost:3005 |
 
 ## Backend-документация

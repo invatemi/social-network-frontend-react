@@ -21,7 +21,7 @@
 - Отображение `PostCard` для каждого поста
 - Пагинация / load more
 - Лайки через `postApi`
-- Подписка на realtime через `usePostSubscription` (shared)
+- Realtime постов — глобальные handlers в `app/lib/socket.ts` (per-post subscription не используется)
 
 ### Autorization / Registration
 

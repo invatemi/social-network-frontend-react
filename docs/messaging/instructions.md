@@ -22,6 +22,7 @@
 
 `MessageSend` → `POST /send` → socket `message:new` → refetch.
 Поле ввода авто-растёт вверх без scrollbar (весь черновик виден), высота анимируется.
+**Enter** — отправить сообщение; **Shift+Enter** — перенос строки.
 
 ### Отправить вложение
 
@@ -37,6 +38,18 @@
 ### Создать
 
 `CreateChatModal` (друзья) или Friend/Follower page → `POST /chats` (flat `ChatData`) → navigate.
+
+### Контекстное меню / действия
+
+1. Double-click или right-click по строке сообщения → blur overlay + меню.
+2. Ответить / Скопировать / Редактировать (свои) / Переслать / Пожаловаться / Удалить.
+3. Ответить → баннер в `MessageSend` → `POST /send` с `replyToId`; в пузыре сверху цитата исходного; клик по цитате → скролл к исходному (если оно в загруженной истории).
+4. Forward → модалка выбора чатов → `POST /forward`.
+5. Edit → режим в `MessageSend` (текст + add/remove вложений) → `PATCH /:messageId`.
+6. **Enter** в поле ввода → отправить (или сохранить правку); **Shift+Enter** → новая строка.
+7. ArrowUp (на странице чата, черновик пустой) → редактировать последнее своё сообщение — работает и без фокуса в поле ввода.
+8. Escape (приоритет): отмена edit/reply → закрытие focus/меню/модалок → иначе закрыть чат (idle `/messages`).
+9. Realtime: `message:updated` / `message:deleted` обновляют кэш (в т.ч. `attachments`, `editedAt` → «изм.»).
 
 ## Troubleshooting
 

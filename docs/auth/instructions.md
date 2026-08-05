@@ -32,7 +32,8 @@
 1. `AuthBootstrap` показывает `Spinner` до завершения.
 2. `refreshTokens()` — если cookie валиден, получаем accessToken.
 3. `fetchUserProfile()` — опционально, ошибка не блокирует auth.
-4. `setAuthInitialized(true)` — рендер роутера.
+4. `getAccounts()` — список vault (или только текущий аккаунт).
+5. `setAuthInitialized(true)` — рендер роутера.
 
 ### Auto-refresh (401)
 
@@ -41,15 +42,29 @@
 3. Успех → повтор запроса с новым token.
 4. Неудача → `logout()`, редирект на `/autorization`.
 
+### Добавить аккаунт
+
+1. ProfileMenu → «Добавить аккаунт» → `AddAccountModal`.
+2. `POST /api/auth/accounts/add` с email/password (нужен текущий refresh cookie).
+3. Backend паркует текущую сессию в vault, активирует новый аккаунт, ставит `accountSession`.
+4. `applyAccountSession` → `setAuth` + `setAccounts` + `resetApiState`.
+5. Hydrate profile; socket reconnect в `App.tsx`.
+
+### Переключение аккаунта
+
+1. В `AsidePageNav` под активным профилем — карточки остальных аккаунтов.
+2. Клик → `POST /api/auth/accounts/switch` `{ userId }`.
+3. `applyAccountSession` + navigate `/`.
+
 ### Logout
 
-1. Header → `useLogoutMutation` + `dispatch(logout())`.
-2. `logout` очищает state и `disconnectSocket()`.
-3. Navigate на `/autorization`.
+1. ProfileMenu → `useLogoutMutation`.
+2. Если ответ `switched: true` — применить новую сессию (остался другой аккаунт в vault).
+3. Иначе `dispatch(logout())` + navigate `/autorization`.
 
 ## Rate limiting
 
-При 429 на login/register:
+При 429 на login/register/add-account:
 - Toast с сообщением
 - `useRateLimitCountdown` блокирует кнопку submit
 - `Retry-After` из заголовка ответа
@@ -57,9 +72,10 @@
 ## Бизнес-правила
 
 - Access token **не** сохраняется в localStorage/sessionStorage.
-- Refresh только через HttpOnly cookie.
+- Refresh и accountSession только через HttpOnly cookies (`Path=/api/auth`).
 - `ProtectedRoute` возвращает `null` до auth — без flash контента.
 - Endpoint `searchUsers` не отправляет Bearer (публичный поиск).
+- При switch/add всегда `baseApi.util.resetApiState()`, чтобы не смешивать кэш разных пользователей.
 
 ## QA чеклист
 
@@ -73,6 +89,10 @@
 - [ ] Неверный логин → красные border/иконки/текст у email и password (без AUTH_ERROR)
 - [ ] Регистрация: несовпадение паролей → confirm красный, password зелёный; совпадение → оба зелёные
 - [ ] Auth-поля показывают leftIcon (email / lock / user face)
+- [ ] Добавить аккаунт → модалка → второй аккаунт в aside
+- [ ] Клик по второму аккаунту → мгновенный switch без пароля
+- [ ] Logout при двух аккаунтах → auto-switch на оставшийся
+- [ ] Logout последнего → `/autorization`
 
 ## Troubleshooting
 
@@ -83,6 +103,8 @@
 | Spinner бесконечно | Backend `/api/auth/refresh` недоступен |
 | Socket не подключается после login | Проверить `accessToken` в Redux, `VITE_WS_URL` |
 | CORS error | `CORS_ORIGINS` в backend должен включать `http://localhost:5173` |
+| Switch не работает | Нужна cookie `accountSession` (после первого add) |
+| Кэш чужого пользователя | Убедиться что `applyAccountSession` вызывает `resetApiState` |
 
 ## Связанная документация
 

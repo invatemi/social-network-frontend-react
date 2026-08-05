@@ -64,6 +64,8 @@ export const env = {
   posts: {
     defaultFeedLimit: parseNumber('VITE_POST_FEED_LIMIT'),
     feedCacheSeconds: parseNumber('VITE_POST_FEED_CACHE_SECONDS'),
+    /** Cap merged feed pages retained in RTK cache */
+    maxFeedItems: 200,
   },
 
   search: {

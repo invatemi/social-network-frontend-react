@@ -59,6 +59,10 @@
 | `useGetChatsQuery` | Список чатов |
 | `useGetMessagesQuery` | Сообщения чата |
 | `useSendMessageMutation` | Отправка |
+| `useForwardMessagesMutation` | Пересылка |
+| `useEditMessageMutation` | Редактирование |
+| `useDeleteMessageMutation` | Удаление сообщения |
+| `useDeleteMessagesBulkMutation` | Bulk delete |
 | `useCreateChatMutation` | Создание чата |
 | `useDeleteChatMutation` | Удаление чата |
 

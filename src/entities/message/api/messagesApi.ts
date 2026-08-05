@@ -22,14 +22,41 @@ export type MessageAttachmentData = {
   createdAt: string;
 };
 
+export type MessageReplyPreview = {
+  id: number;
+  content: string;
+  createdAt: string;
+  author: MessageAuthor;
+};
+
 export type MessageData = {
   id: number;
   chatId: number;
   content: string;
   createdAt: string;
+  editedAt?: string | null;
+  forwardedFromId?: number | null;
+  replyToId?: number | null;
+  replyTo?: MessageReplyPreview | null;
   isRead?: boolean;
   author: MessageAuthor;
   attachments?: MessageAttachmentData[];
+};
+
+export type ForwardMessagesInput = {
+  messageIds: number[];
+  targetChatIds: number[];
+};
+
+export type EditMessageInput = {
+  messageId: number;
+  content: string;
+  removeAttachmentIds?: number[];
+  attachments?: SendMessageAttachmentInput[];
+};
+
+export type DeleteMessagesBulkInput = {
+  messageIds: number[];
 };
 
 export type ChatData = {
@@ -68,6 +95,7 @@ export type SendMessageInput = {
   chatId: number;
   content: string;
   attachments?: SendMessageAttachmentInput[];
+  replyToId?: number;
 };
 
 export type MessageUploadUrlData = {
@@ -114,13 +142,9 @@ export const messagesApi = baseApi.injectEndpoints({
         return `/api/messages/${chatId}?${params}`;
       },
       transformResponse: (response: ApiListResponse<MessageData>) => response.data,
-      providesTags: (result, _error, { chatId }) =>
-        result
-          ? [
-              { type: "Messages" as const, id: `CHAT_${chatId}` },
-              ...result.map(({ id }) => ({ type: "Message" as const, id })),
-            ]
-          : [{ type: "Messages" as const, id: `CHAT_${chatId}` }],
+      providesTags: (_result, _error, { chatId }) => [
+        { type: "Messages" as const, id: `CHAT_${chatId}` },
+      ],
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
@@ -176,10 +200,15 @@ export const messagesApi = baseApi.injectEndpoints({
     }),
 
     sendMessage: builder.mutation<MessageData, SendMessageInput>({
-      query: ({ chatId, content, attachments }) => ({
+      query: ({ chatId, content, attachments, replyToId }) => ({
         url: "/api/messages/send",
         method: "POST",
-        body: { chatId, content, attachments },
+        body: {
+          chatId,
+          content,
+          attachments,
+          ...(replyToId != null ? { replyToId } : {}),
+        },
       }),
       invalidatesTags: (_result, _error, { chatId }) => [
         { type: "Messages" as const, id: `CHAT_${chatId}` },
@@ -226,6 +255,101 @@ export const messagesApi = baseApi.injectEndpoints({
         ...(result ? [{ type: "Chat" as const, id: result.chatId }] : []),
       ],
     }),
+
+    editMessage: builder.mutation<MessageData, EditMessageInput>({
+      query: ({ messageId, content, removeAttachmentIds, attachments }) => ({
+        url: `/api/messages/${messageId}`,
+        method: "PATCH",
+        body: {
+          content,
+          ...(removeAttachmentIds?.length
+            ? { removeAttachmentIds }
+            : {}),
+          ...(attachments?.length ? { attachments } : {}),
+        },
+      }),
+      invalidatesTags: (result) => [
+        ...(result
+          ? [
+              { type: "Message" as const, id: result.id },
+              { type: "Messages" as const, id: `CHAT_${result.chatId}` },
+              { type: "Chats" as const, id: "LIST" },
+              { type: "ChatAttachments" as const, id: `CHAT_${result.chatId}` },
+              {
+                type: "ChatAttachments" as const,
+                id: `${result.chatId}_image`,
+              },
+              {
+                type: "ChatAttachments" as const,
+                id: `${result.chatId}_file`,
+              },
+            ]
+          : []),
+      ],
+    }),
+
+    deleteMessage: builder.mutation<
+      { message: string; status: string; id: number; chatId: number },
+      { messageId: number }
+    >({
+      query: ({ messageId }) => ({
+        url: `/api/messages/${messageId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result) => [
+        ...(result
+          ? [
+              { type: "Message" as const, id: result.id },
+              { type: "Messages" as const, id: `CHAT_${result.chatId}` },
+              { type: "Chats" as const, id: "LIST" },
+              { type: "ChatAttachments" as const, id: `CHAT_${result.chatId}` },
+              { type: "ChatAttachments" as const, id: `${result.chatId}_image` },
+              { type: "ChatAttachments" as const, id: `${result.chatId}_file` },
+            ]
+          : []),
+      ],
+    }),
+
+    deleteMessagesBulk: builder.mutation<
+      { message: string; status: string; deletedIds: number[] },
+      DeleteMessagesBulkInput
+    >({
+      query: ({ messageIds }) => ({
+        url: "/api/messages/bulk",
+        method: "DELETE",
+        body: { messageIds },
+      }),
+      invalidatesTags: () => [
+        { type: "Chats" as const, id: "LIST" },
+        { type: "Messages" as const },
+        { type: "ChatAttachments" as const },
+      ],
+    }),
+
+    forwardMessages: builder.mutation<
+      { message: string; data: MessageData[] },
+      ForwardMessagesInput
+    >({
+      query: ({ messageIds, targetChatIds }) => ({
+        url: "/api/messages/forward",
+        method: "POST",
+        body: { messageIds, targetChatIds },
+      }),
+      invalidatesTags: (result) => {
+        const chatIds = new Set(
+          (result?.data ?? []).map((item) => item.chatId)
+        );
+        return [
+          { type: "Chats" as const, id: "LIST" },
+          ...[...chatIds].flatMap((chatId) => [
+            { type: "Messages" as const, id: `CHAT_${chatId}` },
+            { type: "ChatAttachments" as const, id: `CHAT_${chatId}` },
+            { type: "ChatAttachments" as const, id: `${chatId}_image` },
+            { type: "ChatAttachments" as const, id: `${chatId}_file` },
+          ]),
+        ];
+      },
+    }),
   }),
   overrideExisting: false,
 });
@@ -238,4 +362,8 @@ export const {
   useSendMessageMutation,
   useDeleteChatMutation,
   useCreateChatMutation,
+  useEditMessageMutation,
+  useDeleteMessageMutation,
+  useDeleteMessagesBulkMutation,
+  useForwardMessagesMutation,
 } = messagesApi;

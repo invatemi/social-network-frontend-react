@@ -8,3 +8,4 @@ export {
 } from "./ProfileSettingsProvider";
 export { ProfileMenu } from "./ui/ProfileMenu";
 export { SettingsModal } from "./ui/SettingsModal";
+export { AddAccountModal } from "./ui/AddAccountModal";

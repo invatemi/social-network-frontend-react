@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ChatCardProps } from "../lib";
 import style from "./ChatCard.module.css";
 
@@ -69,4 +70,4 @@ const ChatCard = ({
   );
 };
 
-export default ChatCard;
+export default memo(ChatCard);

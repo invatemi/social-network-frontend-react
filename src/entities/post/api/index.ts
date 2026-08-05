@@ -5,9 +5,6 @@ export {
   useDeletePostMutation,
   useToggleLikeMutation,
   useGetFeedPostsQuery,
-  useGetPostsFromFollowersQuery,
-  useGetPostsFromFollowingQuery,
-  useGetPostsFromFriendsQuery,
 } from "./postApi";
 
 export type { PostImageUploadUrlData } from "./postApi";

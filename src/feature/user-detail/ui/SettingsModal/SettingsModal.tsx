@@ -77,7 +77,9 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
   useEffect(() => {
     if (!isOpen) return;
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !isSaving && !password.isLoading) onClose();
+      if (e.key !== "Escape" || isSaving || password.isLoading) return;
+      e.preventDefault();
+      onClose();
     };
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);

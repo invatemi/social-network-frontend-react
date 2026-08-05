@@ -12,4 +12,4 @@ export { ToastProvider, useToast } from "./ui/Toast"
 
 export { getFriendButtonConfig } from "./lib"
 
-export { usePostSubscription } from "./hooks"
+export { useRateLimitCountdown } from "./hooks"

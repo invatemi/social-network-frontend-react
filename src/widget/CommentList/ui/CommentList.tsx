@@ -4,7 +4,7 @@ import { CommentForm } from "@/feature";
 import { Button } from "@/shared";
 import { commentApi, type Comment } from "@/entities/comment/api/commentApi";
 import { useCommentList } from "../hooks/useCommentList";
-import { usePostSubscription } from "@/shared/hooks";
+import { usePrefersReducedMotion } from "@/shared/hooks";
 import { useAppSelector, useAppDispatch } from "@/app/store/hooks";
 import { checkPresence, subscribeSocketStatus } from "@/app/lib/socket";
 import style from "./CommentList.module.css";
@@ -20,14 +20,14 @@ type GhostComment = {
   index: number;
 };
 
-const ANIM_MS = 420;
-const EXIT_MS = 340;
+const ANIM_MS = 280;
+const EXIT_MS = 240;
 
 /**
  * CommentList — список комментариев под постом
  */
 const CommentList = ({ postId, expanded = false }: CommentListProps) => {
-  usePostSubscription(postId);
+  const prefersReducedMotion = usePrefersReducedMotion();
   const dispatch = useAppDispatch();
   const { comments, isLoading, isError, error } = useCommentList(postId);
   const currentUserId = useAppSelector((state) => state.auth.user?.id);
@@ -62,11 +62,7 @@ const CommentList = ({ postId, expanded = false }: CommentListProps) => {
     const shell = shellRef.current;
     if (!shell) return;
 
-    const prefersReduced =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (prefersReduced) {
+    if (prefersReducedMotion) {
       setRenderExpanded(expanded);
       setShowForm(expanded);
       setShellHeight("auto");
@@ -115,7 +111,7 @@ const CommentList = ({ postId, expanded = false }: CommentListProps) => {
     }, ANIM_MS);
 
     return () => window.clearTimeout(timer);
-  }, [expanded]);
+  }, [expanded, prefersReducedMotion]);
 
   useEffect(() => {
     const prev = prevCommentsRef.current;
@@ -128,11 +124,7 @@ const CommentList = ({ postId, expanded = false }: CommentListProps) => {
 
     if (removed.length === 0) return;
 
-    const prefersReduced =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (prefersReduced) {
+    if (prefersReducedMotion) {
       setGhosts((g) => g.filter((ghost) => currentIds.has(ghost.comment.id)));
       setLeavingIds(new Set());
       return;
@@ -160,7 +152,7 @@ const CommentList = ({ postId, expanded = false }: CommentListProps) => {
     }, EXIT_MS);
 
     return () => window.clearTimeout(timer);
-  }, [comments]);
+  }, [comments, prefersReducedMotion]);
 
   useEffect(() => {
     const authorIds = comments.map((comment) => comment.author.id);

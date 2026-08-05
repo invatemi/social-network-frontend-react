@@ -64,7 +64,16 @@
 
 - Новые endpoints — через `baseApi.injectEndpoints` в `entities/*/api` или `app/store/api`.
 - Указывать `providesTags` / `invalidatesTags` для корректной инвалидации кэша.
+- Для горячих списков предпочитать `updateQueryData` вместо широкой invalidation (см. `message:new` в `socket.ts`).
 - Поиск пользователей (`searchUsers`) — без Bearer token в headers.
+
+## Performance
+
+- Leaf cards (`MessageCard`, `ChatCard`, `PostCard`, `CommentCard`) — `React.memo`.
+- Списки MessageList / PostList — windowing через `useWindowedRange` + `content-visibility`.
+- Presence: селектор `selectIsUserOnline` per-row; не подписывать весь `presence.byUserId`.
+- Анимации: `usePrefersReducedMotion` / `useEnterAnimation` в `shared/hooks`; CSS Modules, без animation libraries.
+- Feed cache: `getFeedPosts` merge capped (`env.posts.maxFeedItems`).
 
 ## Логирование
 

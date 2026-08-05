@@ -6,7 +6,7 @@
 
 | Переменная | По умолчанию | Использование |
 |------------|--------------|---------------|
-| `VITE_API_URL` | `http://localhost:8080` | Base URL для RTK Query (`env.apiUrl`) |
+| `VITE_API_URL` | `http://localhost:8088` | Base URL для RTK Query (`env.apiUrl`; `KRAKEND_EXTERNAL_PORT`) |
 | `VITE_WS_URL` | `http://localhost:3005` | Socket.IO hub (не через KrakenD) |
 
 Загрузка: `src/shared/config/env.ts`.
@@ -18,7 +18,8 @@
 | Токен | Хранение | Передача |
 |-------|----------|----------|
 | Access (JWT) | Redux `auth.accessToken` (память) | Header `Authorization: Bearer <token>` |
-| Refresh | HttpOnly cookie | `credentials: "include"` на auth-запросах |
+| Refresh | HttpOnly cookie `refreshToken` | `credentials: "include"` на auth-запросах |
+| Account session | HttpOnly cookie `accountSession` | Device vault: add/list/switch accounts |
 
 ### customBaseQuery
 
@@ -45,6 +46,9 @@
 | POST | `/api/auth/register` | Регистрация |
 | POST | `/api/auth/refresh` | Обновление access token |
 | POST | `/api/auth/logout` | Инвалидация refresh token |
+| GET | `/api/auth/accounts` | Список аккаунтов device vault |
+| POST | `/api/auth/accounts/add` | Добавить аккаунт в vault |
+| POST | `/api/auth/accounts/switch` | Переключить активный аккаунт |
 
 ## RTK Query
 

@@ -26,7 +26,11 @@ export type UseMessagePageReturn = {
   isLoadingMessages: boolean;
   handleChatSelect: (chatId: number) => void;
   handleCloseChat: () => void;
-  handleSendMessage: (text: string, files?: File[]) => Promise<void>;
+  handleSendMessage: (
+    text: string,
+    files?: File[],
+    options?: { replyToId?: number }
+  ) => Promise<void>;
   handleLoadMessages: (before?: string) => Promise<MessageData[]>;
   handleDeleteChat: () => Promise<void>;
   isMobileSidebarOpen: boolean;
@@ -57,7 +61,6 @@ export const useMessagePage = (
     data: messages = [],
     isLoading: isLoadingMessages,
     isFetching: isFetchingMessages,
-    refetch: refetchMessages,
   } = useGetMessagesQuery(
     { chatId: activeChatId!, limit: 50 },
     {
@@ -80,26 +83,7 @@ export const useMessagePage = (
     setActiveChatId(urlChatId);
   }, [urlChatId]);
 
-  useSocket("message:new", (message: MessageData) => {
-    if (message.chatId === activeChatIdRef.current) {
-      // Opening messages marks read on backend; keep sidebar badge at 0 for open chat
-      void refetchMessages().then(() => {
-        void refetchChats();
-      });
-      return;
-    }
-    refetchChats();
-  });
-
-  useSocket(
-    "chat:read",
-    (data: { chatId: number; readerId: number; lastReadAt: string }) => {
-      if (data.chatId === activeChatIdRef.current) {
-        // Cache patch handled in socket.ts; keep list in sync
-        void refetchMessages();
-      }
-    }
-  );
+  // message:new / chat:read cache patches live in app/lib/socket.ts
 
   useSocket(
     "chat:created",
@@ -109,7 +93,7 @@ export const useMessagePage = (
       chatName?: string | null;
       isGroup?: boolean;
     }) => {
-      refetchChats();
+      void refetchChats();
       if (currentUserId && data.participantIds.includes(currentUserId)) {
         joinChatRoom(data.chatId);
       }
@@ -155,7 +139,11 @@ export const useMessagePage = (
   }, [navigate]);
 
   const handleSendMessage = useCallback(
-    async (text: string, files?: File[]) => {
+    async (
+      text: string,
+      files?: File[],
+      options?: { replyToId?: number }
+    ) => {
       if (!activeChatId) return;
       const content = text.trim();
       const hasFiles = Boolean(files && files.length > 0);
@@ -180,6 +168,7 @@ export const useMessagePage = (
           chatId: activeChatId,
           content,
           attachments,
+          replyToId: options?.replyToId,
         }).unwrap();
       } catch (error) {
         console.error("Failed to send message:", error);

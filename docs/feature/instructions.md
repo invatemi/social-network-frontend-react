@@ -67,8 +67,9 @@ useSocket('message:new', (message) => {
 ### Profile settings (user-detail)
 
 - `ProfileMenu` — popover у кнопки в `AsidePageNav` (logout, настройки, добавить аккаунт)
+- `AddAccountModal` — логин дополнительного аккаунта в device vault
 - `SettingsModal` — редактирование никнейма/email/статуса/локации, аватар, смена пароля
-- `ProfileSettingsProvider` — единый `openSettings()` для aside и ProfileView
+- `ProfileSettingsProvider` — `openSettings()` / `openAddAccount()` для aside и ProfileView
 - Устаревшие роуты `/user/settings` и `/user/settings/password` редиректят на `/user`
 
 ## Бизнес-правила
@@ -79,8 +80,9 @@ useSocket('message:new', (message) => {
 
 ## Тесты
 
-- `ProfileMenu.test.tsx` — открытие/закрытие меню, переход в настройки
+- `ProfileMenu.test.tsx` — открытие/закрытие меню, настройки, add account
 - `SettingsModal.test.tsx` — поля профиля, overlay, шаг смены пароля
+- `AsidePageNav.test.tsx` — secondary account cards + switch
 
 ## Troubleshooting
 

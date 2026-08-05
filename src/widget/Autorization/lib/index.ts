@@ -1,2 +1,2 @@
-export { authSchema } from "./type"
-export type { AuthFormData } from "./type"
+export { authSchema } from "@/shared/lib/auth";
+export type { AuthFormData } from "@/shared/lib/auth";
